@@ -13,11 +13,40 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Optionally clear users table for dev only (uncomment if needed)
+        // \DB::table('users')->truncate();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $this->call(RolesAndPermissionsSeeder::class);
+
+        $admin = User::firstOrCreate(
+            [
+                'username' => 'admin',
+            ],
+            [
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+                'password' => bcrypt('password'),
+                'phone_number' => '1234567890',
+            ]
+        );
+        $data = User::firstOrCreate(
+            [
+                'username' => 'teacher',
+            ],
+            [
+                'name' => 'Teacher User',
+                'email' => 'teacher@example.com',
+                'password' => bcrypt('password'),
+                'phone_number' => '09824554321',
+            ]
+        );
+
+        // Assign roles if using spatie/laravel-permission
+        if (method_exists($admin, 'assignRole')) {
+            $admin->assignRole('admin');
+        }
+        if (method_exists($data, 'assignRole')) {
+            $data->assignRole('teacher');
+        }
     }
 }

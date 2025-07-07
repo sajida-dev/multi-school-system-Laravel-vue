@@ -18,6 +18,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: '/settings/appearance',
     },
+    {
+        title: 'Roles & Permissions',
+        href: '/settings/roles-permissions',
+    },
 ];
 
 const page = usePage();
@@ -32,15 +36,10 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
         <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav class="flex flex-col space-y-1 space-x-0">
-                    <Button
-                        v-for="item in sidebarNavItems"
-                        :key="item.href"
-                        variant="ghost"
-                        :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]"
-                        as-child
-                    >
+                    <Button v-for="item in sidebarNavItems" :key="item.href" variant="ghost"
+                        :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]" as-child>
                         <Link :href="item.href">
-                            {{ item.title }}
+                        {{ item.title }}
                         </Link>
                     </Button>
                 </nav>
@@ -48,8 +47,8 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
 
             <Separator class="my-6 md:hidden" />
 
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
+            <div class="flex-1 md:max-w-4xl">
+                <section class="max-w-4xl space-y-12">
                     <slot />
                 </section>
             </div>
