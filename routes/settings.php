@@ -22,4 +22,9 @@ Route::middleware('auth')->group(function () {
     Route::get('settings/roles-permissions', function () {
         return Inertia::render('settings/RolesPermissions');
     })->name('roles.settings');
+
+    // User Management page (admin only)
+    Route::middleware('role:admin')->get('settings/users', function () {
+        return Inertia::render('settings/Users');
+    })->name('settings.users');
 });

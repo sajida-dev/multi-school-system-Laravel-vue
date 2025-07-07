@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 import DeleteUser from '@/components/DeleteUser.vue';
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -37,7 +39,7 @@ const form = useForm({
     profile_photo: null as File | null,
 });
 
-const profilePhotoUrl = user.profile_photo_url || '';
+const profilePhotoUrl = user.profile_photo_url || '/storage/default-profile.png';
 const photoPreview = ref<string | null>(null);
 
 const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
@@ -85,6 +87,10 @@ const submit = () => {
         forceFormData: true,
         onSuccess: () => {
             photoPreview.value = null;
+            toast.success('Profile updated successfully!');
+        },
+        onError: () => {
+            toast.error('Failed to update profile!');
         },
     });
 };
@@ -159,7 +165,8 @@ const submit = () => {
                             Your email address is unverified.
                         </p>
                         <Link :href="route('verification.send')" method="post" as="button"
-                            class="inline-block w-fit text-sm font-semibold text-yellow-700 dark:text-yellow-200 underline underline-offset-4 hover:text-yellow-900 dark:hover:text-yellow-100 transition">
+                            class="inline-block w-fit text-sm font-semibold text-yellow-700 dark:text-yellow-200 underline underline-offset-4 hover:text-yellow-900 dark:hover:text-yellow-100 transition"
+                            @success="() => toast.success('Verification email sent!')">
                         Click here to resend the verification email.
                         </Link>
                         <div v-if="status === 'verification-link-sent'"

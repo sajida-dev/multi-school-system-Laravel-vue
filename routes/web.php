@@ -19,5 +19,11 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('users-roles', [App\Http\Controllers\Admin\UserRoleController::class, 'destroy']);
 });
 
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index']);
+    Route::get('/roles', [\App\Http\Controllers\Admin\UserController::class, 'roles']);
+    Route::post('/users/{id}/roles', [\App\Http\Controllers\Admin\UserController::class, 'assignRoles']);
+});
+
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

@@ -27,6 +27,16 @@ const sidebarNavItems: NavItem[] = [
 const page = usePage();
 
 const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.location).pathname : '';
+
+// Add User Management link for admins
+const user = page.props.auth?.user as any;
+const userRoles = (user && Array.isArray(user.roles)) ? user.roles : [];
+if (userRoles.some((r: any) => r.name === 'admin')) {
+    sidebarNavItems.push({
+        title: 'User Management',
+        href: '/settings/users',
+    });
+}
 </script>
 
 <template>

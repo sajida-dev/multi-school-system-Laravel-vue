@@ -66,4 +66,13 @@ class User extends Authenticatable implements MustVerifyEmail
         // Return a default image if no profile photo is set
         return asset('images/default-profile.png');
     }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'profile_photo_url',
+    ];
 }

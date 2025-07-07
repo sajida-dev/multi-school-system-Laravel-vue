@@ -14,20 +14,69 @@ const mainNavItems: NavItem[] = [
         href: '/dashboard',
         icon: LayoutGrid,
     },
-];
-
-const footerNavItems: NavItem[] = [
     {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
+        title: 'Schools',
+        href: '/schools',
         icon: Folder,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
+        title: 'Students',
+        href: '/students',
+        icon: Folder,
+    },
+    {
+        title: 'Classes',
+        href: '/classes',
+        icon: Folder,
+    },
+    {
+        title: 'Teachers',
+        href: '/teachers',
+        icon: Folder,
+    },
+    {
+        title: 'Admissions',
+        href: '/admissions',
+        icon: Folder,
+    },
+    {
+        title: 'Fees',
+        href: '/fees',
+        icon: Folder,
+    },
+    {
+        title: 'Papers',
+        href: '/papers',
+        icon: Folder,
+    },
+    {
+        title: 'Exams',
+        href: '/exams',
+        icon: Folder,
+    },
+    {
+        title: 'Results',
+        href: '/results',
+        icon: Folder,
+    },
+    {
+        title: 'Reports',
+        href: '/reports',
+        icon: Folder,
+    },
+    {
+        title: 'Installments',
+        href: '/installments',
+        icon: Folder,
+    },
+    {
+        title: 'Certificates',
+        href: '/certificates',
+        icon: Folder,
     },
 ];
+
+const footerNavItems: NavItem[] = [];
 </script>
 
 <template>
@@ -37,7 +86,7 @@ const footerNavItems: NavItem[] = [
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
                         <Link :href="route('dashboard')">
-                            <AppLogo />
+                        <AppLogo />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

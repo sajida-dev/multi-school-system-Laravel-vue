@@ -48,5 +48,7 @@ class DatabaseSeeder extends Seeder
         if (method_exists($data, 'assignRole')) {
             $data->assignRole('teacher');
         }
+
+        $this->call(\Modules\Admissions\Database\Seeders\AdmissionsDatabaseSeeder::class);
     }
 }
