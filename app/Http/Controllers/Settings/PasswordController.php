@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Mail\PasswordUpdatedMail;
+use Illuminate\Support\Facades\Mail;
 
 class PasswordController extends Controller
 {
@@ -34,6 +36,12 @@ class PasswordController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        return back();
+        // Send password update notification email
+        Mail::to($request->user()->email)->send(
+            new PasswordUpdatedMail($request->user(), $request->ip())
+        );
+
+        // Show a success notification (Inertia flash)
+        return back()->with('success', 'Your password has been updated successfully. For your security, we have sent you a confirmation email.');
     }
 }

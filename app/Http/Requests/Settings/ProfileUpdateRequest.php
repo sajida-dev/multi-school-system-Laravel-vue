@@ -15,6 +15,8 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Debug: dump all request data to verify inputs
+        dd($this->all());
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -24,6 +26,12 @@ class ProfileUpdateRequest extends FormRequest
                 'email',
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
+            ],
+            'profile_photo' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png',
+                'max:2048', // 2MB
             ],
         ];
     }

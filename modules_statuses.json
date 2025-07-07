@@ -1,3 +1,5 @@
 {
-    "Admissions": true
+    "Admissions": true,
+    "Exams": true,
+    "Fees": true
 }

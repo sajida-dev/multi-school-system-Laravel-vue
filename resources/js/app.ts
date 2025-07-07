@@ -6,8 +6,9 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import Vue3Toastify, {toast} from 'vue3-toastify'
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Multi Schools System';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -16,10 +17,15 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(Vue3Toastify, {
+                autoClose: 3000,
+                position: "top-right",
+                theme: "light",
+            })
             .mount(el);
     },
     progress: {
-        color: '#4B5563',
+        color: 'rgb(234, 179, 8)',
     },
 });
 
