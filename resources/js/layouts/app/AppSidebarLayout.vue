@@ -51,10 +51,14 @@ watch(
 
 <template>
     <AppShell variant="sidebar">
-        <AppSidebar />
-        <AppContent variant="sidebar" class="overflow-x-hidden">
-            <AppSidebarHeader :breadcrumbs="breadcrumbs" />
-            <slot />
-        </AppContent>
+        <div class="flex min-h-screen h-full w-full">
+            <AppSidebar />
+            <div class="flex-1 flex flex-col min-w-0">
+                <AppSidebarHeader :breadcrumbs="breadcrumbs" />
+                <AppContent variant="sidebar" class="flex flex-col overflow-x-hidden">
+                    <slot />
+                </AppContent>
+            </div>
+        </div>
     </AppShell>
 </template>

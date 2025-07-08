@@ -1,121 +1,428 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Head } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
-import Dialog from '@/components/ui/dialog/Dialog.vue';
-import DialogContent from '@/components/ui/dialog/DialogContent.vue';
-import { toast } from 'vue3-toastify';
-
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    roles: { id: number; name: string }[];
-}
-interface Role {
-    id: number;
-    name: string;
-}
-
-const users = ref<User[]>([]);
-const roles = ref<Role[]>([]);
-const loading = ref(true);
-const showRoleModal = ref(false);
-const selectedUser = ref<User | null>(null);
-const selectedRoles = ref<number[]>([]);
-
-const fetchUsersAndRoles = async () => {
-    loading.value = true;
-    const [usersRes, rolesRes] = await Promise.all([
-        fetch('/admin/users'),
-        fetch('/admin/roles'),
-    ]);
-    users.value = await usersRes.json();
-    roles.value = await rolesRes.json();
-    loading.value = false;
-};
-
-onMounted(fetchUsersAndRoles);
-
-const openRoleModal = (user: User) => {
-    selectedUser.value = user;
-    selectedRoles.value = user.roles.map(r => r.id);
-    showRoleModal.value = true;
-};
-
-const saveRoles = async () => {
-    if (!selectedUser.value) return;
-    const res = await fetch(`/admin/users/${selectedUser.value.id}/roles`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roles: selectedRoles.value }),
-    });
-    if (res.ok) {
-        toast.success(`Roles updated for ${selectedUser.value.name}!`);
-        // Update local user roles
-        const updatedRoles = roles.value.filter(r => selectedRoles.value.includes(r.id));
-        const idx = users.value.findIndex(u => u.id === selectedUser.value!.id);
-        if (idx !== -1) users.value[idx].roles = updatedRoles;
-        showRoleModal.value = false;
-    } else {
-        toast.error('Failed to update roles!');
-    }
-};
-</script>
-
 <template>
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="User Management" />
         <SettingsLayout>
-            <div class="max-w-3xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
+            <div class="max-w-4xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
                 <h1 class="text-2xl font-bold mb-6">User Management</h1>
-                <div class="bg-white dark:bg-neutral-900 rounded-lg p-6">
-                    <div v-if="loading" class="text-center py-8 text-muted-foreground">Loading users...</div>
-                    <table v-else class="w-full text-left border-collapse">
-                        <thead>
-                            <tr>
-                                <th class="py-2 px-4">Name</th>
-                                <th class="py-2 px-4">Email</th>
-                                <th class="py-2 px-4">Roles</th>
-                                <th class="py-2 px-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="user in users" :key="user.id">
-                                <td class="py-2 px-4">{{ user.name }}</td>
-                                <td class="py-2 px-4">{{ user.email }}</td>
-                                <td class="py-2 px-4">
-                                    <span v-for="role in user.roles" :key="role.id"
-                                        class="inline-block bg-gray-200 dark:bg-neutral-700 rounded px-2 py-1 text-xs mr-1">{{
-                                        role.name }}</span>
-                                </td>
-                                <td class="py-2 px-4">
-                                    <button @click="openRoleModal(user)"
-                                        class="px-3 py-1 rounded bg-primary text-white text-sm">Edit Roles</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <p class="mb-4 text-sm text-muted-foreground">Manage users and their roles. Search, filter, and assign
+                    roles to users.</p>
+
+                <!-- Filters -->
+                <div class="mb-6 p-4 rounded shadow bg-gray-100 dark:bg-neutral-800">
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search
+                                Users</label>
+                            <input v-model="filters.search" type="text" placeholder="Search by name or email..."
+                                class="w-full px-3 py-2 rounded border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                                @input="debouncedSearch" />
+                        </div>
+                        <div class="w-full sm:w-48">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by
+                                Role</label>
+                            <select v-model="filters.role"
+                                class="w-full px-3 py-2 rounded border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                                @change="applyFilters">
+                                <option value="">All Roles</option>
+                                <option v-for="role in roles" :key="role.id" :value="role.name">
+                                    {{ role.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-32">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Per
+                                Page</label>
+                            <select v-model="filters.per_page"
+                                class="w-full px-3 py-2 rounded border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                                @change="applyFilters">
+                                <option value="10">10</option>
+                                <option value="15">15</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <Dialog v-model:open="showRoleModal">
-                    <DialogContent :title="selectedUser ? `Assign Roles to ${selectedUser.name}` : ''">
-                        <form @submit.prevent="saveRoles" class="flex flex-col gap-3">
-                            <div v-for="role in roles" :key="role.id" class="flex items-center gap-2">
-                                <input type="checkbox" :id="`role-${role.id}`" :value="role.id"
-                                    v-model="selectedRoles" />
-                                <label :for="`role-${role.id}`">{{ role.name }}</label>
+
+                <!-- Users Table -->
+                <div
+                    class="bg-white dark:bg-neutral-900 rounded-lg shadow border border-gray-200 dark:border-neutral-800">
+                    <div class="p-6">
+                        <div v-if="loading" class="text-center py-8 text-muted-foreground">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                            <p class="mt-2">Loading users...</p>
+                        </div>
+
+                        <div v-else-if="users.data && users.data.length === 0"
+                            class="text-center py-8 text-muted-foreground">
+                            <p>No users found</p>
+                        </div>
+
+                        <div v-else class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-neutral-800">
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                                            Name</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                                            Email</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                                            Roles</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                                            Joined</th>
+                                        <th class="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                                            Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="user in users.data" :key="user.id"
+                                        class="border-b border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 transition">
+                                        <td class="py-3 px-4">
+                                            <div class="flex items-center space-x-3">
+                                                <div
+                                                    class="h-8 w-8 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    {{ getInitials(user.name) }}
+                                                </div>
+                                                <span class="font-medium text-gray-900 dark:text-gray-100">{{ user.name
+                                                }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-gray-600 dark:text-gray-400">{{ user.email }}</td>
+                                        <td class="py-3 px-4">
+                                            <div class="space-y-1">
+                                                <div class="flex flex-wrap gap-1.5 max-w-xs">
+                                                    <span v-for="role in user.roles" :key="role.id" :class="[
+                                                        'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium shadow-sm',
+                                                        role.name === 'admin' && isCurrentUser(user.id)
+                                                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800'
+                                                            : role.name === 'admin'
+                                                                ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
+                                                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
+                                                    ]">
+                                                        <span class="truncate max-w-16">{{ role.name }}</span>
+                                                        <button v-if="!isCurrentUser(user.id) || role.name !== 'admin'"
+                                                            @click="removeRole(user.id, role.id)"
+                                                            class="ml-1.5 text-current hover:opacity-75 transition-opacity"
+                                                            title="Remove role">
+                                                            <svg class="w-3 h-3" fill="currentColor"
+                                                                viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                        </button>
+                                                        <span v-else class="ml-1.5 text-xs opacity-60"
+                                                            title="Cannot remove your own admin role">
+                                                            <svg class="w-3 h-3" fill="currentColor"
+                                                                viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd"
+                                                                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                                                                    clip-rule="evenodd" />
+                                                            </svg>
+                                                        </span>
+                                                    </span>
+                                                    <span v-if="user.roles.length === 0"
+                                                        class="text-gray-400 dark:text-gray-500 text-sm italic">No roles
+                                                        assigned</span>
+                                                </div>
+
+                                            </div>
+                                        </td>
+                                        <td class="py-3 px-4 text-gray-600 dark:text-gray-400 text-sm">
+                                            {{ formatDate(user.created_at) }}
+                                        </td>
+                                        <td class="py-3 px-4">
+                                            <button @click="openAssignRoleModal(user)"
+                                                class="px-3 py-1.5 rounded shadow bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition text-sm">
+                                                Assign Role
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div v-if="users.data && users.data.length > 0" class="mt-6 flex items-center justify-between">
+                            <div class="text-sm text-muted-foreground">
+                                Showing {{ users.from }} to {{ users.to }} of {{ users.total }} results
                             </div>
-                            <div class="flex gap-2 justify-end mt-4">
-                                <button type="button" @click="showRoleModal = false"
-                                    class="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700">Cancel</button>
-                                <button type="submit" class="px-3 py-1 rounded bg-primary text-white">Save</button>
+                            <div class="flex space-x-2">
+                                <button :disabled="!users.prev_page_url" @click="changePage(users.current_page - 1)"
+                                    class="px-3 py-1.5 rounded shadow bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                                    Previous
+                                </button>
+                                <button :disabled="!users.next_page_url" @click="changePage(users.current_page + 1)"
+                                    class="px-3 py-1.5 rounded shadow bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                                    Next
+                                </button>
                             </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assign Role Modal -->
+                <div v-if="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-6 w-full max-w-sm mx-auto">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Assign Role</h3>
+                        <p class="mb-4 text-gray-600 dark:text-gray-400">Assign a role to {{ selectedUser?.name }}</p>
+
+                        <div class="space-y-4">
+                            <div v-if="selectedUser && isCurrentUser(selectedUser.id)"
+                                class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                                <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                                    <strong>Note:</strong> You cannot assign admin role to yourself for security
+                                    reasons.
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select
+                                    Role</label>
+                                <select v-model="selectedRoleId"
+                                    class="w-full px-3 py-2 rounded border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+                                    <option value="" class="text-gray-900 dark:text-gray-100">Choose a role...</option>
+                                    <option v-for="role in availableRoles" :key="role.id" :value="role.id"
+                                        class="text-gray-900 dark:text-gray-100">
+                                        {{ role.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 justify-end mt-6">
+                            <button @click="showAssignModal = false"
+                                class="px-4 py-2 rounded bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 transition">
+                                Cancel
+                            </button>
+                            <button @click="assignRole" :disabled="!selectedRoleId || assigningRole"
+                                class="px-4 py-2 rounded bg-primary text-white dark:text-black hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                {{ assigningRole ? 'Assigning...' : 'Assign Role' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </SettingsLayout>
     </AppLayout>
 </template>
+
+<script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue'
+import { Head, router } from '@inertiajs/vue3'
+import AppLayout from '@/layouts/AppLayout.vue'
+import SettingsLayout from '@/layouts/settings/Layout.vue'
+import { toast } from 'vue3-toastify'
+import { type BreadcrumbItem } from '@/types'
+
+// Props from Inertia
+const props = defineProps<{
+    users: any
+    roles: any[]
+    filters: {
+        search: string
+        role: string
+        per_page: number
+    }
+    auth: {
+        user: {
+            id: number
+            name: string
+            email: string
+        }
+    }
+}>()
+
+// Reactive state
+const loading = ref(false)
+const showAssignModal = ref(false)
+const selectedUser = ref<any>(null)
+const selectedRoleId = ref('')
+const assigningRole = ref(false)
+
+// Filters state
+const filters = reactive({
+    search: props.filters.search || '',
+    role: props.filters.role || '',
+    per_page: props.filters.per_page || 15
+})
+
+// Users data
+const users = ref(props.users)
+const roles = ref(props.roles)
+
+// Check if user is current user
+const isCurrentUser = (userId: number) => {
+    return props.auth?.user?.id === userId
+}
+
+// Computed
+const availableRoles = computed(() => {
+    if (!selectedUser.value) return roles.value
+    const userRoleIds = selectedUser.value.roles.map((r: any) => r.id)
+    let filteredRoles = roles.value.filter(role => !userRoleIds.includes(role.id))
+
+    // Prevent current user from assigning admin role to themselves
+    if (isCurrentUser(selectedUser.value.id)) {
+        filteredRoles = filteredRoles.filter(role => role.name !== 'admin')
+    }
+
+    return filteredRoles
+})
+
+// Debounced search
+let searchTimeout: number
+const debouncedSearch = () => {
+    clearTimeout(searchTimeout)
+    searchTimeout = setTimeout(() => {
+        applyFilters()
+    }, 300)
+}
+
+// Apply filters and fetch data
+const applyFilters = async () => {
+    loading.value = true
+    try {
+        const params = new URLSearchParams({
+            search: filters.search,
+            role: filters.role,
+            per_page: filters.per_page.toString(),
+            page: '1' // Reset to first page when filtering
+        })
+
+        // Use Inertia to navigate with new filters
+        router.get('/settings/users', Object.fromEntries(params))
+    } catch (error) {
+        console.error('Error applying filters:', error)
+        toast.error('Failed to apply filters')
+    } finally {
+        loading.value = false
+    }
+}
+
+// Change page
+const changePage = async (page: number) => {
+    loading.value = true
+    try {
+        const params = new URLSearchParams({
+            search: filters.search,
+            role: filters.role,
+            per_page: filters.per_page.toString(),
+            page: page.toString()
+        })
+
+        // Use Inertia to navigate to new page
+        router.get('/settings/users', Object.fromEntries(params))
+    } catch (error) {
+        console.error('Error changing page:', error)
+        toast.error('Failed to change page')
+    } finally {
+        loading.value = false
+    }
+}
+
+// Open assign role modal
+const openAssignRoleModal = (user: any) => {
+    selectedUser.value = user
+    selectedRoleId.value = ''
+    showAssignModal.value = true
+}
+
+// Assign role
+const assignRole = async () => {
+    if (!selectedRoleId.value || !selectedUser.value) return
+
+    assigningRole.value = true
+    try {
+        const response = await fetch('/settings/user-management/assign-role', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+                user_id: selectedUser.value.id,
+                role_id: selectedRoleId.value
+            })
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+            toast.success(data.message)
+
+            // Update the user's roles in the local state
+            const assignedRole = roles.value.find((r: any) => r.id === parseInt(selectedRoleId.value))
+            if (assignedRole) {
+                selectedUser.value.roles.push(assignedRole)
+            }
+
+            showAssignModal.value = false
+            selectedUser.value = null
+            selectedRoleId.value = ''
+        } else {
+            toast.error(data.message || 'Failed to assign role')
+        }
+    } catch (error) {
+        console.error('Error assigning role:', error)
+        toast.error('Failed to assign role')
+    } finally {
+        assigningRole.value = false
+    }
+}
+
+// Remove role
+const removeRole = async (userId: number, roleId: number) => {
+    try {
+        const response = await fetch('/settings/user-management/remove-role', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                role_id: roleId
+            })
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+            toast.success(data.message)
+
+            // Update the user's roles in the local state
+            const userIndex = users.value.data.findIndex((u: any) => u.id === userId)
+            if (userIndex !== -1) {
+                users.value.data[userIndex].roles = users.value.data[userIndex].roles.filter((r: any) => r.id !== roleId)
+            }
+        } else {
+            toast.error(data.message || 'Failed to remove role')
+        }
+    } catch (error) {
+        console.error('Error removing role:', error)
+        toast.error('Failed to remove role')
+    }
+}
+
+// Utility functions
+const getInitials = (name: string) => {
+    return name
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+}
+
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString()
+}
+
+const breadcrumbItems: BreadcrumbItem[] = [
+    {
+        title: 'User management',
+        href: '/settings/users',
+    },
+];
+</script>

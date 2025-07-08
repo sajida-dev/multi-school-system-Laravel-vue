@@ -15,20 +15,32 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { getInitials } = useInitials();
 
-// Compute whether we should show the avatar image
-const showAvatar = computed(() => props.user.avatar && props.user.avatar !== '');
+// Compute the avatar source
+const avatarSrc = computed(() => {
+    // Use the profile_photo_url accessor if available
+    if (props.user.profile_photo_url) {
+        return props.user.profile_photo_url;
+    }
+
+    // Return default profile image
+    return '/storage/default-profile.png';
+});
+
+// Always show avatar since we have a default
+const showAvatar = computed(() => true);
 </script>
 
 <template>
-    <Avatar class="h-8 w-8 overflow-hidden rounded-lg">
-        <AvatarImage v-if="showAvatar" :src="user.avatar!" :alt="user.name" />
-        <AvatarFallback class="rounded-lg text-black dark:text-white">
+    <Avatar class="h-10 w-10 rounded-full border-2 border-sidebar-accent">
+        <AvatarImage :src="avatarSrc" :alt="user.name" class="object-cover w-full h-full rounded-full" />
+        <AvatarFallback class="rounded-full text-white  bg-gradient-to-br from-blue-900 to-purple-900 font-semibold">
             {{ getInitials(user.name) }}
         </AvatarFallback>
     </Avatar>
 
     <div class="grid flex-1 text-left text-sm leading-tight">
-        <span class="truncate font-medium">{{ user.name }}</span>
+        <span class="truncate font-semibold text-sidebar-foreground">{{ user.name }}</span>
         <span v-if="showEmail" class="truncate text-xs text-muted-foreground">{{ user.email }}</span>
+        <span v-else class="truncate text-xs text-muted-foreground">Administrator</span>
     </div>
 </template>

@@ -64,7 +64,7 @@ class User extends Authenticatable implements MustVerifyEmail
             return asset('storage/' . $this->profile_photo_path);
         }
         // Return a default image if no profile photo is set
-        return asset('images/default-profile.png');
+        return asset('storage/default-profile.png');
     }
 
     /**

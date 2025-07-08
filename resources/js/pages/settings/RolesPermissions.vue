@@ -12,6 +12,7 @@ import { toast } from 'vue3-toastify'
 import { Trash2, Plus } from 'lucide-vue-next'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'
+import { type BreadcrumbItem } from '@/types';
 
 interface Role {
     id: number
@@ -180,10 +181,18 @@ const deletePermission = () => {
         onError: () => toast.error('Failed to delete permission!')
     })
 }
+
+
+const breadcrumbItems: BreadcrumbItem[] = [
+    {
+        title: 'Roles and Permissions settings',
+        href: '/settings/roles-permissions',
+    },
+];
 </script>
 
 <template>
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Roles & Permissions" />
         <SettingsLayout>
@@ -215,7 +224,7 @@ const deletePermission = () => {
                                 class="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700">Cancel</button>
                         </form>
                         <div v-if="newRoleForm.errors.name" class="text-xs text-red-600 mt-1">{{ newRoleForm.errors.name
-                        }}</div>
+                            }}</div>
                     </div>
                     <div v-if="loading" class="text-center py-8 text-muted-foreground">Loading roles...</div>
                     <div v-else class="space-y-4">

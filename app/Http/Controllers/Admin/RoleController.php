@@ -17,7 +17,7 @@ class RoleController extends Controller
     {
         // Eager load permissions for each role
         return response()->json(
-            \Spatie\Permission\Models\Role::with('permissions')->get()
+            Role::with('permissions')->get()
         );
     }
 

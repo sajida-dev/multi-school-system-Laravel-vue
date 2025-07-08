@@ -2,10 +2,25 @@
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Building2,
+    GraduationCap,
+    Users,
+    School,
+    UserPlus,
+    CreditCard,
+    FileText,
+    ClipboardList,
+    BarChart3,
+    Receipt,
+    Award,
+    LayoutGrid,
+    Settings
+} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -17,62 +32,62 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Schools',
         href: '/schools',
-        icon: Folder,
+        icon: Building2,
     },
     {
         title: 'Students',
         href: '/students',
-        icon: Folder,
+        icon: GraduationCap,
     },
     {
         title: 'Classes',
         href: '/classes',
-        icon: Folder,
+        icon: School,
     },
     {
         title: 'Teachers',
         href: '/teachers',
-        icon: Folder,
+        icon: Users,
     },
     {
         title: 'Admissions',
         href: '/admissions',
-        icon: Folder,
+        icon: UserPlus,
     },
     {
         title: 'Fees',
         href: '/fees',
-        icon: Folder,
+        icon: CreditCard,
     },
     {
         title: 'Papers',
         href: '/papers',
-        icon: Folder,
+        icon: FileText,
     },
     {
         title: 'Exams',
         href: '/exams',
-        icon: Folder,
+        icon: ClipboardList,
     },
     {
         title: 'Results',
         href: '/results',
-        icon: Folder,
+        icon: BarChart3,
     },
     {
         title: 'Reports',
         href: '/reports',
-        icon: Folder,
+        icon: BarChart3,
     },
     {
         title: 'Installments',
         href: '/installments',
-        icon: Folder,
+        icon: Receipt,
     },
     {
         title: 'Certificates',
         href: '/certificates',
-        icon: Folder,
+        icon: Award,
     },
 ];
 
@@ -80,7 +95,7 @@ const footerNavItems: NavItem[] = [];
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="inset" class="bg-white dark:bg-black">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -98,7 +113,9 @@ const footerNavItems: NavItem[] = [];
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
+            <SidebarGroup class="px-2 py-0">
+                <NavFooter :items="footerNavItems" />
+            </SidebarGroup>
             <NavUser />
         </SidebarFooter>
     </Sidebar>

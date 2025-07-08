@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -23,8 +24,10 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('settings/RolesPermissions');
     })->name('roles.settings');
 
-    // User Management page (admin only)
-    Route::middleware('role:admin')->get('settings/users', function () {
-        return Inertia::render('settings/Users');
-    })->name('settings.users');
+    // User Management routes (admin only) - Using UserManagementController
+    Route::middleware('role:admin')->group(function () {
+        Route::get('settings/users', [UserManagementController::class, 'index'])->name('settings.users');
+        Route::post('settings/user-management/assign-role', [UserManagementController::class, 'assignRole'])->name('settings.user-management.assign-role');
+        Route::delete('settings/user-management/remove-role', [UserManagementController::class, 'removeRole'])->name('settings.user-management.remove-role');
+    });
 });
