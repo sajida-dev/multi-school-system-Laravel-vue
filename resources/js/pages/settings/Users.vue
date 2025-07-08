@@ -75,6 +75,7 @@
                                             Actions</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     <tr v-for="user in users.data" :key="user.id"
                                         class="border-b border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 transition">
@@ -166,7 +167,8 @@
                 <div v-if="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                     <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-6 w-full max-w-sm mx-auto">
                         <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Assign Role</h3>
-                        <p class="mb-4 text-gray-600 dark:text-gray-400">Assign a role to {{ selectedUser?.name }}</p>
+                        <p class="mb-4 text-gray-600 dark:text-gray-400" id="assign-role-desc">Assign a role to {{
+                            selectedUser?.name }}</p>
 
                         <div class="space-y-4">
                             <div v-if="selectedUser && isCurrentUser(selectedUser.id)"
@@ -209,7 +211,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, router, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SettingsLayout from '@/layouts/settings/Layout.vue'
 import { toast } from 'vue3-toastify'
@@ -237,7 +239,7 @@ const props = defineProps<{
 const loading = ref(false)
 const showAssignModal = ref(false)
 const selectedUser = ref<any>(null)
-const selectedRoleId = ref('')
+const selectedRoleId = ref<number | null>(null)
 const assigningRole = ref(false)
 
 // Filters state
@@ -324,86 +326,79 @@ const changePage = async (page: number) => {
 // Open assign role modal
 const openAssignRoleModal = (user: any) => {
     selectedUser.value = user
-    selectedRoleId.value = ''
+    selectedRoleId.value = null
     showAssignModal.value = true
 }
 
 // Assign role
-const assignRole = async () => {
-    if (!selectedRoleId.value || !selectedUser.value) return
+const assignRoleForm = useForm({
+    user_id: null as number | null,
+    role_id: null as number | null,
+});
 
-    assigningRole.value = true
-    try {
-        const response = await fetch('/settings/user-management/assign-role', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: JSON.stringify({
-                user_id: selectedUser.value.id,
-                role_id: selectedRoleId.value
-            })
-        })
+const assignRole = () => {
+    if (!selectedRoleId.value || !selectedUser.value) return;
 
-        const data = await response.json()
+    assignRoleForm.user_id = selectedUser.value.id;
+    assignRoleForm.role_id = selectedRoleId.value;
 
-        if (data.success) {
-            toast.success(data.message)
-
-            // Update the user's roles in the local state
-            const assignedRole = roles.value.find((r: any) => r.id === parseInt(selectedRoleId.value))
-            if (assignedRole) {
-                selectedUser.value.roles.push(assignedRole)
+    assignRoleForm.post('/settings/user-management/assign-role', {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Role assigned successfully');
+            // Update local state
+            const userIndex = users.value.data.findIndex((u: any) => u.id === selectedUser.value.id);
+            const assignedRole = roles.value.find((r: any) => r.id === selectedRoleId.value);
+            if (userIndex !== -1 && assignedRole) {
+                if (!users.value.data[userIndex].roles.some((r: any) => r.id === assignedRole.id)) {
+                    users.value.data[userIndex].roles.push(assignedRole);
+                }
             }
-
-            showAssignModal.value = false
-            selectedUser.value = null
-            selectedRoleId.value = ''
-        } else {
-            toast.error(data.message || 'Failed to assign role')
+            showAssignModal.value = false;
+            selectedUser.value = null;
+            selectedRoleId.value = null;
+        },
+        onError: (errors) => {
+            Object.values(errors).flat().forEach(message => toast.error(message));
+        },
+        onFinish: () => {
+            assignRoleForm.reset();
+            assignRoleForm.user_id = null;
+            assignRoleForm.role_id = null;
         }
-    } catch (error) {
-        console.error('Error assigning role:', error)
-        toast.error('Failed to assign role')
-    } finally {
-        assigningRole.value = false
-    }
-}
+    });
+};
 
 // Remove role
-const removeRole = async (userId: number, roleId: number) => {
-    try {
-        const response = await fetch('/settings/user-management/remove-role', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                role_id: roleId
-            })
-        })
+const removeRoleForm = useForm({
+    user_id: null as number | null,
+    role_id: null as number | null,
+});
 
-        const data = await response.json()
+const removeRole = (userId: number, roleId: number) => {
+    removeRoleForm.user_id = userId;
+    removeRoleForm.role_id = roleId;
 
-        if (data.success) {
-            toast.success(data.message)
-
-            // Update the user's roles in the local state
-            const userIndex = users.value.data.findIndex((u: any) => u.id === userId)
+    removeRoleForm.delete('/settings/user-management/remove-role', {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('Role removed successfully');
+            // Update local state
+            const userIndex = users.value.data.findIndex((u: any) => u.id === userId);
             if (userIndex !== -1) {
-                users.value.data[userIndex].roles = users.value.data[userIndex].roles.filter((r: any) => r.id !== roleId)
+                users.value.data[userIndex].roles = users.value.data[userIndex].roles.filter((r: any) => r.id !== roleId);
             }
-        } else {
-            toast.error(data.message || 'Failed to remove role')
+        },
+        onError: (errors) => {
+            Object.values(errors).flat().forEach(message => toast.error(message));
+        },
+        onFinish: () => {
+            removeRoleForm.reset();
+            removeRoleForm.user_id = null;
+            removeRoleForm.role_id = null;
         }
-    } catch (error) {
-        console.error('Error removing role:', error)
-        toast.error('Failed to remove role')
-    }
-}
+    });
+};
 
 // Utility functions
 const getInitials = (name: string) => {

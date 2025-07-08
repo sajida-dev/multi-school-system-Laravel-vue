@@ -12,9 +12,11 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { LayoutGrid, Search, AlignJustify, Bell } from 'lucide-vue-next';
+import { LayoutGrid, Search, AlignJustify, Bell, Monitor, Moon, Sun, Search as SearchIcon } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import NotificationDropdown from '@/components/NotificationDropdown.vue';
+import { useAppearance } from '@/composables/useAppearance';
+import ThemeSwitch from '@/components/ThemeSwitch.vue';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -57,27 +59,51 @@ function markNotificationRead(notificationOrId: any) {
     const n = notifications.value.find(n => n.id === id);
     if (n) n.read = true;
 }
+
+const { appearance, updateAppearance } = useAppearance();
+const searchQuery = ref('');
+
+const themeTabs = [
+    { value: 'light', Icon: Sun, label: 'Light' },
+    { value: 'dark', Icon: Moon, label: 'Dark' },
+    { value: 'system', Icon: Monitor, label: 'System' },
+] as const;
+
+function onSearch() {
+    // You can emit or handle search here
+    // For now, just log
+    if (searchQuery.value.trim()) {
+        // Implement your search logic or Inertia visit here
+        // router.get(route('search'), { q: searchQuery.value })
+        // For now:
+        console.log('Search:', searchQuery.value);
+    }
+}
 </script>
 <template>
     <div class="">
         <div class="border-b border-sidebar-border/80">
             <div class="mx-auto flex h-16 items-center justify-between px-4 md:max-w-7xl">
-
                 <!-- Only show logo in header on mobile -->
                 <Link :href="route('dashboard')" class="flex items-center gap-x-2 lg:hidden">
                 <AppLogo />
                 </Link>
-
-
+                <!-- Search bar and theme switcher -->
+                <div class="flex items-center gap-2 flex-1">
+                    <form @submit.prevent="onSearch" class="relative w-full max-w-xs hidden md:block">
+                        <input v-model="searchQuery" type="text" placeholder="Search..."
+                            class="w-full rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 py-2 pl-9 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary/40 transition" />
+                        <SearchIcon class="absolute left-2 top-2.5 h-4 w-4 text-gray-400 dark:text-neutral-500" />
+                    </form>
+                    <ThemeSwitch compact class="ml-2" />
+                </div>
                 <div class="ml-auto flex items-center space-x-2">
                     <div class="relative flex items-center space-x-1">
-                        <Button variant="ghost" size="icon" class="group h-9 w-9 cursor-pointer">
-                            <Search class="size-5 opacity-80 group-hover:opacity-100" />
+                        <Button variant="ghost" size="icon" class="group h-9 w-9 cursor-pointer md:hidden">
+                            <SearchIcon class="size-5 opacity-80 group-hover:opacity-100" />
                         </Button>
-                        <!-- Notification Bell -->
                         <NotificationDropdown :notifications="notifications" @read="markNotificationRead"
                             @mark-as-read="markNotificationRead" />
-                        <!-- End Notification Bell -->
                         <div class="hidden space-x-1 lg:flex">
                             <template v-for="item in rightNavItems" :key="item.title">
                                 <TooltipProvider :delay-duration="0">
@@ -100,7 +126,6 @@ function markNotificationRead(notificationOrId: any) {
                             </template>
                         </div>
                     </div>
-
                     <DropdownMenu>
                         <DropdownMenuTrigger :as-child="true">
                             <Button variant="ghost" size="icon"
@@ -120,14 +145,6 @@ function markNotificationRead(notificationOrId: any) {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-            </div>
-        </div>
-
-        <!-- Move breadcrumbs bar below the fixed header -->
-        <div v-if="props.breadcrumbs.length > 1"
-            class="flex w-full border-b border-sidebar-border/70 fixed top-16 left-0 z-40 bg-white dark:bg-neutral-900">
-            <div class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
-                <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </div>
         </div>
     </div>

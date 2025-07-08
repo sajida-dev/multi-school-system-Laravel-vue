@@ -9,8 +9,10 @@ const props = defineProps<{
     modelValue: boolean
     title?: string
     message: string
+    confirmText?: string
+    cancelText?: string
 }>()
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'confirm'])
 
 const open = computed({
     get: () => props.modelValue,
@@ -18,6 +20,10 @@ const open = computed({
 })
 
 const close = () => emit('update:modelValue', false)
+const confirm = () => {
+    emit('confirm')
+    close()
+}
 </script>
 
 <template>
@@ -26,7 +32,13 @@ const close = () => emit('update:modelValue', false)
             <DialogTitle>{{ props.title || 'Notice' }}</DialogTitle>
             <div class="my-4 whitespace-pre-line">{{ props.message }}</div>
             <DialogFooter>
-                <button class="btn btn-primary w-full" @click="close">OK</button>
+                <template v-if="props.confirmText && props.cancelText">
+                    <button class="btn btn-danger w-full sm:w-auto" @click="confirm">{{ props.confirmText }}</button>
+                    <button class="btn btn-secondary w-full sm:w-auto" @click="close">{{ props.cancelText }}</button>
+                </template>
+                <template v-else>
+                    <button class="btn btn-primary w-full" @click="close">OK</button>
+                </template>
             </DialogFooter>
         </DialogContent>
     </Dialog>

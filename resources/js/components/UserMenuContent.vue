@@ -4,6 +4,7 @@ import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSep
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from 'lucide-vue-next';
+import ThemeSwitch from '@/components/ThemeSwitch.vue';
 
 interface Props {
     user: User;
@@ -26,16 +27,23 @@ defineProps<Props>();
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full" :href="route('profile.edit')" prefetch as="button">
-                <Settings class="mr-2 h-4 w-4" />
-                Settings
+            <Settings class="mr-2 h-4 w-4" />
+            Settings
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
+    <DropdownMenuGroup>
+        <div class="flex items-center gap-1 px-2 py-1.5">
+            <span class="text-xs text-muted-foreground mr-2">Theme:</span>
+            <ThemeSwitch compact />
+        </div>
+    </DropdownMenuGroup>
+    <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
         <Link class="block w-full" method="post" :href="route('logout')" @click="handleLogout" as="button">
-            <LogOut class="mr-2 h-4 w-4" />
-            Log out
+        <LogOut class="mr-2 h-4 w-4" />
+        Log out
         </Link>
     </DropdownMenuItem>
 </template>

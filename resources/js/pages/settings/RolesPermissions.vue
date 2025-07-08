@@ -12,6 +12,7 @@ import { toast } from 'vue3-toastify'
 import { Trash2, Plus } from 'lucide-vue-next'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'
+import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
 import { type BreadcrumbItem } from '@/types';
 
 interface Role {
@@ -224,7 +225,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                                 class="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700">Cancel</button>
                         </form>
                         <div v-if="newRoleForm.errors.name" class="text-xs text-red-600 mt-1">{{ newRoleForm.errors.name
-                            }}</div>
+                        }}</div>
                     </div>
                     <div v-if="loading" class="text-center py-8 text-muted-foreground">Loading roles...</div>
                     <div v-else class="space-y-4">
@@ -273,7 +274,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         </button>
                     </div>
                     <Dialog v-model:open="showAddPermissionModal">
-                        <DialogContent title="Add Permission">
+                        <DialogContent>
+                            <DialogTitle>Add Permission</DialogTitle>
                             <form @submit.prevent="addPermission" class="flex flex-col gap-3">
                                 <input v-model="newPermissionForm.name" type="text" placeholder="Permission name"
                                     class="rounded border px-3 py-2 text-sm" />

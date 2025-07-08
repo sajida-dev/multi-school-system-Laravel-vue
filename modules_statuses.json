@@ -1,5 +1,10 @@
 {
     "Admissions": true,
-    "Exams": true,
-    "Fees": true
+    "Fees": true,
+    "Schools": true,
+    "ClassesSections": true,
+    "PapersQuestions": true,
+    "ResultsPromotions": true,
+    "Certificates": true,
+    "Reports": true
 }

@@ -151,6 +151,7 @@ return new class extends Migration
             $table->string('permanent_address');
             $table->string('phone_no')->nullable();
             $table->string('mobile_no');
+            $table->enum('status', ['applicant', 'admitted', 'rejected'])->default('applicant');
             $table->timestamps();
             $table->softDeletes();
         });

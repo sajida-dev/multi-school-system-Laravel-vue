@@ -54,8 +54,6 @@ class UserManagementController extends Controller
         ]);
     }
 
-
-
     /**
      * Assign role to user
      */
@@ -71,18 +69,18 @@ class UserManagementController extends Controller
 
         // Check if user is trying to assign admin role to themselves
         if ($request->user()->id === $user->id && $role->name === 'admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'You cannot assign admin role to yourself'
-            ], 403);
+            return redirect()->back()->with('toast', [
+                'message' => 'You cannot assign admin role to yourself',
+                'type' => 'error',
+            ]);
         }
 
         // Add role to user (don't sync, just add)
         $user->assignRole($role->name);
 
-        return response()->json([
-            'success' => true,
-            'message' => "Role '{$role->name}' assigned to {$user->name} successfully"
+        return redirect()->back()->with('toast', [
+            'message' => "Role '{$role->name}' assigned to {$user->name} successfully",
+            'type' => 'success',
         ]);
     }
 
@@ -101,28 +99,28 @@ class UserManagementController extends Controller
 
         // Check if user is trying to remove admin role from themselves
         if ($request->user()->id === $user->id && $role->name === 'admin') {
-            return response()->json([
-                'success' => false,
-                'message' => 'You cannot remove admin role from yourself'
-            ], 403);
+            return redirect()->back()->with('toast', [
+                'message' => 'You cannot remove admin role from yourself',
+                'type' => 'error',
+            ]);
         }
 
         // Check if this is the last admin user
         if ($role->name === 'admin' && $user->hasRole('admin')) {
             $adminCount = User::role('admin')->count();
             if ($adminCount <= 1) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot remove the last admin user'
-                ], 403);
+                return redirect()->back()->with('toast', [
+                    'message' => 'Cannot remove the last admin user',
+                    'type' => 'error',
+                ]);
             }
         }
 
         $user->removeRole($role->name);
 
-        return response()->json([
-            'success' => true,
-            'message' => "Role '{$role->name}' removed from {$user->name} successfully"
+        return redirect()->back()->with('toast', [
+            'message' => "Role '{$role->name}' removed from {$user->name} successfully",
+            'type' => 'success',
         ]);
     }
 }
