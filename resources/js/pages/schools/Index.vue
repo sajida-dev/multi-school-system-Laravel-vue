@@ -3,71 +3,92 @@
 
         <Head title="Schools" />
         <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
-            <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Schools</h1>
-            <div class="mb-4 flex justify-end">
-                <button @click="router.get(route('schools.create'))"
-                    class="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600 transition">
-                    Add School
-                </button>
-            </div>
-            <div v-if="items.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
-                <p class="mb-4">No schools found.</p>
-
-            </div>
-            <div v-else>
-                <EasyDataTable :headers="headers" :items="items" :server-items-length="total"
-                    :server-options="serverOptions" :loading="loading" server-mode
-                    @update:server-options="(opts: any) => serverOptions = opts">
-                    <template #item-actions="{ row }">
-                        <button class="text-blue-500 mr-2" @click="editSchool(row.id)">Edit</button>
-                        <button class="text-red-500" @click="askDeleteSchool(row.id)">Delete</button>
-                    </template>
-                </EasyDataTable>
-            </div>
+            <h1 class="text-2xl font-bold mb-6 text-neutral-900 dark:text-neutral-100">Schools</h1>
+            <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
+                :server-items-length="total"
+                @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
+                table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all"
+                row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
+                <template #toolbar>
+                    <Button variant="default" size="lg" class="mr-2" @click="addSchool">Add School</Button>
+                    <Button variant="secondary" size="lg" class="mr-2" @click="importSchools">Import</Button>
+                    <Button variant="outline" size="lg" @click="exportSchools">Export</Button>
+                </template>
+                <template #item-actions="row">
+                    <button
+                        class="inline-flex items-center justify-center rounded-full p-2 text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400 mr-1"
+                        @click="viewSchool(row.id)" aria-label="View School" title="View School">
+                        <Eye class="w-5 h-5" />
+                    </button>
+                    <button
+                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                        @click="editSchool(row.id)" aria-label="Edit School" title="Edit School">
+                        <Pencil class="w-5 h-5" />
+                    </button>
+                    <button
+                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        @click="askDeleteSchool(row.id)" aria-label="Delete School" title="Delete School">
+                        <Trash2 class="w-5 h-5" />
+                    </button>
+                </template>
+            </BaseDataTable>
         </div>
         <AlertDialog v-model="showDeleteDialog" title="Delete School"
-            message="Are you sure you want to delete this school? This action cannot be undone." confirmText="Delete"
-            cancelText="Cancel" @confirm="deleteSchool" />
+            message="Are you sure you want to delete this school? This action cannot be undone."
+            :confirm-text="'Delete'" :cancel-text="'Cancel'" @confirm="deleteSchool">
+            <template #footer>
+                <div class="flex gap-2 justify-end">
+                    <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
+                    <Button variant="destructive" @click="deleteSchool">Delete</Button>
+                </div>
+            </template>
+        </AlertDialog>
     </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue';
-import { usePage, router, Head } from '@inertiajs/vue3';
+import { usePage, router, Head, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
+import { Pencil, Trash2, Eye } from 'lucide-vue-next';
+import BaseDataTable from '@/components/ui/BaseDataTable.vue';
+import { Button } from '@/components/ui/button';
+
+interface SchoolsPagination {
+    data: any[];
+    total: number;
+    [key: string]: any;
+}
 
 const breadcrumbItems = [
     { title: 'Schools', href: '/schools' },
 ];
 
-const page = usePage();
-const schools = ref<any>(page.props.schools);
+const { props } = usePage();
+const schools = ref<SchoolsPagination | null>(props.schools as SchoolsPagination);
 const headers = [
-    { key: 'id', title: 'ID' },
-    { key: 'name', title: 'Name' },
-    { key: 'address', title: 'Address' },
-    { key: 'contact', title: 'Contact' },
-    { key: 'actions', title: 'Actions' }
+    { text: 'ID', value: 'id' },
+    { text: 'Name', value: 'name' },
+    { text: 'Address', value: 'address' },
+    { text: 'Contact', value: 'contact' },
+    { text: 'Actions', value: 'actions', sortable: false, slotName: 'item-actions' },
 ];
 
-const items = computed(() =>
-    Array.isArray(schools.value?.data)
-        ? schools.value.data.map((school: any) => ({
-            id: school?.id?.toString() ?? '',
-            name: school?.name ?? '',
-            address: school?.address ?? '',
-            contact: school?.contact ?? ''
-        }))
-        : []
-);
+const items = computed(() => {
+    const data = Array.isArray(schools.value?.data) ? schools.value.data : [];
+    return data.map((school: any) => ({
+        id: school.id != null ? school.id.toString() : '',
+        name: school.name != null ? school.name.toString() : '',
+        address: school.address != null ? school.address.toString() : '',
+        contact: school.contact != null ? school.contact.toString() : '',
+    }));
+});
 
-console.log('DataTable items:', items.value);
-
-const total = ref(0);
+const total = ref<number>(props.schools ? (props.schools as SchoolsPagination).total : 0);
 const loading = ref(false);
-const serverOptions = ref({
+const serverOptions = ref<{ page: number; rowsPerPage: number; sortBy: string; sortType: string; search: string; filters: Record<string, any> }>({
     page: 1,
     rowsPerPage: 10,
     sortBy: '',
@@ -85,8 +106,8 @@ const fetchData = () => {
         preserveState: true,
         replace: true,
         onSuccess: (page) => {
-            schools.value = page.props.schools;
-            total.value = (page.props.schools as any).total;
+            schools.value = page.props.schools as SchoolsPagination;
+            total.value = (page.props.schools as SchoolsPagination).total;
             loading.value = false;
         },
     });
@@ -95,9 +116,17 @@ const fetchData = () => {
 watch(serverOptions, fetchData, { deep: true });
 onMounted(fetchData);
 
+const addSchool = () => router.get(route('schools.create'));
+const importSchools = () => {/* open import dialog or trigger file input */ };
+const exportSchools = () => {/* trigger export, e.g., window.open or router visit */ };
+
 const editSchool = (id: number) => {
     router.get(route('schools.edit', id));
 };
+
+function viewSchool(id: number) {
+    router.get(route('schools.show', id));
+}
 
 const askDeleteSchool = (id: number) => {
     schoolToDelete.value = id;
@@ -105,38 +134,36 @@ const askDeleteSchool = (id: number) => {
 };
 
 const deleteSchool = () => {
-    if (schoolToDelete.value !== null) {
-        router.delete(route('schools.destroy', schoolToDelete.value), {
-            onSuccess: () => {
-                toast.success('School deleted successfully.');
-            },
-        });
-    }
+    if (!schoolToDelete.value) return;
+    useForm<{ id: number | string }>({ id: schoolToDelete.value }).delete(route('schools.destroy', schoolToDelete.value), {
+        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('School deleted successfully.');
+            if (schools.value) {
+                schools.value.data = schools.value.data.filter((school: any) => school.id != schoolToDelete.value);
+                total.value = Math.max(0, total.value - 1);
+            }
+            schoolToDelete.value = null;
+        },
+        onError: () => toast.error('Failed to delete school!')
+    });
     showDeleteDialog.value = false;
-    schoolToDelete.value = null;
 };
 
+
+
+
 onMounted(() => {
-    const toastProp = page.props.toast as { message?: string; type?: string };
-    if (toastProp && toastProp.message && toastProp.type) {
-        toast(toastProp.message, { type: toastProp.type as 'success' | 'error' });
-    }
+    total.value = props.schools ? (props.schools as SchoolsPagination).total : 0;
+    if (props.success) toast.success(props.success);
+    if (props.error) toast.error(props.error);
 });
 
 watch(
-    () => page.props.schools,
+    () => props.schools,
     (newVal) => {
-        schools.value = newVal;
-    }
-);
-
-watch(
-    () => page.props.toast,
-    (newVal) => {
-        const toastVal = newVal as { message?: string; type?: string };
-        if (toastVal && toastVal.message && toastVal.type) {
-            toast(toastVal.message, { type: toastVal.type as 'success' | 'error' });
-        }
+        schools.value = newVal as SchoolsPagination;
+        total.value = newVal ? (newVal as SchoolsPagination).total : 0;
     }
 );
 </script>

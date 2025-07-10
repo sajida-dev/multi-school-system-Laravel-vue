@@ -81,13 +81,9 @@ function onSearch() {
 }
 </script>
 <template>
-    <div class="">
+    <div>
         <div class="border-b border-sidebar-border/80">
             <div class="mx-auto flex h-16 items-center justify-between px-4 md:max-w-7xl">
-                <!-- Only show logo in header on mobile -->
-                <Link :href="route('dashboard')" class="flex items-center gap-x-2 lg:hidden">
-                <AppLogo />
-                </Link>
                 <!-- Search bar and theme switcher -->
                 <div class="flex items-center gap-2 flex-1">
                     <form @submit.prevent="onSearch" class="relative w-full max-w-xs hidden md:block">

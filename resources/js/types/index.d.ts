@@ -3,6 +3,7 @@ import type { Config } from 'ziggy-js';
 
 export interface Auth {
     user: User;
+    can?: Record<string, boolean>; // Add this line for permissions
 }
 
 export interface BreadcrumbItem {

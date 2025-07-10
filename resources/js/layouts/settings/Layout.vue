@@ -18,10 +18,7 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: '/settings/appearance',
     },
-    {
-        title: 'Roles & Permissions',
-        href: '/settings/roles-permissions',
-    },
+
 ];
 
 const page = usePage();
@@ -31,11 +28,18 @@ const currentPath = page.props.ziggy?.location ? new URL(page.props.ziggy.locati
 // Add User Management link for admins
 const user = page.props.auth?.user as any;
 const userRoles = (user && Array.isArray(user.roles)) ? user.roles : [];
-if (userRoles.some((r: any) => r.name === 'admin')) {
-    sidebarNavItems.push({
-        title: 'User Management',
-        href: '/settings/users',
-    });
+if (userRoles.some((r: any) => r.name === 'superadmin')) {
+    sidebarNavItems.push(
+        {
+            title: 'Roles & Permissions',
+            href: '/settings/roles-permissions',
+        },
+        {
+            title: 'User Management',
+            href: '/settings/users',
+        },
+
+    );
 }
 </script>
 

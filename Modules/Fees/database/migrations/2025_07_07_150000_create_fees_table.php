@@ -18,6 +18,7 @@ return new class extends Migration
             $table->dateTime('paid_at')->nullable();
             $table->string('voucher_number')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->index('student_id');

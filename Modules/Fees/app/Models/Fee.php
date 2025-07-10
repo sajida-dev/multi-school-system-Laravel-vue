@@ -6,9 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Fees\App\Models\FeeItem;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Fee extends Model
 {
+    use SoftDeletes;
+    protected $dates = ['deleted_at'];
     protected $fillable = [
         'student_id',
         'type',

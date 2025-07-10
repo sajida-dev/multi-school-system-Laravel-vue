@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Modules\Schools\App\Models\School;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,26 +13,28 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Optionally clear users table for dev only (uncomment if needed)
-        // \DB::table('users')->truncate();
-
-        $this->call(RolesAndPermissionsSeeder::class);
-
-        $admin = User::firstOrCreate(
+        // 1. Create at least one school
+        $defaultSchool = School::firstOrCreate(
+            ['name' => 'Default School'],
             [
-                'username' => 'admin',
-            ],
-            [
-                'name' => 'Admin User',
-                'email' => 'admin@example.com',
-                'password' => bcrypt('password'),
-                'phone_number' => '1234567890',
+                'address' => '123 Main Street, City',
+                'contact' => '+1234567890',
             ]
         );
-        $data = User::firstOrCreate(
+
+        // 2. Create admin and teacher users
+        $admin = User::firstOrCreate(
+            ['username' => 'admin'],
             [
-                'username' => 'teacher',
-            ],
+                'name' => 'Admin User',
+                'email' => 'sajidajaved604@gmail.com',
+                'password' => bcrypt('password'),
+                'phone_number' => '1234567890',
+                'email_verified_at' => now(), // Mark admin email as verified
+            ]
+        );
+        $teacher = User::firstOrCreate(
+            ['username' => 'teacher'],
             [
                 'name' => 'Teacher User',
                 'email' => 'teacher@example.com',
@@ -41,14 +43,14 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Assign roles if using spatie/laravel-permission
-        if (method_exists($admin, 'assignRole')) {
-            $admin->assignRole('admin');
-        }
-        if (method_exists($data, 'assignRole')) {
-            $data->assignRole('teacher');
-        }
+        // 3. Roles, permissions, and assignments
+        $this->call(RolesAndPermissionsSeeder::class);
 
+        // 4. Classes and sections (must come after schools)
+        $this->call(\Modules\ClassesSections\Database\Seeders\ClassSeeder::class);
+        $this->call(\Modules\ClassesSections\Database\Seeders\SectionSeeder::class);
+
+        // 5. Admissions (students demo data)
         $this->call(\Modules\Admissions\Database\Seeders\AdmissionsDatabaseSeeder::class);
     }
 }

@@ -6,20 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('class_id');
             $table->string('name');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->index('class_id');
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('sections');
     }

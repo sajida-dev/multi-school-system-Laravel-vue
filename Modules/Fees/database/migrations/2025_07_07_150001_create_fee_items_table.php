@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('description');
             $table->decimal('amount', 10, 2);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('fee_id')->references('id')->on('fees')->onDelete('cascade');
             $table->index('fee_id');

@@ -12,15 +12,16 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('class_id');
             $table->unsignedBigInteger('section_id')->nullable();
-            $table->unsignedBigInteger('teacher_id');
+            // $table->unsignedBigInteger('teacher_id');
             $table->string('title');
             $table->boolean('published')->default(false);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');
-            $table->foreign('teacher_id')->references('id')->on('teachers')->onDelete('cascade');
-            $table->index(['class_id', 'section_id', 'teacher_id']);
+            // $table->foreign('teacher_id')->references('id')->on('teachers')->onDelete('cascade');
+            $table->index(['class_id', 'section_id']);
         });
     }
 

@@ -111,10 +111,7 @@ class AdmissionsController extends Controller
             ]);
         }
         Broadcast::event('student.created', $student);
-        return Redirect::route('admissions.index')->with('toast', [
-            'type' => 'success',
-            'message' => 'Student admitted successfully.'
-        ]);
+        return redirect()->route('admissions.index')->with('success', 'Student admitted successfully.');
     }
 
     /**
@@ -179,10 +176,7 @@ class AdmissionsController extends Controller
         ]);
         $student->update($validated);
         Broadcast::event('student.updated', $student);
-        return Redirect::route('admissions.index')->with('toast', [
-            'type' => 'success',
-            'message' => 'Student updated successfully.'
-        ]);
+        return redirect()->route('admissions.index')->with('success', 'Student updated successfully.');
     }
 
     /**
@@ -193,10 +187,7 @@ class AdmissionsController extends Controller
         $student = Student::findOrFail($id);
         $student->delete();
         Broadcast::event('student.deleted', ['id' => $id]);
-        return Redirect::route('admissions.index')->with('toast', [
-            'type' => 'success',
-            'message' => 'Student deleted successfully.'
-        ]);
+        return redirect()->route('admissions.index')->with('success', 'Student deleted successfully.');
     }
 
     /**
@@ -246,6 +237,6 @@ class AdmissionsController extends Controller
         $student->save();
 
         // Redirect to voucher page (to be implemented)
-        return Redirect::route('fees.voucher', ['fee' => $fee->id]);
+        return redirect()->route('fees.voucher', ['fee' => $fee->id]);
     }
 }

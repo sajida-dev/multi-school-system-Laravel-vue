@@ -10,15 +10,20 @@ return new class extends Migration
     {
         Schema::create('exam_results', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('exam_id');
+            $table->unsignedBigInteger('exam_paper_id');
             $table->unsignedBigInteger('student_id');
-            $table->decimal('marks', 8, 2);
-            $table->string('status');
+            $table->decimal('marks_obtained', 8, 2);
+            $table->decimal('percentage', 5, 2)->nullable();
+            $table->enum('status', ['pass', 'fail', 'absent'])->default('pass');
+            $table->enum('promotion_status', ['promoted', 'failed', 'pending'])->default('pending');
+            $table->text('remarks')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
-            $table->foreign('exam_id')->references('id')->on('exams')->onDelete('cascade');
+            $table->foreign('exam_paper_id')->references('id')->on('exam_paper')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
-            $table->index(['exam_id', 'student_id']);
+            $table->unique(['exam_paper_id', 'student_id']); // one result per student per exam paper
+            $table->index(['exam_paper_id', 'student_id']);
         });
     }
 

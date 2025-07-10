@@ -20,14 +20,16 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('settings/Appearance');
     })->name('appearance');
 
+    // Route::middleware('permission:manage roles|manage permissions')->group(function () {
     Route::get('settings/roles-permissions', function () {
         return Inertia::render('settings/RolesPermissions');
     })->name('roles.settings');
+    // });
 
-    // User Management routes (admin only) - Using UserManagementController
-    Route::middleware('role:admin')->group(function () {
-        Route::get('settings/users', [UserManagementController::class, 'index'])->name('settings.users');
-        Route::post('settings/user-management/assign-role', [UserManagementController::class, 'assignRole'])->name('settings.user-management.assign-role');
-        Route::delete('settings/user-management/remove-role', [UserManagementController::class, 'removeRole'])->name('settings.user-management.remove-role');
-    });
+    // User Management routes (permission-based) - Using UserManagementController
+    // Route::middleware('role:superadmin')->group(function () {
+    Route::get('settings/users', [UserManagementController::class, 'index'])->name('settings.users');
+    Route::post('settings/user-management/assign-role', [UserManagementController::class, 'assignRole'])->name('settings.user-management.assign-role');
+    Route::delete('settings/user-management/remove-role', [UserManagementController::class, 'removeRole'])->name('settings.user-management.remove-role');
+    // });
 });

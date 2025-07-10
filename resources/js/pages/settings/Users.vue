@@ -86,7 +86,7 @@
                                                     {{ getInitials(user.name) }}
                                                 </div>
                                                 <span class="font-medium text-gray-900 dark:text-gray-100">{{ user.name
-                                                }}</span>
+                                                    }}</span>
                                             </div>
                                         </td>
                                         <td class="py-3 px-4 text-gray-600 dark:text-gray-400">{{ user.email }}</td>
@@ -164,46 +164,31 @@
                 </div>
 
                 <!-- Assign Role Modal -->
-                <div v-if="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                    <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-lg p-6 w-full max-w-sm mx-auto">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Assign Role</h3>
-                        <p class="mb-4 text-gray-600 dark:text-gray-400" id="assign-role-desc">Assign a role to {{
-                            selectedUser?.name }}</p>
-
-                        <div class="space-y-4">
-                            <div v-if="selectedUser && isCurrentUser(selectedUser.id)"
-                                class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
-                                <p class="text-sm text-yellow-800 dark:text-yellow-200">
-                                    <strong>Note:</strong> You cannot assign admin role to yourself for security
-                                    reasons.
-                                </p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Select
-                                    Role</label>
-                                <select v-model="selectedRoleId"
-                                    class="w-full px-3 py-2 rounded border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
-                                    <option value="" class="text-gray-900 dark:text-gray-100">Choose a role...</option>
-                                    <option v-for="role in availableRoles" :key="role.id" :value="role.id"
-                                        class="text-gray-900 dark:text-gray-100">
-                                        {{ role.name }}
-                                    </option>
-                                </select>
-                            </div>
+                <Dialog v-model="showAssignModal">
+                    <template #header>Assign Role</template>
+                    <template #body>
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium">Select School</label>
+                            <select v-model="assignRoleForm.school_id"
+                                class="w-full px-2 py-1 rounded border dark:bg-neutral-800 dark:text-white">
+                                <option v-for="school in schools" :key="school.id" :value="school.id">{{ school.name }}
+                                </option>
+                            </select>
                         </div>
-
-                        <div class="flex gap-2 justify-end mt-6">
-                            <button @click="showAssignModal = false"
-                                class="px-4 py-2 rounded bg-gray-200 dark:bg-neutral-800 hover:bg-gray-300 dark:hover:bg-neutral-700 transition">
-                                Cancel
-                            </button>
-                            <button @click="assignRole" :disabled="!selectedRoleId || assigningRole"
-                                class="px-4 py-2 rounded bg-primary text-white dark:text-black hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                                {{ assigningRole ? 'Assigning...' : 'Assign Role' }}
-                            </button>
+                        <div class="mb-2">
+                            <label class="block text-sm font-medium">Select Role</label>
+                            <select v-model="assignRoleForm.role_id"
+                                class="w-full px-2 py-1 rounded border dark:bg-neutral-800 dark:text-white">
+                                <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                            </select>
                         </div>
-                    </div>
-                </div>
+                    </template>
+                    <template #footer>
+                        <Button @click="assignRole"
+                            :disabled="!assignRoleForm.school_id || !assignRoleForm.role_id || assigningRole">Assign</Button>
+                        <Button variant="outline" @click="closeAssignRoleModal">Cancel</Button>
+                    </template>
+                </Dialog>
             </div>
         </SettingsLayout>
     </AppLayout>
@@ -211,11 +196,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { Head, router, useForm } from '@inertiajs/vue3'
+import { Head, router, useForm, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SettingsLayout from '@/layouts/settings/Layout.vue'
 import { toast } from 'vue3-toastify'
 import { type BreadcrumbItem } from '@/types'
+import Dialog from '@/components/ui/dialog/Dialog.vue'
+import Button from '@/components/ui/button/Button.vue'
 
 // Props from Inertia
 const props = defineProps<{
@@ -252,6 +239,13 @@ const filters = reactive({
 // Users data
 const users = ref(props.users)
 const roles = ref(props.roles)
+const schools = computed(() => (usePage().props.schools as Array<{ id: number; name: string }>) || []);
+
+const assignRoleForm = useForm({
+    user_id: null as number | null,
+    role_id: null as number | null,
+    school_id: null as number | null,
+});
 
 // Check if user is current user
 const isCurrentUser = (userId: number) => {
@@ -331,32 +325,30 @@ const openAssignRoleModal = (user: any) => {
 }
 
 // Assign role
-const assignRoleForm = useForm({
-    user_id: null as number | null,
-    role_id: null as number | null,
-});
-
 const assignRole = () => {
-    if (!selectedRoleId.value || !selectedUser.value) return;
+    if (!assignRoleForm.school_id || !assignRoleForm.role_id || !selectedUser.value) return;
 
     assignRoleForm.user_id = selectedUser.value.id;
-    assignRoleForm.role_id = selectedRoleId.value;
+    assignRoleForm.school_id = assignRoleForm.school_id;
+    assignRoleForm.role_id = assignRoleForm.role_id;
 
+    assigningRole.value = true;
     assignRoleForm.post('/settings/user-management/assign-role', {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Role assigned successfully');
             // Update local state
             const userIndex = users.value.data.findIndex((u: any) => u.id === selectedUser.value.id);
-            const assignedRole = roles.value.find((r: any) => r.id === selectedRoleId.value);
+            const assignedRole = roles.value.find((r: any) => r.id === assignRoleForm.role_id);
             if (userIndex !== -1 && assignedRole) {
                 if (!users.value.data[userIndex].roles.some((r: any) => r.id === assignedRole.id)) {
                     users.value.data[userIndex].roles.push(assignedRole);
                 }
             }
-            showAssignModal.value = false;
+            closeAssignRoleModal();
             selectedUser.value = null;
-            selectedRoleId.value = null;
+            assignRoleForm.school_id = null;
+            assignRoleForm.role_id = null;
         },
         onError: (errors) => {
             Object.values(errors).flat().forEach(message => toast.error(message));
@@ -364,6 +356,7 @@ const assignRole = () => {
         onFinish: () => {
             assignRoleForm.reset();
             assignRoleForm.user_id = null;
+            assignRoleForm.school_id = null;
             assignRoleForm.role_id = null;
         }
     });
@@ -420,4 +413,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
         href: '/settings/users',
     },
 ];
+
+const closeAssignRoleModal = () => {
+    assignRoleForm.reset();
+    showAssignModal.value = false;
+};
 </script>

@@ -3,6 +3,7 @@ import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
 import DialogFooter from '@/components/ui/dialog/DialogFooter.vue'
+import { Button } from '@/components/ui/button';
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -33,11 +34,12 @@ const confirm = () => {
             <div class="my-4 whitespace-pre-line">{{ props.message }}</div>
             <DialogFooter>
                 <template v-if="props.confirmText && props.cancelText">
-                    <button class="btn btn-danger w-full sm:w-auto" @click="confirm">{{ props.confirmText }}</button>
-                    <button class="btn btn-secondary w-full sm:w-auto" @click="close">{{ props.cancelText }}</button>
+                    <Button variant="destructive" class="w-full sm:w-auto" @click="confirm">{{ props.confirmText
+                        }}</Button>
+                    <Button variant="outline" class="w-full sm:w-auto" @click="close">{{ props.cancelText }}</Button>
                 </template>
                 <template v-else>
-                    <button class="btn btn-primary w-full" @click="close">OK</button>
+                    <Button variant="default" class="w-full" @click="close">OK</Button>
                 </template>
             </DialogFooter>
         </DialogContent>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Modules\Schools\App\Models\School;
 use Spatie\Permission\Models\Role;
 
 class UserManagementController extends Controller
@@ -61,27 +62,24 @@ class UserManagementController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'role_id' => 'required|exists:roles,id'
+            'role_id' => 'required|exists:roles,id',
+            'school_id' => 'required|exists:schools,id',
         ]);
 
         $user = User::findOrFail($request->user_id);
         $role = Role::findOrFail($request->role_id);
+        $schoolId = $request->school_id;
 
         // Check if user is trying to assign admin role to themselves
-        if ($request->user()->id === $user->id && $role->name === 'admin') {
-            return redirect()->back()->with('toast', [
-                'message' => 'You cannot assign admin role to yourself',
-                'type' => 'error',
-            ]);
+        if ($request->user()->id === $user->id && $role->name === 'superadmin') {
+            return redirect()->back()->with('error', 'You cannot assign admin role to yourself');
         }
 
         // Add role to user (don't sync, just add)
-        $user->assignRole($role->name);
+        $user->assignRole($role->name, $schoolId);
 
-        return redirect()->back()->with('toast', [
-            'message' => "Role '{$role->name}' assigned to {$user->name} successfully",
-            'type' => 'success',
-        ]);
+        $school = School::find($schoolId);
+        return redirect()->back()->with('success', "Role '{$role->name}' assigned to {$user->name} for {$school->name} successfully");
     }
 
     /**
@@ -98,29 +96,20 @@ class UserManagementController extends Controller
         $role = Role::findOrFail($request->role_id);
 
         // Check if user is trying to remove admin role from themselves
-        if ($request->user()->id === $user->id && $role->name === 'admin') {
-            return redirect()->back()->with('toast', [
-                'message' => 'You cannot remove admin role from yourself',
-                'type' => 'error',
-            ]);
+        if ($request->user()->id === $user->id && $role->name === 'superadmin') {
+            return redirect()->back()->with('error', 'You cannot remove admin role from yourself');
         }
 
         // Check if this is the last admin user
-        if ($role->name === 'admin' && $user->hasRole('admin')) {
-            $adminCount = User::role('admin')->count();
+        if ($role->name === 'superadmin' && $user->hasRole('superadmin')) {
+            $adminCount = User::role('superadmin')->count();
             if ($adminCount <= 1) {
-                return redirect()->back()->with('toast', [
-                    'message' => 'Cannot remove the last admin user',
-                    'type' => 'error',
-                ]);
+                return redirect()->back()->with('error', 'Cannot remove the last admin user');
             }
         }
 
         $user->removeRole($role->name);
 
-        return redirect()->back()->with('toast', [
-            'message' => "Role '{$role->name}' removed from {$user->name} successfully",
-            'type' => 'success',
-        ]);
+        return redirect()->back()->with('success', "Role '{$role->name}' removed from {$user->name} successfully");
     }
 }

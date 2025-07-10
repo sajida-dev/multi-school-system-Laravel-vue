@@ -75,4 +75,10 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = [
         'profile_photo_url',
     ];
+
+    protected $guard_name = 'web';
+    public function getDefaultGuardName(): string
+    {
+        return 'web';
+    }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('installments_count')->nullable();
             $table->json('installment_amounts')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['class', 'section', 'type']);
         });
