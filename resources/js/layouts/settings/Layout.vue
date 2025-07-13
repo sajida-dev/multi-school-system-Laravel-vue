@@ -38,7 +38,10 @@ if (userRoles.some((r: any) => r.name === 'superadmin')) {
             title: 'User Management',
             href: '/settings/users',
         },
-
+        {
+            title: 'Add New User',
+            href: '/settings/add-user',
+        },
     );
 }
 </script>

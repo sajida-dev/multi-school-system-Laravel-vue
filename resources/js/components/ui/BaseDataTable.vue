@@ -5,8 +5,8 @@
             <slot name="toolbar" />
         </div>
         <EasyDataTable :headers="headers" :items="items" :server-items-length="serverItemsLength"
-            :server-options="serverOptions" :loading="loading" server-mode table-class-name="customize-table"
-            header-text-direction="center" body-text-direction="center"
+            :server-options="serverOptions" :loading="loading" :expandable="expandable" :expand-row-keys="expandRowKeys"
+            server-mode table-class-name="customize-table" header-text-direction="center" body-text-direction="center"
             @update:server-options="$emit('update:server-options', $event)">
             <template v-for="(_, slot) in $slots" #[slot]="slotProps">
                 <slot :name="slot" v-bind="slotProps" />
@@ -26,6 +26,8 @@ const props = defineProps({
     serverOptions: { type: Object, default: undefined },
     serverItemsLength: { type: Number, default: 0 },
     theme: { type: String, default: 'dark' },
+    expandable: { type: Boolean, default: false },
+    expandRowKeys: { type: Array, default: () => [] },
 });
 
 // Use system-wide theme colors (purple, blue, gray, etc.)

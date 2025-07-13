@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SettingsLayout from '@/layouts/settings/Layout.vue'
@@ -14,10 +14,18 @@ import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
 import { type BreadcrumbItem } from '@/types';
+import InputError from '@/components/InputError.vue';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useSchoolStore } from '@/stores/school'
+import { storeToRefs } from 'pinia'
 
 interface Role {
     id: number
     name: string
+    school_id?: number
+    school_name?: string
     permissions: { id: number; name: string }[]
 }
 interface Permission {
@@ -36,11 +44,24 @@ const permissionForms = ref<{ [roleId: number]: any }>({})
 const showAddRole = ref(false)
 const showAddPermission = ref(false)
 const showAddPermissionModal = ref(false)
-const newRoleForm = useForm({ name: '' })
+const newRoleForm = useForm({ name: '', school_id: null as number | null })
 const newPermissionForm = useForm({ name: '', userName: '', phoneNumber: '' })
 const deletingRoleId = ref<number | null>(null)
 const deletingPermissionId = ref<number | null>(null)
 const activeTab = ref<'roles' | 'permissions'>('roles')
+const schoolStore = useSchoolStore()
+const { selectedSchool, schools } = storeToRefs(schoolStore)
+
+// Filter roles by selected school
+const filteredRoles = computed(() => {
+    if (!selectedSchool.value) return roles.value;
+    return roles.value.filter(role =>
+        role.school_id === selectedSchool.value?.id || !role.school_id // Include global roles too
+    );
+});
+
+// Add a placeholder for userIsSuperAdmin (replace with real logic as needed)
+const userIsSuperAdmin = true // TODO: Replace with real check from auth/props
 
 const fetchRolesAndPermissions = async () => {
     loading.value = true
@@ -53,7 +74,19 @@ const fetchRolesAndPermissions = async () => {
     loading.value = false
 }
 
-onMounted(fetchRolesAndPermissions)
+onMounted(() => {
+    fetchRolesAndPermissions()
+    if (userIsSuperAdmin) {
+        fetch('/admin/schools')
+            .then(res => res.json())
+            .then(schoolsList => {
+                schools.value = schoolsList
+                const lastId = localStorage.getItem('selectedSchoolId')
+                const last = schoolsList.find((s: { id: number }) => s.id === Number(lastId))
+                schoolStore.setSchool(last || schoolsList[0])
+            })
+    }
+})
 
 const hasPermission = (role: Role, permId: number) => {
     return Array.isArray(role.permissions) && role.permissions.some(p => p.id === permId)
@@ -62,7 +95,6 @@ const hasPermission = (role: Role, permId: number) => {
 const getPermissionForm = (role: Role) => {
     if (!permissionForms.value[role.id]) {
         permissionForms.value[role.id] = useForm({
-            name: role.name,
             permissions: Array.isArray(role.permissions) ? role.permissions.map(p => p.id) : []
         })
     }
@@ -70,6 +102,7 @@ const getPermissionForm = (role: Role) => {
 }
 
 const togglePermission = async (role: Role, perm: Permission) => {
+
     const key = `${role.id}-${perm.id}`
     updating.value[key] = true
     errorMsg.value = ''
@@ -82,8 +115,14 @@ const togglePermission = async (role: Role, perm: Permission) => {
         form.permissions = [...form.permissions, perm.id]
     }
 
+    // Always send an array of permission IDs
+    const payload = {
+        permissions: form.permissions
+    };
+
     form.put(`/admin/roles/${role.id}`, {
         preserveScroll: true,
+        only: ['permissions'], // Only send permissions field
         onSuccess: (response: any) => {
             // Update the role in the local roles array
             if (response && response.props && response.props.role) {
@@ -91,6 +130,10 @@ const togglePermission = async (role: Role, perm: Permission) => {
                 const idx = roles.value.findIndex(r => r.id === role.id)
                 if (idx !== -1) {
                     roles.value[idx].permissions = updatedRole.permissions
+                    // Sync the cached form's permissions to backend
+                    if (permissionForms.value[role.id]) {
+                        permissionForms.value[role.id].permissions = updatedRole.permissions.map((p: any) => p.id)
+                    }
                 }
             } else {
                 // fallback: update from form
@@ -110,8 +153,8 @@ const togglePermission = async (role: Role, perm: Permission) => {
         },
         onError: (errors: any) => {
             updating.value[key] = false
-            errorMsg.value = 'Failed to update. Please refresh and try again.'
-            toast.error('Failed to update permissions!')
+            errorMsg.value = errors?.permissions?.[0] || 'Failed to update permissions. Please refresh and try again.'
+            toast.error(errorMsg.value)
         }
     })
 }
@@ -121,6 +164,8 @@ function capitalize(str: string) {
 }
 
 const addRole = () => {
+    // Always use the selected school from the store
+    newRoleForm.school_id = selectedSchool.value?.id || null
     newRoleForm.post('/admin/roles', {
         preserveScroll: true,
         onSuccess: (response) => {
@@ -210,35 +255,61 @@ const breadcrumbItems: BreadcrumbItem[] = [
                 <div v-if="activeTab === 'roles'">
                     <p class="mb-4 text-sm text-muted-foreground">Roles let you group permissions and assign them to
                         users. Expand a role to manage its permissions.</p>
+
+                    <!-- School Context Indicator -->
+                    <div
+                        class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div class="text-sm text-blue-800 dark:text-blue-200">
+                            <span class="font-medium">Current School Context:</span>
+                            {{ selectedSchool?.name || 'No school selected' }}
+                        </div>
+                        <div class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                            Showing roles for this school and global roles
+                        </div>
+                    </div>
+
                     <div class="flex justify-end mb-4">
                         <button @click="showAddRole = true"
                             class="flex items-center gap-2 px-3 py-1.5 rounded shadow bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition">
                             <Plus class="w-4 h-4" /> Add Role
                         </button>
                     </div>
-                    <div v-if="showAddRole" class="mb-4">
-                        <form @submit.prevent="addRole" class="flex gap-2 items-center">
-                            <input v-model="newRoleForm.name" type="text" placeholder="Role name"
+                    <div v-if="showAddRole" class="w-lg mb-4">
+                        <form @submit.prevent="addRole" class="flex gap-2 items-center ">
+                            <!-- School Context Info -->
+                            <div class="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                Creating role for: <span class="font-medium text-blue-600 dark:text-blue-400">{{
+                                    selectedSchool?.name || 'No school selected' }}</span>
+                            </div>
+
+                            <!-- <Label for="role_name">Role Name</Label> -->
+                            <Input id="role_name" v-model="newRoleForm.name" placeholder="Role name"
                                 class="rounded border px-3 py-1 text-sm" />
-                            <button type="submit" class="px-3 py-1 rounded bg-primary text-white">Add</button>
-                            <button type="button" @click="showAddRole = false"
-                                class="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700">Cancel</button>
+                            <InputError :message="newRoleForm.errors.name" />
+                            <InputError :message="newRoleForm.errors.school_id" />
+                            <Button type="submit" class="px-3 py-1">Add</Button>
+                            <Button type="button" @click="showAddRole = false" variant="outline">Cancel</Button>
                         </form>
-                        <div v-if="newRoleForm.errors.name" class="text-xs text-red-600 mt-1">{{ newRoleForm.errors.name
-                        }}</div>
                     </div>
                     <div v-if="loading" class="text-center py-8 text-muted-foreground">Loading roles...</div>
                     <div v-else class="space-y-4">
-                        <Collapsible v-for="role in roles" :key="role.id">
+                        <Collapsible v-for="role in filteredRoles" :key="role.id">
                             <CollapsibleTrigger
                                 class="w-full flex items-center justify-between px-4 py-3 rounded cursor-pointer bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 transition">
-                                <span class="font-medium text-base">{{ capitalize(role.name) }}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="font-medium text-base">{{ capitalize(role.name) }}</span>
+                                    <span
+                                        class="text-xs px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800">
+                                        {{ role.school_name || 'Global' }}
+                                    </span>
+                                </div>
                                 <div class="flex flex-row gap-3 items-center">
                                     <span class="text-xs text-muted-foreground">
                                         {{ Array.isArray(role.permissions) ? role.permissions.length : 0 }} permission{{
                                             Array.isArray(role.permissions) && role.permissions.length === 1 ? '' : 's' }}
                                     </span>
-                                    <button v-if="!['admin', 'teacher', 'principal'].includes(role.name.toLowerCase())"
+                                    <button
+                                        v-if="!['superadmin', 'admin', 'teacher', 'principal'].includes(role.name.toLowerCase())"
                                         @click.stop="confirmDeleteRole(role.id)"
                                         class="ml-2 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 transition">
                                         <Trash2 class="w-4 h-4 text-red-500" />
@@ -277,14 +348,17 @@ const breadcrumbItems: BreadcrumbItem[] = [
                         <DialogContent>
                             <DialogTitle>Add Permission</DialogTitle>
                             <form @submit.prevent="addPermission" class="flex flex-col gap-3">
-                                <input v-model="newPermissionForm.name" type="text" placeholder="Permission name"
+                                <InputError
+                                    :message="newPermissionForm.errors.name || errorMsg || $page.props.errors?.name"
+                                    class="mb-2" />
+                                <Label for="perm_name">Permission Name</Label>
+                                <Input id="perm_name" v-model="newPermissionForm.name" placeholder="Permission name"
                                     class="rounded border px-3 py-2 text-sm" />
-                                <div v-if="newPermissionForm.errors.name" class="text-xs text-red-600 mt-1">{{
-                                    newPermissionForm.errors.name }}</div>
+                                <InputError :message="newPermissionForm.errors.name" />
                                 <div class="flex gap-2 justify-end">
-                                    <button type="button" @click="showAddPermissionModal = false"
-                                        class="px-3 py-1 rounded bg-gray-200 dark:bg-neutral-700">Cancel</button>
-                                    <button type="submit" class="px-3 py-1 rounded bg-primary text-white">Add</button>
+                                    <Button type="button" @click="showAddPermissionModal = false"
+                                        variant="outline">Cancel</Button>
+                                    <Button type="submit">Add</Button>
                                 </div>
                             </form>
                         </DialogContent>

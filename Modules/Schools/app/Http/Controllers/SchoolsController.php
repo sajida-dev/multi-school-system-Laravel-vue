@@ -138,4 +138,14 @@ class SchoolsController extends Controller
         $pdf = Pdf::loadView('schools.pdf', compact('schools'));
         return $pdf->download('schools.pdf');
     }
+
+    /**
+     * Return all schools as JSON (for super admin school switcher)
+     */
+    public function listJson()
+    {
+        return response()->json(
+            School::select('id', 'name')->orderBy('name')->get()
+        );
+    }
 }

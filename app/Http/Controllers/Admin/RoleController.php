@@ -15,10 +15,27 @@ class RoleController extends Controller
      */
     public function index()
     {
-        // Eager load permissions for each role
-        return response()->json(
-            Role::with('permissions')->get()
-        );
+        // Eager load permissions and school data for each role
+        $roles = Role::with('permissions')
+            ->select('id', 'name', 'school_id')
+            ->get()
+            ->map(function ($role) {
+                $schoolName = 'Global';
+                if ($role->school_id) {
+                    $school = \Modules\Schools\App\Models\School::find($role->school_id);
+                    $schoolName = $school ? $school->name : 'Unknown School';
+                }
+
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'school_id' => $role->school_id,
+                    'school_name' => $schoolName,
+                    'permissions' => $role->permissions
+                ];
+            });
+
+        return response()->json($roles);
     }
 
     /**
@@ -35,12 +52,14 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name',
+            'name' => 'required|string',
+            'school_id' => 'required|exists:schools,id', // allow null for global roles
             'guard_name' => 'nullable|string',
         ]);
         $role = Role::create([
             'name' => $validated['name'],
             'guard_name' => $validated['guard_name'] ?? 'web',
+            'school_id' => $validated['school_id'] ?? null,
         ]);
         if ($request->hasHeader('X-Inertia')) {
             return redirect()->back()->with([
@@ -80,15 +99,12 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
         $validated = $request->validate([
-            'name' => 'required|string|unique:roles,name,' . $role->id,
+            'name' => 'nullable|string|unique:roles,name,' . $role->id,
             'guard_name' => 'nullable|string',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
         ]);
-        $role->update([
-            'name' => $validated['name'],
-            'guard_name' => $validated['guard_name'] ?? $role->guard_name,
-        ]);
+
         if (isset($validated['permissions'])) {
             $role->syncPermissions($validated['permissions']);
         }

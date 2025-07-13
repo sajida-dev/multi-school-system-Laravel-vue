@@ -17,10 +17,11 @@ createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
+        const pinia = createPinia()
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
-            .use(createPinia())
+            .use(pinia)
             .use(Vue3Toastify, {
                 autoClose: 3000,
                 position: "top-right",

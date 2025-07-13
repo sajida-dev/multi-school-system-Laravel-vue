@@ -14,9 +14,6 @@ class ClassSeeder extends Seeder
 
         foreach ($schools as $school) {
             for ($i = 1; $i <= 12; $i++) {
-                // $school->classes()->create([
-                //     'name' => "Class $i",
-                // ]);
                 $class = ClassSchool::create(['name' => "Class $i"]);
                 $school->classes()->attach($class->id);
             }

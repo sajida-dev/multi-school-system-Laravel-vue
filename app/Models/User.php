@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Crypt;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -53,6 +54,20 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if (!empty($user->password)) {
+                $user->password_encrypted = Crypt::encryptString($user->password);
+            }
+        });
+        static::updating(function ($user) {
+            if ($user->isDirty('password') && !empty($user->password)) {
+                $user->password_encrypted = Crypt::encryptString($user->password);
+            }
+        });
+    }
+
     /**
      * Get the URL to the user's profile photo.
      *
@@ -80,5 +95,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getDefaultGuardName(): string
     {
         return 'web';
+    }
+
+    public function userPassword()
+    {
+        return $this->hasOne(UserPassword::class);
     }
 }

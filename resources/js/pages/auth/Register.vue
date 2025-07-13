@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
+import { LoaderCircle, Eye, EyeOff } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 const form = useForm({
     name: '',
@@ -16,6 +17,9 @@ const form = useForm({
     password: '',
     password_confirmation: '',
 });
+
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
 
 const submit = () => {
     form.post(route('register'), {
@@ -60,15 +64,30 @@ const submit = () => {
 
                 <div class="grid gap-2">
                     <Label for="password">Password</Label>
-                    <Input id="password" type="password" required :tabindex="5" autocomplete="new-password"
-                        v-model="form.password" placeholder="Password" />
+                    <div class="relative">
+                        <Input id="password" :type="showPassword ? 'text' : 'password'" required :tabindex="5"
+                            autocomplete="new-password" v-model="form.password" placeholder="Password" />
+                        <button type="button" @click="showPassword = !showPassword"
+                            class="absolute right-2 top-2 text-gray-500">
+                            <EyeOff v-if="showPassword" class="h-5 w-5" />
+                            <Eye v-else class="h-5 w-5" />
+                        </button>
+                    </div>
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-2">
                     <Label for="password_confirmation">Confirm password</Label>
-                    <Input id="password_confirmation" type="password" required :tabindex="6" autocomplete="new-password"
-                        v-model="form.password_confirmation" placeholder="Confirm password" />
+                    <div class="relative">
+                        <Input id="password_confirmation" :type="showPasswordConfirmation ? 'text' : 'password'"
+                            required :tabindex="6" autocomplete="new-password" v-model="form.password_confirmation"
+                            placeholder="Confirm password" />
+                        <button type="button" @click="showPasswordConfirmation = !showPasswordConfirmation"
+                            class="absolute right-2 top-2 text-gray-500">
+                            <EyeOff v-if="showPasswordConfirmation" class="h-5 w-5" />
+                            <Eye v-else class="h-5 w-5" />
+                        </button>
+                    </div>
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
