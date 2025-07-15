@@ -31,7 +31,6 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::post('users-roles', [UserRoleController::class, 'store']);
     Route::delete('users-roles', [UserRoleController::class, 'destroy']);
 
-    // Utility route for getting roles (if needed by other parts of the app)
     Route::get('roles-list', [UserController::class, 'roles']);
 });
 
