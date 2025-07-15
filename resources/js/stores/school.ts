@@ -2,11 +2,14 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios';
 
-interface School {
+export interface School {
   id: number;
   name: string;
   logo?: string;
   phone?: string;
+  address?: string;
+  contact?: string;
+  mainImage?: string;
 }
 
 export const useSchoolStore = defineStore('school', () => {

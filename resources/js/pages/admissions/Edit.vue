@@ -45,8 +45,11 @@
                 <TextInput label="Mobile No" v-model="form.mobile_no" :required="true" />
             </div>
             <div class="mt-6 flex gap-2">
-                <button type="submit" class="btn btn-primary">Update Student</button>
-                <button type="button" class="btn" @click="goBack">Cancel</button>
+                <button type="submit"
+                    class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition">Update
+                    Student</button>
+                <button type="button" class="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+                    @click="goBack">Cancel</button>
             </div>
         </form>
     </div>
@@ -159,13 +162,3 @@ const goBack = () => {
     router.visit(route('admissions.index'));
 };
 </script>
-
-<style scoped>
-.btn {
-    @apply px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700 transition;
-}
-
-.btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700;
-}
-</style>

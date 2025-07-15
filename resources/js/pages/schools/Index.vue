@@ -55,6 +55,8 @@ import AlertDialog from '@/components/AlertDialog.vue';
 import { Pencil, Trash2, Eye } from 'lucide-vue-next';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
+import { useSchoolStore } from '@/stores/school';
+import { storeToRefs } from 'pinia';
 
 interface SchoolsPagination {
     data: any[];
@@ -100,6 +102,9 @@ const serverOptions = ref<{ page: number; rowsPerPage: number; sortBy: string; s
 const showDeleteDialog = ref(false);
 const schoolToDelete = ref<number | null>(null);
 
+const schoolStore = useSchoolStore();
+const { schools: globalSchools } = storeToRefs(schoolStore);
+
 const fetchData = () => {
     loading.value = true;
     router.get(route('schools.index'), serverOptions.value, {
@@ -142,6 +147,11 @@ const deleteSchool = () => {
             if (schools.value) {
                 schools.value.data = schools.value.data.filter((school: any) => school.id != schoolToDelete.value);
                 total.value = Math.max(0, total.value - 1);
+            }
+            // Remove from global Pinia schools array
+            const idx = globalSchools.value.findIndex((s: any) => s.id == schoolToDelete.value);
+            if (idx !== -1) {
+                globalSchools.value.splice(idx, 1);
             }
             schoolToDelete.value = null;
         },

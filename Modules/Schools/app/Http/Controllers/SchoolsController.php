@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Modules\Schools\App\Events\SchoolCreated;
 use Modules\Schools\App\Imports\SchoolsImport;
 
 class SchoolsController extends Controller
@@ -58,8 +59,24 @@ class SchoolsController extends Controller
             'address' => 'nullable|string|max:255',
             'contact' => 'nullable|string|max:255',
         ]);
-        School::create($validated);
-        return redirect()->route('schools.index')->with('success', 'School created successfully.');
+        $school = new School($validated);
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('school_logos', 'public');
+            $school->logo = $logoPath;
+        }
+        // Handle main image upload
+        if ($request->hasFile('main_image')) {
+            $mainImagePath = $request->file('main_image')->store('school_main_images', 'public');
+            $school->main_image = $mainImagePath;
+        }
+        $school->save();
+        // Broadcast the event
+        event(new \Modules\Schools\App\Events\SchoolCreated($school));
+        return redirect()->route('schools.index')->with([
+            'success' => 'School created successfully.',
+            'school' => $school,
+        ]);
     }
 
     /**
@@ -96,6 +113,28 @@ class SchoolsController extends Controller
         ]);
         $school = School::findOrFail($id);
         $school->update($validated);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoPath = $request->file('logo')->store('school_logos', 'public');
+            $school->logo = $logoPath;
+            $school->save();
+        }
+        // Handle main image upload
+        if ($request->hasFile('main_image')) {
+            $mainImagePath = $request->file('main_image')->store('school_main_images', 'public');
+            $school->main_image = $mainImagePath;
+            $school->save();
+        }
+
+        // Broadcast the event
+        event(new \Modules\Schools\App\Events\SchoolUpdated($school));
+
+        // If AJAX or expects JSON, return updated school
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['school' => $school, 'success' => 'School updated successfully.']);
+        }
+
         return redirect()->route('schools.index')->with(
             'success',
             'School updated successfully.'
@@ -109,6 +148,8 @@ class SchoolsController extends Controller
     {
         $school = School::findOrFail($id);
         $school->delete();
+        // Broadcast the event
+        event(new \Modules\Schools\App\Events\SchoolDeleted($school->id));
         return redirect()->route('schools.index')->with('success', 'School deleted successfully.');
     }
 

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('password');
             $table->string('phone_number')->unique();
             $table->string('profile_photo_path')->default("default-profile.png");
-            $table->text('password_encrypted')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

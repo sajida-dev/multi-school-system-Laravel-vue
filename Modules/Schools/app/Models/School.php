@@ -17,6 +17,8 @@ class School extends Model
         'name',
         'address',
         'contact',
+        'logo',
+        'main_image',
     ];
 
     protected $dates = ['deleted_at'];

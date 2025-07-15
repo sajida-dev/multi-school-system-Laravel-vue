@@ -87,6 +87,14 @@ onMounted(() => {
                         }
                     }
                 }
+            })
+            .listen('SchoolUpdated', (e: any) => {
+                if (e && e.school) {
+                    const idx = schools.value.findIndex(s => s.id === e.school.id);
+                    if (idx !== -1) {
+                        schools.value[idx] = { ...schools.value[idx], ...e.school };
+                    }
+                }
             });
     }
 });
@@ -131,7 +139,7 @@ onUnmounted(() => {
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ school.phone || ''
-                            }}</span>
+                                }}</span>
                         </div>
                         <Check v-if="school.id === selectedSchool?.id" class="ml-auto text-primary" />
                     </DropdownMenuItem>
