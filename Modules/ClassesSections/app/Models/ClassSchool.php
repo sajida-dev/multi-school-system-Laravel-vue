@@ -1,36 +1,27 @@
 <?php
 
-namespace Modules\ClassesSections\app\Models;
+namespace Modules\ClassesSections\App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Schools\app\Models\School;
-use Modules\ClassesSections\app\Models\Section;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ClassesSections\App\Models\Section;
 
 class ClassSchool extends Model
 {
-    use SoftDeletes;
-    /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'classes';
+    protected $table = 'classes'; // or 'classes' if that's your table name
+    protected $fillable = ['name'];
 
-    protected $fillable = [
-        'name',
-        'code',
-    ];
-
-
-    protected $dates = ['deleted_at'];
+    public function sections()
+    {
+        return $this->belongsToMany(Section::class, 'class_section', 'class_id', 'section_id');
+    }
 
     public function schools()
     {
-        return $this->belongsToMany(School::class);
-    }
-    public function sections()
-    {
-        return $this->belongsToMany(Section::class);
+        return $this->belongsToMany(
+            \Modules\Schools\App\Models\School::class,
+            'class_schools',
+            'class_id',
+            'school_id'
+        );
     }
 }

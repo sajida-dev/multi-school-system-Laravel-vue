@@ -4,14 +4,15 @@ namespace Modules\ClassesSections\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\ClassesSections\app\Models\SchoolClass;
+use Modules\ClassesSections\app\Models\ClassSchool;
 use Inertia\Inertia;
+use Modules\ClassesSections\app\Models\Section;
 
 class ClassController extends Controller
 {
     public function index()
     {
-        $classes = SchoolClass::all();
+        $classes = ClassSchool::all();
         return Inertia::render('Classes/Index', [
             'classes' => $classes,
         ]);
@@ -25,27 +26,83 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|max:255']);
-        SchoolClass::create($request->only('name'));
-        return redirect()->route('classes.index')->with('success', 'Class created!');
+        $class = ClassSchool::create($request->only('name'));
+
+        // Auto-assign Section A or multiple sections if requested
+        if ($request->boolean('auto_assign_sections')) {
+            $sectionNames = $request->input('section_names', ['A']);
+            $sectionIds = [];
+            foreach ($sectionNames as $sectionName) {
+                $section = Section::firstOrCreate([
+                    'name' => $sectionName
+                ]);
+                $sectionIds[] = $section->id;
+            }
+            $class->sections()->syncWithoutDetaching($sectionIds);
+        }
+
+        if ($request->hasHeader('X-Inertia')) {
+            return redirect()->route('classes-sections.manage')
+                ->with([
+                    'success' => 'Class created!',
+                    'initialTab' => 'classes'
+                ]);
+        }
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'class' => $class], 201);
+        }
+        return redirect()->route('classes-sections.manage')
+            ->with([
+                'success' => 'Class created!',
+                'initialTab' => 'classes'
+            ]);
     }
 
-    public function edit(SchoolClass $class)
+    public function edit(ClassSchool $class)
     {
         return Inertia::render('Classes/Edit', [
             'class' => $class,
         ]);
     }
 
-    public function update(Request $request, SchoolClass $class)
+    public function update(Request $request, ClassSchool $class)
     {
         $request->validate(['name' => 'required|string|max:255']);
         $class->update($request->only('name'));
-        return redirect()->route('classes.index')->with('success', 'Class updated!');
+        if ($request->hasHeader('X-Inertia')) {
+            return redirect()->route('classes-sections.manage')
+                ->with([
+                    'success' => 'Class updated!',
+                    'initialTab' => 'classes'
+                ]);
+        }
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'class' => $class]);
+        }
+        return redirect()->route('classes-sections.manage')
+            ->with([
+                'success' => 'Class updated!',
+                'initialTab' => 'classes'
+            ]);
     }
 
-    public function destroy(SchoolClass $class)
+    public function destroy(ClassSchool $class)
     {
         $class->delete();
-        return redirect()->route('classes.index')->with('success', 'Class deleted!');
+        if (request()->hasHeader('X-Inertia')) {
+            return redirect()->route('classes-sections.manage')
+                ->with([
+                    'success' => 'Class deleted!',
+                    'initialTab' => 'classes'
+                ]);
+        }
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+        return redirect()->route('classes-sections.manage')
+            ->with([
+                'success' => 'Class deleted!',
+                'initialTab' => 'classes'
+            ]);
     }
 }

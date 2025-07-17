@@ -23,12 +23,12 @@
                     <button
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editSchool(row.id)" aria-label="Edit School" title="Edit School">
-                        <Pencil class="w-5 h-5" />
+                        <Icon name="edit" class="w-5 h-5" />
                     </button>
                     <button
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeleteSchool(row.id)" aria-label="Delete School" title="Delete School">
-                        <Trash2 class="w-5 h-5" />
+                        <Icon name="trash" class="w-5 h-5" />
                     </button>
                 </template>
             </BaseDataTable>
@@ -52,11 +52,12 @@ import { usePage, router, Head, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
-import { Pencil, Trash2, Eye } from 'lucide-vue-next';
+import { Eye } from 'lucide-vue-next';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
+import Icon from '@/components/Icon.vue';
 
 interface SchoolsPagination {
     data: any[];

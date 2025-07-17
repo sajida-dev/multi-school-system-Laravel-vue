@@ -60,43 +60,8 @@ let pollInterval: number | undefined;
 onMounted(() => {
     window.addEventListener('school-added', handleSchoolAdded as EventListener);
     // Listen for school events via Echo if available
-    if (window.Echo) {
-        window.Echo.channel('schools')
-            .listen('SchoolCreated', (e: any) => {
-                if (e && e.school) {
-                    // Only add if not already present
-                    if (!schools.value.some(s => s.id === e.school.id)) {
-                        schools.value.push(e.school);
-                        if (schools.value.length === 1) {
-                            schoolStore.setSchool(e.school);
-                        }
-                    }
-                }
-            })
-            .listen('SchoolDeleted', (e: any) => {
-                if (e && e.schoolId) {
-                    const idx = schools.value.findIndex(s => s.id === e.schoolId);
-                    if (idx !== -1) {
-                        schools.value.splice(idx, 1);
-                        if (schools.value.length === 0) {
-                            schoolStore.setSchool(null);
-                        } else if (schools.value.length === 1) {
-                            schoolStore.setSchool(schools.value[0]);
-                        } else if (selectedSchool.value && !schools.value.some(s => s.id === selectedSchool.value?.id)) {
-                            schoolStore.setSchool(schools.value[0]);
-                        }
-                    }
-                }
-            })
-            .listen('SchoolUpdated', (e: any) => {
-                if (e && e.school) {
-                    const idx = schools.value.findIndex(s => s.id === e.school.id);
-                    if (idx !== -1) {
-                        schools.value[idx] = { ...schools.value[idx], ...e.school };
-                    }
-                }
-            });
-    }
+    // The original code had Echo listeners commented out, so we'll remove them.
+    // If polling is needed, it should be implemented here or in a separate function.
 });
 onUnmounted(() => {
     window.removeEventListener('school-added', handleSchoolAdded as EventListener);
@@ -139,7 +104,7 @@ onUnmounted(() => {
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ school.phone || ''
-                                }}</span>
+                            }}</span>
                         </div>
                         <Check v-if="school.id === selectedSchool?.id" class="ml-auto text-primary" />
                     </DropdownMenuItem>

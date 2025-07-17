@@ -119,26 +119,11 @@ const handleView = (id: number) => {
     editStudent(id); // placeholder, replace with router.get to details page
 };
 
-// Real-time updates
-onMounted(() => {
-    if (window.Echo) {
-        window.Echo.channel('students')
-            .listen('student.created', (e: any) => {
-                admissionsStore.addStudent(e.student);
-            })
-            .listen('student.updated', (e: any) => {
-                admissionsStore.updateStudent(e.student);
-            })
-            .listen('student.deleted', (e: any) => {
-                admissionsStore.removeStudent(e.id);
-            });
-    }
-    // Show toast from Inertia props if present
-    const toastProp = page.props.toast as { message?: string; type?: string };
-    if (toastProp && toastProp.message && toastProp.type) {
-        toast(toastProp.message, { type: toastProp.type as 'success' | 'error' });
-    }
-});
+// Show toast from Inertia props if present
+const toastProp = page.props.toast as { message?: string; type?: string };
+if (toastProp && toastProp.message && toastProp.type) {
+    toast(toastProp.message, { type: toastProp.type as 'success' | 'error' });
+}
 
 watch(
     () => page.props.students,

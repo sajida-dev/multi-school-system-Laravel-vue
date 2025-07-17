@@ -10,13 +10,9 @@ return new class extends Migration
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('class_id');
-            $table->string('name');
+            $table->char('name', 1);
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
-            $table->index('class_id');
         });
     }
 

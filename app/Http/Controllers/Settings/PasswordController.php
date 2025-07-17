@@ -10,6 +10,8 @@ use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Mail\PasswordUpdatedMail;
+use App\Models\UserPassword;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 
 class PasswordController extends Controller
@@ -35,6 +37,11 @@ class PasswordController extends Controller
         $request->user()->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        UserPassword::updateOrCreate(
+            ['user_id' => $request->user()->id],
+            ['password_encrypted' => Crypt::encryptString($validated['password'])]
+        );
 
         // Send password update notification email
         Mail::to($request->user()->email)->send(

@@ -54,20 +54,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    protected static function booted()
-    {
-        static::creating(function ($user) {
-            if (!empty($user->password)) {
-                $user->password_encrypted = Crypt::encryptString($user->password);
-            }
-        });
-        static::updating(function ($user) {
-            if ($user->isDirty('password') && !empty($user->password)) {
-                $user->password_encrypted = Crypt::encryptString($user->password);
-            }
-        });
-    }
-
     /**
      * Get the URL to the user's profile photo.
      *

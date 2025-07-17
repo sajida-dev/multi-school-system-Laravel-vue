@@ -12,7 +12,12 @@ class ClassesSectionsController extends Controller
      */
     public function index()
     {
-        return view('classessections::index');
+        $classes = \Modules\ClassesSections\app\Models\ClassSchool::all();
+        $sections = \Modules\ClassesSections\app\Models\Section::all();
+        return \Inertia\Inertia::render('ClassesSections/Manage', [
+            'classes' => $classes,
+            'sections' => $sections,
+        ]);
     }
 
     /**

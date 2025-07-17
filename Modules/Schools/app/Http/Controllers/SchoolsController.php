@@ -72,7 +72,7 @@ class SchoolsController extends Controller
         }
         $school->save();
         // Broadcast the event
-        event(new \Modules\Schools\App\Events\SchoolCreated($school));
+        // event(new \Modules\Schools\App\Events\SchoolCreated($school));
         return redirect()->route('schools.index')->with([
             'success' => 'School created successfully.',
             'school' => $school,
@@ -128,7 +128,7 @@ class SchoolsController extends Controller
         }
 
         // Broadcast the event
-        event(new \Modules\Schools\App\Events\SchoolUpdated($school));
+        // event(new \Modules\Schools\App\Events\SchoolUpdated($school));
 
         // If AJAX or expects JSON, return updated school
         if ($request->ajax() || $request->wantsJson()) {
@@ -149,7 +149,7 @@ class SchoolsController extends Controller
         $school = School::findOrFail($id);
         $school->delete();
         // Broadcast the event
-        event(new \Modules\Schools\App\Events\SchoolDeleted($school->id));
+        // event(new \Modules\Schools\App\Events\SchoolDeleted($school->id));
         return redirect()->route('schools.index')->with('success', 'School deleted successfully.');
     }
 

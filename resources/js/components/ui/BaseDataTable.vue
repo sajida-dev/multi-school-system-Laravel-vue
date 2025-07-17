@@ -109,5 +109,7 @@ const rowClass = computed(() =>
     --easy-table-scrollbar-corner-color: #18181b;
 
     --easy-table-loading-mask-background-color: #18181b;
+    /* For empty state background, use a slightly lighter color for contrast */
+    --easy-table-empty-font-color: #b7b7b7;
 }
 </style>

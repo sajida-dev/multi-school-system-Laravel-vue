@@ -25,8 +25,22 @@ class SectionController extends Controller
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|max:255']);
-        Section::create($request->only('name'));
-        return redirect()->route('sections.index')->with('success', 'Section created!');
+        $section = Section::create($request->only('name'));
+        if ($request->hasHeader('X-Inertia')) {
+            return redirect()->route('classes-sections.manage')
+                ->with([
+                    'success' => 'Section created!',
+                    'initialTab' => 'sections'
+                ]);
+        }
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'section' => $section], 201);
+        }
+        return redirect()->route('classes-sections.manage')
+            ->with([
+                'success' => 'Section created!',
+                'initialTab' => 'sections'
+            ]);
     }
 
     public function edit(Section $section)
@@ -40,12 +54,40 @@ class SectionController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
         $section->update($request->only('name'));
-        return redirect()->route('sections.index')->with('success', 'Section updated!');
+        if ($request->hasHeader('X-Inertia')) {
+            return redirect()->route('classes-sections.manage')
+                ->with([
+                    'success' => 'Section updated!',
+                    'initialTab' => 'sections'
+                ]);
+        }
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'section' => $section]);
+        }
+        return redirect()->route('classes-sections.manage')
+            ->with([
+                'success' => 'Section updated!',
+                'initialTab' => 'sections'
+            ]);
     }
 
     public function destroy(Section $section)
     {
         $section->delete();
-        return redirect()->route('sections.index')->with('success', 'Section deleted!');
+        if (request()->hasHeader('X-Inertia')) {
+            return redirect()->route('classes-sections.manage')
+                ->with([
+                    'success' => 'Section deleted!',
+                    'initialTab' => 'sections'
+                ]);
+        }
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+        return redirect()->route('classes-sections.manage')
+            ->with([
+                'success' => 'Section deleted!',
+                'initialTab' => 'sections'
+            ]);
     }
 }

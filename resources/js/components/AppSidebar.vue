@@ -30,22 +30,22 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Schools',
+        title: 'Manage Schools',
         href: '/schools',
         icon: Building2,
     },
     {
-        title: 'Students',
+        title: 'Manage Classes & Sections',
+        href: '/manage/classes-sections',
+        icon: School, // or Layers, or another relevant icon
+    },
+    {
+        title: 'Manage Students',
         href: '/students',
         icon: GraduationCap,
     },
     {
-        title: 'Classes',
-        href: '/classes',
-        icon: School,
-    },
-    {
-        title: 'Teachers',
+        title: 'Manage Teachers',
         href: '/teachers',
         icon: Users,
     },
@@ -55,37 +55,37 @@ const mainNavItems: NavItem[] = [
         icon: UserPlus,
     },
     {
-        title: 'Fees',
+        title: 'Manage Fees',
         href: '/fees',
         icon: CreditCard,
     },
     {
-        title: 'Papers',
+        title: 'Create Papers',
         href: '/papers',
         icon: FileText,
     },
+    // {
+    //     title: 'Exams',
+    //     href: '/exams',
+    //     icon: ClipboardList,
+    // },
     {
-        title: 'Exams',
-        href: '/exams',
-        icon: ClipboardList,
-    },
-    {
-        title: 'Results',
+        title: 'Manage Results',
         href: '/results',
         icon: BarChart3,
     },
     {
-        title: 'Reports',
+        title: 'Manage Reports',
         href: '/reports',
         icon: BarChart3,
     },
     {
-        title: 'Installments',
+        title: 'Manage Installments',
         href: '/installments',
         icon: Receipt,
     },
     {
-        title: 'Certificates',
+        title: 'Manage Certificates',
         href: '/certificates',
         icon: Award,
     },

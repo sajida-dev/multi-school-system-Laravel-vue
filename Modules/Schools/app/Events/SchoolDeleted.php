@@ -2,15 +2,12 @@
 
 namespace Modules\Schools\App\Events;
 
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class SchoolDeleted implements ShouldBroadcast
+class SchoolDeleted
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, SerializesModels;
 
     public $schoolId;
 
@@ -23,25 +20,5 @@ class SchoolDeleted implements ShouldBroadcast
     public function __construct($schoolId)
     {
         $this->schoolId = $schoolId;
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return \Illuminate\Broadcasting\Channel|array
-     */
-    public function broadcastOn()
-    {
-        return new Channel('schools');
-    }
-
-    /**
-     * The event's broadcast name.
-     *
-     * @return string
-     */
-    public function broadcastAs()
-    {
-        return 'SchoolDeleted';
     }
 }

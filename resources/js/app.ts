@@ -10,7 +10,6 @@ import Vue3Toastify, {toast} from 'vue3-toastify'
 import { createPinia } from 'pinia';
 import Vue3EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
-import './echo';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Multi Schools System';
 

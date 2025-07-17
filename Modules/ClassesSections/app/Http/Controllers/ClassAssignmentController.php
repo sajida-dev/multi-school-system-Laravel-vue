@@ -4,8 +4,8 @@ namespace Modules\ClassesSections\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Modules\ClassesSections\App\Models\ClassSchool;
 use Modules\Schools\app\Models\School;
-use Modules\ClassesSections\app\Models\SchoolClass;
 
 class ClassAssignmentController extends Controller
 {
@@ -16,9 +16,19 @@ class ClassAssignmentController extends Controller
         return back()->with('success', 'Classes assigned!');
     }
 
-    public function unassign(School $school, SchoolClass $class)
+    public function unassign(School $school, ClassSchool $class)
     {
         $school->classes()->detach($class->id);
         return back()->with('success', 'Class unassigned!');
+    }
+
+    public function index()
+    {
+        $schools = School::with('classes')->get();
+        $classes = ClassSchool::all();
+        return response()->json([
+            'schools' => $schools,
+            'classes' => $classes,
+        ]);
     }
 }

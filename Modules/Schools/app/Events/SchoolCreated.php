@@ -2,18 +2,13 @@
 
 namespace Modules\Schools\App\Events;
 
-use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Modules\Schools\App\Models\School;
 
-class SchoolCreated implements ShouldBroadcast
+class SchoolCreated
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, SerializesModels;
 
     public $school;
 
@@ -26,25 +21,5 @@ class SchoolCreated implements ShouldBroadcast
     public function __construct(School $school)
     {
         $this->school = $school;
-    }
-
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return \Illuminate\Broadcasting\Channel|array
-     */
-    public function broadcastOn()
-    {
-        return new Channel('schools');
-    }
-
-    /**
-     * The event's broadcast name.
-     *
-     * @return string
-     */
-    public function broadcastAs()
-    {
-        return 'SchoolCreated';
     }
 }
