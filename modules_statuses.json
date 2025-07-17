@@ -6,5 +6,6 @@
     "PapersQuestions": true,
     "ResultsPromotions": true,
     "Certificates": true,
-    "Reports": true
+    "Reports": true,
+    "Students": true
 }
