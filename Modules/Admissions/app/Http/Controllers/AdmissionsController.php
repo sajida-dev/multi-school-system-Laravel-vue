@@ -26,8 +26,11 @@ class AdmissionsController extends Controller
     public function index(Request $request)
     {
         $query = Student::with('class'); // Eager load class relationship
-        // Filter by school_id
-        if ($request->has('school_id') && $request->input('school_id')) {
+        // Always filter by selected school from session
+        $selectedSchoolId = session('active_school_id');
+        if ($selectedSchoolId) {
+            $query->where('school_id', $selectedSchoolId);
+        } elseif ($request->has('school_id') && $request->input('school_id')) {
             $query->where('school_id', $request->input('school_id'));
         }
         // Filter by class_id
@@ -246,7 +249,7 @@ class AdmissionsController extends Controller
         $student = Student::findOrFail($id);
         $fee = Fee::where('student_id', $student->id)->where('type', 'admission')->first();
         if (!$fee) {
-            return response()->json(['success' => false, 'message' => 'Fee record not found.'], 422);
+            return redirect()->back()->with('error', 'Fee record not found.');
         }
         $validated = $request->validate([
             'paid_voucher_image' => 'required|file|image|max:2048',
@@ -259,11 +262,11 @@ class AdmissionsController extends Controller
             $fee->save();
         }
         if ($fee->status !== 'paid' || !$fee->paid_voucher_image) {
-            return response()->json(['success' => false, 'message' => 'Fee must be paid and voucher uploaded before approval.'], 422);
+            return redirect()->back()->with('error', 'Fee must be paid and voucher uploaded before approval.');
         }
         $student->status = 'admitted';
         $student->save();
         Broadcast::event('student.updated', $student);
-        return response()->json(['success' => true, 'message' => 'Student approved successfully.']);
+        return redirect()->back()->with('success', 'Student approved successfully.');
     }
 }
