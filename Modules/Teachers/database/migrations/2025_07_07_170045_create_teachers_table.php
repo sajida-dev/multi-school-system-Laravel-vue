@@ -18,7 +18,6 @@ return new class extends Migration
             $table->enum('role', ['teacher', 'principal']);
             $table->date('dob');
             $table->decimal('salary', 12, 2);
-            $table->string('contact_no');
             $table->date('date_of_joining');
             $table->integer('experience_years')->nullable();
             $table->timestamps();

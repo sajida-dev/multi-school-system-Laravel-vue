@@ -66,6 +66,12 @@
                         @click="printVoucher(row.id)" aria-label="Print Voucher" title="Print Voucher">
                         <Icon name="printer" class="w-5 h-5" />
                     </button>
+                    <button
+                        v-if="row.status === 'applicant'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 ml-1"
+                        @click="rejectStudent(row.id)" aria-label="Reject Student" title="Reject Student">
+                        <Icon name="ban" class="w-5 h-5" />
+                    </button>
                 </template>
                 <template #item-expand="row">
                     <button @click="toggleRowExpansion(row)"
@@ -326,6 +332,7 @@ const editStudent = (id: number) => {
     router.get(route('admissions.edit', id));
 };
 
+
 const askDeleteStudent = (id: number) => {
     studentToDelete.value = id;
     showDeleteDialog.value = true;
@@ -375,6 +382,24 @@ function approveStudent(studentId: number) {
         },
         onError: () => {
             toast.error('Failed to approve student.');
+        }
+    });
+}
+
+function rejectStudent(studentId: number) {
+    router.post(route('admissions.reject', studentId), {}, {
+        onSuccess: () => {
+            toast.success('Student rejected successfully.');
+            // Update local state to reflect rejection
+            if (students.value && Array.isArray(students.value.data)) {
+                const idx = students.value.data.findIndex((s: any) => s.id === studentId);
+                if (idx !== -1) {
+                    students.value.data[idx].status = 'rejected';
+                }
+            }
+        },
+        onError: () => {
+            toast.error('Failed to reject student.');
         }
     });
 }

@@ -24,6 +24,8 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@fullcalendar/daygrid": "^6.1.18",
+        "@fullcalendar/vue3": "^6.1.18",
         "@inertiajs/vue3": "^2.0.0",
         "@tailwindcss/vite": "^4.1.1",
         "@vitejs/plugin-vue": "^5.2.1",
@@ -44,6 +46,7 @@
         "typescript": "^5.2.2",
         "vite": "^6.2.0",
         "vue": "^3.5.13",
+        "vue3-apexcharts": "^1.8.0",
         "vue3-easy-data-table": "^1.5.47",
         "vue3-toastify": "^0.2.8",
         "xlsx": "^0.18.5",

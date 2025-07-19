@@ -1,9 +1,8 @@
 <template>
     <AppLayout :breadcrumbs="breadcrumbItems">
-
-        <Head title="Add Teacher" />
+        <Head title="Edit Teacher" />
         <div class="max-w-4xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
-            <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Add New Teacher</h1>
+            <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Edit Teacher</h1>
             <form @submit.prevent="submit" class="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-lg shadow-lg p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <TextInput
@@ -34,14 +33,6 @@
                         required
                         type="email"
                         placeholder="e.g. teacher@email.com"
-                    />
-                    <TextInput
-                        label="Password"
-                        v-model="form.password"
-                        :error="form.errors.password"
-                        required
-                        type="password"
-                        placeholder="At least 8 characters"
                     />
                     <SelectInput
                         label="Gender"
@@ -130,7 +121,7 @@
                 </div>
                 <div class="mt-8 flex gap-2 justify-end">
                     <Button variant="outline" type="button" @click="goBack">Cancel</Button>
-                    <Button variant="default" type="submit" :disabled="form.processing">Add Teacher</Button>
+                    <Button variant="default" type="submit" :disabled="form.processing">Update Teacher</Button>
                 </div>
             </form>
         </div>
@@ -149,33 +140,34 @@ import { BreadcrumbItem } from '@/types';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 
+const page = usePage<any>();
+const teacher = page.props.teacher;
+const roles = ref(page.props.roles || []);
 const schoolStore = useSchoolStore();
 const { schools, selectedSchool, classes, sections } = storeToRefs(schoolStore);
-const page = usePage<any>();
-const roles = ref(page.props.roles || []);
+
 const form = useForm({
     profile_photo: null,
-    name: '',
-    email: '',
-    username:'',
-    password: '',
-    cnic: '',
-    gender: '',
-    marital_status: '',
-    role: '',
-    dob: '',
-    salary: '',
-    phone_number: '',
-    date_of_joining: '',
-    experience_years: '',
+    name: teacher.name || '',
+    email: teacher.email || '',
+    username:teacher.username || '',
+    cnic: teacher.teacher?.cnic || '',
+    gender: teacher.teacher?.gender || '',
+    marital_status: teacher.teacher?.marital_status || '',
+    role: teacher.teacher?.role || '',
+    dob: teacher.teacher?.dob || '',
+    salary: teacher.teacher?.salary || '',
+    phone_number: teacher.teacher?.phone_number || '',
+    date_of_joining: teacher.teacher?.date_of_joining || '',
+    experience_years: teacher.teacher?.experience_years || '',
     school_id: selectedSchool.value?.id ?? '',
-    class_id: '',
+    class_id: teacher.teacher?.class_id || '',
 });
 
 const breadcrumbItems :BreadcrumbItem[]= [
     { title: 'Dashboard', href: '/' },
     { title: 'Teachers', href: '/teachers' },
-    { title: 'Add Teacher', href: '/teachers/create' },
+    { title: 'Edit Teacher', href: `/teachers/${teacher.id}/edit` },
 ];
 
 const filteredClasses = computed(() => {
@@ -184,7 +176,7 @@ const filteredClasses = computed(() => {
 });
 
 function submit() {
-    form.post('/teachers', {
+    form.post(`/teachers/${teacher.id}`, {
         forceFormData: true,
         onSuccess: () => {
             router.visit('/teachers');
@@ -194,4 +186,4 @@ function submit() {
 function goBack() {
     router.visit('/teachers');
 }
-</script>
+</script> 

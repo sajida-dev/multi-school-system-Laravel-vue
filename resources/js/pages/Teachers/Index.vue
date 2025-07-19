@@ -122,11 +122,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { router, Head, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/components/AppShell.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import Icon from '@/components/Icon.vue';
+import { BreadcrumbItem } from '@/types';
 
 // Extend the default Inertia page props with our custom props
 type TeachersPageProps = any & {
@@ -164,9 +165,9 @@ const headers = [
     { text: 'Actions', value: 'actions', sortable: false },
 ];
 
-const breadcrumbItems = [
-    { label: 'Dashboard', href: '/' },
-    { label: 'Teachers', href: '/teachers' },
+const breadcrumbItems:BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/' },
+    { title: 'Teachers', href: '/teachers' },
 ];
 
 function fetchData() {

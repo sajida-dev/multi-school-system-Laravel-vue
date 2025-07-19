@@ -74,6 +74,7 @@ class TeachersController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
+            'username' => 'required|username|unique:users,username',
             'password' => 'required|string|min:8',
             'cnic' => 'required|string|unique:teachers,cnic',
             'gender' => 'required|in:Male,Female',
@@ -81,7 +82,7 @@ class TeachersController extends Controller
             'role' => 'required|in:teacher,principal',
             'dob' => 'required|date',
             'salary' => 'required|numeric',
-            'contact_no' => 'required|string',
+            'phone_number' => 'required|string',
             'date_of_joining' => 'required|date',
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
@@ -91,6 +92,8 @@ class TeachersController extends Controller
             $user = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'username' => $validated['username'],
+                'phone_number' => $validated['phone_number'],
                 'password' => Hash::make($validated['password']),
             ]);
             $user->assignRole($validated['role']);
@@ -103,7 +106,6 @@ class TeachersController extends Controller
                 'role' => $validated['role'],
                 'dob' => $validated['dob'],
                 'salary' => $validated['salary'],
-                'contact_no' => $validated['contact_no'],
                 'date_of_joining' => $validated['date_of_joining'],
                 'experience_years' => $validated['experience_years'],
             ]);
@@ -145,12 +147,13 @@ class TeachersController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
+            'username' => 'required|username|unique:users,username,'.$id,
             'gender' => 'required|in:Male,Female',
             'marital_status' => 'required|in:Single,Married',
             'role' => 'required|in:teacher,principal',
             'dob' => 'required|date',
             'salary' => 'required|numeric',
-            'contact_no' => 'required|string',
+            'phone_number' => 'required|string',
             'date_of_joining' => 'required|date',
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
@@ -161,6 +164,8 @@ class TeachersController extends Controller
             $user->update([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'username' => $validated['username'],
+                'phone_number' => $validated['phone_number'],
             ]);
             $user->syncRoles([$validated['role']]);
             $teacher = $user->teacher;
@@ -171,7 +176,7 @@ class TeachersController extends Controller
                 'role' => $validated['role'],
                 'dob' => $validated['dob'],
                 'salary' => $validated['salary'],
-                'contact_no' => $validated['contact_no'],
+                
                 'date_of_joining' => $validated['date_of_joining'],
                 'experience_years' => $validated['experience_years'],
             ]);

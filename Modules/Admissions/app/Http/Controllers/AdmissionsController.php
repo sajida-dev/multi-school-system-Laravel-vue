@@ -37,9 +37,11 @@ class AdmissionsController extends Controller
         if ($request->has('class_id') && $request->input('class_id')) {
             $query->where('class_id', $request->input('class_id'));
         }
-        // Filter by status
+        // Always filter by status 'applicant' or 'rejected' unless a specific status is requested
         if ($request->has('status') && $request->input('status')) {
             $query->where('status', $request->input('status'));
+        } else {
+            $query->whereIn('status', ['applicant', 'rejected']);
         }
         // Filter by year (admission_date)
         if ($request->has('year') && $request->input('year')) {
