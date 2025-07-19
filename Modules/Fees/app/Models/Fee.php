@@ -19,7 +19,8 @@ class Fee extends Model
         'status',
         'due_date',
         'paid_at',
-        'voucher_number'
+        'voucher_number',
+        'paid_voucher_image',
     ];
 
     public function student(): BelongsTo

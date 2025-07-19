@@ -11,6 +11,7 @@ use Modules\ClassesSections\app\Models\Section;
 class ClassSection extends Model
 {
     use SoftDeletes;
+    protected $table = "class_school_section";
 
     protected $fillable = [
         'class_id',

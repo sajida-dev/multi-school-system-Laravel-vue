@@ -19,8 +19,5 @@ class DatabaseSeeder extends Seeder
         // 2. Classes and sections (must come after schools)
         $this->call(\Modules\ClassesSections\Database\Seeders\ClassSeeder::class);
         $this->call(\Modules\ClassesSections\Database\Seeders\SectionSeeder::class);
-
-        // 3. Admissions (students demo data)
-        $this->call(\Modules\Admissions\Database\Seeders\AdmissionsDatabaseSeeder::class);
     }
 }

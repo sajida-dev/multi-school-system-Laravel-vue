@@ -185,8 +185,24 @@ class SchoolsController extends Controller
      */
     public function listJson()
     {
-        return response()->json(
-            School::select('id', 'name')->orderBy('name')->get()
-        );
+        $schools = \Modules\Schools\App\Models\School::select('id', 'name')->orderBy('name')->get();
+        $classes = \Modules\ClassesSections\App\Models\ClassSchool::select('id', 'name')->get();
+        $sections = \Modules\ClassesSections\App\Models\Section::select('id', 'name')->get();
+        return response()->json([
+            'schools' => $schools,
+            'classes' => $classes,
+            'sections' => $sections,
+        ]);
+    }
+
+    /**
+     * Return all schools with their linked classes and sections as JSON (for frontend forms)
+     */
+    public function allWithClassesSections()
+    {
+        $schools = \Modules\Schools\App\Models\School::with('classes.sections')->get();
+        return response()->json([
+            'schools' => $schools
+        ]);
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('due_date');
             $table->dateTime('paid_at')->nullable();
             $table->string('voucher_number')->nullable();
+            $table->string('paid_voucher_image')->nullable();
             $table->timestamps();
             $table->softDeletes();
 

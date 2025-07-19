@@ -32,6 +32,8 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { toast } from 'vue3-toastify';
+import { useSchoolStore } from '@/stores/school';
+import { router } from '@inertiajs/vue3';
 
 interface School {
     id: number;
@@ -49,6 +51,7 @@ const loading = ref(true);
 const saving = reactive<{ [key: number]: boolean }>({});
 const openAccordions = ref<number[]>([]);
 const selectedClasses = reactive<{ [key: number]: number[] }>({});
+const schoolStore = useSchoolStore();
 
 function isAccordionOpen(schoolId: number) {
     return openAccordions.value.includes(schoolId);
@@ -86,23 +89,22 @@ function getCsrfToken(): string {
 async function saveAssignments(schoolId: number) {
     saving[schoolId] = true;
     try {
-        const res = await fetch(`/class-assignment/${schoolId}/assign`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': getCsrfToken(),
+        router.post(`/class-assignment/${schoolId}/assign`, {
+            class_ids: selectedClasses[schoolId],
+        }, {
+            onSuccess: async () => {
+                toast.success('Assignments saved!');
+                await schoolStore.fetchSchools(); // Refresh global state after assignment
             },
-            body: JSON.stringify({ class_ids: selectedClasses[schoolId] }),
+            onError: () => {
+                toast.error('Failed to save assignments.');
+            },
+            onFinish: () => {
+                saving[schoolId] = false;
+            }
         });
-        if (res.ok) {
-            toast.success('Assignments saved!');
-        } else {
-            toast.error('Failed to save assignments.');
-        }
     } catch (e) {
         toast.error('An error occurred.');
-    } finally {
         saving[schoolId] = false;
     }
 }

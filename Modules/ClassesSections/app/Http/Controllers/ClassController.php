@@ -4,7 +4,7 @@ namespace Modules\ClassesSections\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Modules\ClassesSections\app\Models\ClassSchool;
+use Modules\ClassesSections\app\Models\ClassModel;
 use Inertia\Inertia;
 use Modules\ClassesSections\app\Models\Section;
 
@@ -12,7 +12,7 @@ class ClassController extends Controller
 {
     public function index()
     {
-        $classes = ClassSchool::all();
+        $classes = ClassModel::all();
         return Inertia::render('Classes/Index', [
             'classes' => $classes,
         ]);
@@ -26,7 +26,7 @@ class ClassController extends Controller
     public function store(Request $request)
     {
         $request->validate(['name' => 'required|string|max:255']);
-        $class = ClassSchool::create($request->only('name'));
+        $class = ClassModel::create($request->only('name'));
 
         // Auto-assign Section A or multiple sections if requested
         if ($request->boolean('auto_assign_sections')) {
@@ -58,14 +58,14 @@ class ClassController extends Controller
             ]);
     }
 
-    public function edit(ClassSchool $class)
+    public function edit(ClassModel $class)
     {
         return Inertia::render('Classes/Edit', [
             'class' => $class,
         ]);
     }
 
-    public function update(Request $request, ClassSchool $class)
+    public function update(Request $request, ClassModel $class)
     {
         $request->validate(['name' => 'required|string|max:255']);
         $class->update($request->only('name'));
@@ -86,7 +86,7 @@ class ClassController extends Controller
             ]);
     }
 
-    public function destroy(ClassSchool $class)
+    public function destroy(ClassModel $class)
     {
         $class->delete();
         if (request()->hasHeader('X-Inertia')) {

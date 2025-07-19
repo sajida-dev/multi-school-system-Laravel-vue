@@ -95,6 +95,7 @@ const logoFile = ref<File | undefined>();
 const logoPreview = ref<string>(school.logo || '/favicon.svg');
 const mainImageFile = ref<File | undefined>();
 const mainImagePreview = ref<string>(school.main_image || '/favicon.svg');
+const schoolStore = useSchoolStore();
 
 const submit = () => {
     const formData = new FormData();
@@ -106,7 +107,9 @@ const submit = () => {
     formData.append('_method', 'PATCH');
     router.post(route('schools.update', school.id), formData, {
         forceFormData: true,
-        onSuccess: () => {
+        onSuccess: async () => {
+            await schoolStore.fetchSchools();
+
             toast.success('School updated successfully.');
             router.visit(route('schools.index'));
         },

@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
+            $table->foreignId('section_id')->nullable()->constrained('sections')->onDelete('set null');
             $table->enum('nationality', [
                 'Pakistan',
                 'India',
@@ -41,20 +44,6 @@ return new class extends Migration
             $table->string('b_form_number');
             $table->date('admission_date');
             $table->date('date_of_birth');
-            $table->enum('class', [
-                'NURSERY',
-                'PREP',
-                'ONE',
-                'TWO',
-                'THREE',
-                'FOUR',
-                'FIVE',
-                'SIX',
-                'SEVEN',
-                'EIGHT',
-                'NINE',
-                'TEN',
-            ]);
             $table->enum('gender', [
                 'Male',
                 'Female',

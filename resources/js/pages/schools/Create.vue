@@ -94,6 +94,7 @@ const logoFile = ref<File | undefined>();
 const logoPreview = ref<string>('');
 const mainImageFile = ref<File | undefined>();
 const mainImagePreview = ref<string>('');
+const schoolStore = useSchoolStore();
 
 function submit() {
     const formData = new FormData();
@@ -104,8 +105,9 @@ function submit() {
     if (mainImageFile.value) formData.append('main_image', mainImageFile.value);
     router.post(route('schools.store'), formData, {
         forceFormData: true,
-        onSuccess: (page) => {
+        onSuccess: async (page) => {
             toast.success('School created successfully.');
+            await schoolStore.fetchSchools();
             router.visit(route('schools.index'));
         },
         onError: () => {

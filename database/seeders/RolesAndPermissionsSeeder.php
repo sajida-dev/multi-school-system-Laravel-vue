@@ -32,7 +32,9 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // 2. Create global superadmin role (school_id => null)
-        $superAdminRole = Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web', 'school_id' => null]);
+        $superAdminRole = Role::firstOrCreate(
+            ['name' => 'superadmin', 'guard_name' => 'web', 'school_id' => null]
+        );
         $superAdminRole->syncPermissions(Permission::all());
 
         // 3. Create Super Admin user (with unique phone_number)

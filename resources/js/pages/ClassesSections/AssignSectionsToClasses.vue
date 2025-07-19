@@ -28,7 +28,7 @@
                 </button>
                 <div v-show="isAccordionOpen(cls.id)" class="p-4 bg-white dark:bg-neutral-900">
                     <div class="mb-2 text-sm text-gray-500">Check the sections you want to assign to <b>{{ cls.name
-                            }}</b>:</div>
+                    }}</b>:</div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 mb-4">
                         <label v-for="section in sections" :key="section.id"
                             class="flex items-center gap-2 cursor-pointer">
@@ -51,6 +51,7 @@ import { ref, reactive, onMounted, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
+import { router } from '@inertiajs/vue3';
 
 interface ClassItem {
     id: number;
@@ -111,25 +112,28 @@ function getCsrfToken(): string {
 }
 
 async function saveAssignments(classId: number) {
+    if (!selectedSchool.value || !selectedSchool.value.id) {
+        toast.error('No school selected.');
+        return;
+    }
     saving[classId] = true;
     try {
-        const res = await fetch(`/section-assignment/${classId}/assign`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': getCsrfToken(),
+        router.post(`/section-assignment/${classId}/assign`, {
+            section_ids: selectedSections[classId],
+            school_id: selectedSchool.value.id,
+        }, {
+            onSuccess: () => {
+                toast.success('Assignments saved!');
             },
-            body: JSON.stringify({ section_ids: selectedSections[classId] }),
+            onError: () => {
+                toast.error('Failed to save assignments.');
+            },
+            onFinish: () => {
+                saving[classId] = false;
+            }
         });
-        if (res.ok) {
-            toast.success('Assignments saved!');
-        } else {
-            toast.error('Failed to save assignments.');
-        }
     } catch (e) {
         toast.error('An error occurred.');
-    } finally {
         saving[classId] = false;
     }
 }

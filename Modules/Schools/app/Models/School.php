@@ -5,7 +5,7 @@ namespace Modules\Schools\App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
-use Modules\ClassesSections\app\Models\ClassSchool;
+use Modules\ClassesSections\App\Models\ClassModel;
 
 class School extends Model
 {
@@ -26,6 +26,6 @@ class School extends Model
 
     public function classes()
     {
-        return $this->belongsToMany(ClassSchool::class, "class_schools", "school_id", "class_id");
+        return $this->belongsToMany(ClassModel::class, "class_schools", "school_id", "class_id");
     }
 }

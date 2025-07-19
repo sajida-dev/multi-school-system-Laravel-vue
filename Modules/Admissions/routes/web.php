@@ -3,11 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Admissions\Http\Controllers\AdmissionsController;
 
-Route::middleware(['web', 'auth', 'admin'])->prefix('admissions')->name('admissions.')->group(function () {
+Route::middleware(['web', 'auth'])->prefix('admissions')->name('admissions.')->group(function () {
     Route::get('/', [AdmissionsController::class, 'index'])->name('index');
     Route::get('/create', [AdmissionsController::class, 'create'])->name('create');
     Route::post('/', [AdmissionsController::class, 'store'])->name('store');
     Route::get('/{id}/edit', [AdmissionsController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [AdmissionsController::class, 'update'])->name('update');
+    Route::post('/{id}', [AdmissionsController::class, 'update'])->name('update');
     Route::delete('/{id}', [AdmissionsController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/approve', [AdmissionsController::class, 'approve'])->name('approve');
 });

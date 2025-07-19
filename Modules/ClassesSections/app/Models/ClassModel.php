@@ -5,14 +5,20 @@ namespace Modules\ClassesSections\App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\Section;
 
-class ClassSchool extends Model
+class ClassModel extends Model
 {
     protected $table = 'classes'; // or 'classes' if that's your table name
     protected $fillable = ['name'];
 
     public function sections()
     {
-        return $this->belongsToMany(Section::class, 'class_section', 'class_id', 'section_id');
+        // Updated to use the plural class_school_sections pivot table
+        return $this->belongsToMany(
+            Section::class,
+            'class_school_sections',
+            'class_school_id',
+            'section_id'
+        );
     }
 
     public function schools()

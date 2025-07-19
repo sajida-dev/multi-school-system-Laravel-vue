@@ -35,7 +35,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 });
 
 // Add this route for the school switcher
-Route::get('/admin/schools', [\Modules\Schools\Http\Controllers\SchoolsController::class, 'listJson']);
+Route::get('/admin/schools', [\Modules\Schools\Http\Controllers\SchoolsController::class, 'allWithClassesSections']);
 
 
 require __DIR__ . '/settings.php';

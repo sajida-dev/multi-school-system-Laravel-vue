@@ -1,19 +1,23 @@
 <template>
-    <div>
-        <label :for="id" class="block text-gray-700 dark:text-gray-200">
+    <div class="mb-4">
+        <Label v-if="label" :for="id" class="mb-1">
             {{ label }}<span v-if="required" class="text-red-500">*</span>
-        </label>
-        <input :id="id" :type="type" :value="modelValue" @input="$emit('update:modelValue', $event.target.value)"
-            :required="required" class="input input-bordered w-full dark:bg-gray-800 dark:text-gray-100"
-            v-bind="$attrs" />
+        </Label>
+        <Input :id="id" :modelValue="modelValue" @update:modelValue="$emit('update:modelValue', $event)" :type="type"
+            :required="required" v-bind="$attrs" />
+        <InputError :message="error" />
     </div>
 </template>
 <script setup>
+import Label from '@/components/ui/label/Label.vue';
+import Input from '@/components/ui/input/Input.vue';
+import InputError from '@/components/InputError.vue';
 defineProps({
     label: String,
     modelValue: [String, Number],
-    required: Boolean,
+    error: String,
     type: { type: String, default: 'text' },
+    required: Boolean,
     id: { type: String, default: () => Math.random().toString(36).substr(2, 9) }
 });
 defineEmits(['update:modelValue']);

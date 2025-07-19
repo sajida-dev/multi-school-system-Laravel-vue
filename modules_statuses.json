@@ -7,5 +7,6 @@
     "ResultsPromotions": true,
     "Certificates": true,
     "Reports": true,
-    "Students": true
+    "Students": true,
+    "Teachers": true
 }

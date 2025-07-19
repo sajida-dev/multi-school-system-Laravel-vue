@@ -3,7 +3,7 @@
 namespace Modules\ClassesSections\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\ClassesSections\App\Models\ClassSchool;
+use Modules\ClassesSections\App\Models\ClassModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Section extends Model
@@ -17,14 +17,13 @@ class Section extends Model
 
     protected $dates = ['deleted_at'];
 
-    public function classes()
+    public function classSchools()
     {
-        return $this->belongsToMany(ClassSchool::class, 'class_section', 'section_id', 'class_id');
+        return $this->belongsToMany(
+            \Modules\ClassesSections\App\Models\ClassModel::class,
+            'class_school_sections',
+            'section_id',
+            'class_school_id'
+        );
     }
-
-    // Optional: If you want to access the parent class directly
-    // public function class()
-    // {
-    //     return $this->belongsTo(ClassSchool::class, 'class_id');
-    // }
 }

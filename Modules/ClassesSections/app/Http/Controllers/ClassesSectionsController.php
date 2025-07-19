@@ -4,6 +4,9 @@ namespace Modules\ClassesSections\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\app\Models\Section;
 
 class ClassesSectionsController extends Controller
 {
@@ -12,9 +15,9 @@ class ClassesSectionsController extends Controller
      */
     public function index()
     {
-        $classes = \Modules\ClassesSections\app\Models\ClassSchool::all();
-        $sections = \Modules\ClassesSections\app\Models\Section::all();
-        return \Inertia\Inertia::render('ClassesSections/Manage', [
+        $classes = ClassModel::all();
+        $sections = Section::all();
+        return Inertia::render('ClassesSections/Manage', [
             'classes' => $classes,
             'sections' => $sections,
         ]);
