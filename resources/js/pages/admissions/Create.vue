@@ -4,8 +4,11 @@
         <Head title="Add New Student" />
         <div class="p-4 bg-neutral-100 dark:bg-neutral-900 min-h-screen">
             <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Add New Student</h1>
-            <AdmissionsForm :form="form" :errors="form.errors" mode="create" :classes="classesList"
-                :schools="schoolsList" @submit="submit" @cancel="goBack" />
+            <AdmissionsForm v-if="schools.length && classes.length" :form="form" :errors="form.errors" mode="create"
+                :classes="classesList" :schools="schoolsList" @submit="submit" @cancel="goBack" />
+            <div v-else class="flex items-center justify-center py-10">
+                <span>Loading...</span>
+            </div>
         </div>
     </AppLayout>
 </template>
@@ -21,13 +24,21 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 import { Head } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import { computed, watch, onMounted } from 'vue';
 import { route } from 'ziggy-js';
 
 const schoolStore = useSchoolStore();
-const { schools, classes } = storeToRefs(schoolStore);
-const schoolsList = schools.value || [];
-const classesList = computed(() => (classes.value || []).map((c) => ({ label: c.name, value: c.id })));
+const { schools: schoolsRaw, classes: classesRaw } = storeToRefs(schoolStore);
+const schools = computed(() => Array.isArray(schoolsRaw.value) ? schoolsRaw.value : []);
+const classes = computed(() => Array.isArray(classesRaw.value) ? classesRaw.value : []);
+const schoolsList = computed(() => schools.value);
+const classesList = computed(() => classes.value.map((c) => ({ label: c.name, value: c.id })));
+
+onMounted(() => {
+    if (!schools.value.length) {
+        schoolStore.fetchSchools();
+    }
+});
 
 const breadcrumbs = [
     { title: 'Admissions', href: '/admissions' },
@@ -75,7 +86,7 @@ const form = useForm({
 watch(
     () => form.school_id,
     (newSchoolId) => {
-        const school = schools.value.find(s => s.id === newSchoolId);
+        const school = Array.isArray(schools.value) ? schools.value.find(s => s.id === newSchoolId) : undefined;
         if (school) {
             schoolStore.setSchool(school);
         }
@@ -83,10 +94,9 @@ watch(
 );
 
 watch(
-    [() => schoolStore.selectedSchool, () => schoolStore.schools],
+    [() => schoolStore.selectedSchool, () => schools.value],
     ([newSchool, newSchools]) => {
-        console.log('Selected school:', newSchool, 'Available schools:', newSchools);
-        if (newSchool && newSchools.length > 0) {
+        if (newSchool && Array.isArray(newSchools) && newSchools.length > 0) {
             const school = newSchools.find(s => s.id === newSchool.id);
             if (school && form.school_id !== school.id) {
                 form.school_id = school.id;

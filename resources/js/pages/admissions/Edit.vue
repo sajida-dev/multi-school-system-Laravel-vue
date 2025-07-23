@@ -4,8 +4,12 @@
         <Head title="Edit Student" />
         <div class="p-4 bg-neutral-100 dark:bg-neutral-900 min-h-screen">
             <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Edit Student</h1>
-            <AdmissionsForm :form="form" :errors="form.errors" mode="edit" :classes="classesList" :schools="schoolsList"
-                :existing-photo="student.profile_photo_path" @submit="submit" @cancel="goBack" />
+            <AdmissionsForm v-if="schools.length && classes.length" :form="form" :errors="form.errors" mode="edit"
+                :classes="classesList" :schools="schoolsList" :existing-photo="student.profile_photo_path"
+                @submit="submit" @cancel="goBack" />
+            <div v-else class="flex items-center justify-center py-10">
+                <span>Loading...</span>
+            </div>
         </div>
     </AppLayout>
 </template>
@@ -17,7 +21,7 @@ import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 import AdmissionsForm from '@/components/admissions/AdmissionsForm.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { computed, watch } from 'vue';
+import { computed, watch, onMounted } from 'vue';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 import { route } from 'ziggy-js';
@@ -29,11 +33,19 @@ const breadcrumbs = [
 
 const page = usePage();
 const student = page.props.student;
-const schoolsList = page.props.schools || [];
 
 const schoolStore = useSchoolStore();
-const { selectedSchool, classes } = storeToRefs(schoolStore);
-const classesList = computed(() => (classes.value || []).map((c) => ({ label: c.name, value: c.id })));
+const { schools: schoolsRaw, classes: classesRaw, selectedSchool } = storeToRefs(schoolStore);
+const schools = computed(() => Array.isArray(schoolsRaw.value) ? schoolsRaw.value : []);
+const classes = computed(() => Array.isArray(classesRaw.value) ? classesRaw.value : []);
+const schoolsList = computed(() => schools.value);
+const classesList = computed(() => classes.value.map((c) => ({ label: c.name, value: c.id })));
+
+onMounted(() => {
+    if (!schools.value.length) {
+        schoolStore.fetchSchools();
+    }
+});
 
 const form = useForm({
     school_id: student.school_id,
@@ -73,10 +85,9 @@ const form = useForm({
 });
 
 watch(
-    [() => selectedSchool.value, () => schoolStore.schools],
+    [() => selectedSchool.value, () => schools.value],
     ([newSchool, newSchools]) => {
-        console.log('Selected school:', newSchool, 'Available schools:', newSchools);
-        if (newSchool && newSchools.length > 0) {
+        if (newSchool && Array.isArray(newSchools) && newSchools.length > 0) {
             const school = newSchools.find(s => s.id === newSchool.id);
             if (school && form.school_id !== school.id) {
                 form.school_id = school.id;

@@ -9,11 +9,13 @@ use Modules\ClassesSections\app\Models\ClassSchool;
 use Modules\ClassesSections\app\Models\Section;
 use Modules\ClassesSections\app\Http\Controllers\ClassAssignmentController;
 use Modules\ClassesSections\app\Http\Controllers\SectionAssignmentController;
+use Modules\ClassesSections\App\Http\Controllers\SubjectsController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('classessections', ClassesSectionsController::class)->names('classessections');
     Route::resource('classes', ClassController::class)->names('classes');
     Route::resource('sections', SectionController::class)->names('sections');
+    Route::resource('subjects', SubjectsController::class)->names('subjects');
     Route::get('/manage/classes-sections', [Modules\ClassesSections\Http\Controllers\ClassesSectionsController::class, 'index'])->name('classes-sections.manage');
 
     // Assignment pages (can be tabs or separate pages)
@@ -25,7 +27,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('ClassesSections/AssignSectionsToClasses');
     })->name('assign.sections_to_classes');
 
-    // Data/API routes for assignments
     // Classes to Schools
     Route::get('/class-assignment', [ClassAssignmentController::class, 'index']);
     Route::post('/class-assignment/{school}/assign', [ClassAssignmentController::class, 'assign']);
@@ -35,4 +36,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/section-assignment', [SectionAssignmentController::class, 'index']);
     Route::post('/section-assignment/{class}/assign', [SectionAssignmentController::class, 'assign']);
     Route::post('/section-assignment/{class}/unassign/{section}', [SectionAssignmentController::class, 'unassign']);
+
+    Route::post('classes/{class}/subjects', [SubjectsController::class, 'assignToClass'])->name('classes.subjects.assign');
 });

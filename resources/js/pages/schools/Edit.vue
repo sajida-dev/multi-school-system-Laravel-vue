@@ -74,7 +74,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import ImageUpload from '@/components/ui/ImageUpload.vue';
 import AvatarUpload from '@/components/ui/AvatarUpload.vue';
 
@@ -96,6 +96,14 @@ const logoPreview = ref<string>(school.logo || '/favicon.svg');
 const mainImageFile = ref<File | undefined>();
 const mainImagePreview = ref<string>(school.main_image || '/favicon.svg');
 const schoolStore = useSchoolStore();
+const { schools: schoolsRaw } = storeToRefs(schoolStore);
+const schools = computed(() => Array.isArray(schoolsRaw.value) ? schoolsRaw.value : []);
+
+onMounted(() => {
+    if (!schools.value.length) {
+        schoolStore.fetchSchools();
+    }
+});
 
 const submit = () => {
     const formData = new FormData();

@@ -5,32 +5,54 @@
         <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Teachers</h1>
             <!-- Filter UI -->
-            <div class="flex flex-wrap gap-4 mb-4 items-end">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Role</label>
-                    <select v-model="filters.role"
+            <div class="flex flex-wrap gap-1 mb-4 items-end">
+                <div class="flex flex-col">
+                    <label for="role"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Role</label>
+                    <select id="role" v-model="filtersForm.role"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="teacher">Teacher</option>
                         <option value="principal">Principal</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
-                    <select v-model="filters.gender"
+                <div class="flex flex-col">
+                    <label for="gender"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
+                    <select id="gender" v-model="filtersForm.gender"
                         class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
-                    <input v-model="filters.search" @keyup.enter="fetchData" type="text"
-                        placeholder="Name, Email, CNIC, Contact"
-                        class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900" />
+                <div class="flex flex-col">
+                    <label for="status"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
+                    <select id="status" v-model="filtersForm.status"
+                        class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        <option value="">All</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
                 </div>
-                <Button variant="default" class="h-10" @click="fetchData">Apply</Button>
+                <div class="flex flex-col">
+                    <label for="search"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
+                    <input id="search" v-model="filtersForm.search" type="text" placeholder="Name, Email, CNIC, Contact"
+                        class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-0.5 bg-white dark:bg-neutral-900" />
+                </div>
+                <div class="flex flex-col">
+                    <label for="school"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
+                    <select id="school" v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
+                        class="min-w-[220px] border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        <option value="">All Schools</option>
+                        <option v-for="school in schools" :key="school.id" :value="school.id">
+                            {{ school.name }}
+                        </option>
+                    </select>
+                </div>
                 <Button variant="default" class="h-10 ml-auto" @click="goToCreate">Add Teacher</Button>
             </div>
             <BaseDataTable :headers="headers" :items="teachers.data" :loading="loading" :server-options="serverOptions"
@@ -120,29 +142,38 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { router, Head, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
+import { router, Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import Icon from '@/components/Icon.vue';
 import { BreadcrumbItem } from '@/types';
+import { useSchoolStore } from '@/stores/school';
+import { storeToRefs } from 'pinia';
 
 // Extend the default Inertia page props with our custom props
 type TeachersPageProps = any & {
     teachers: any;
     filters: any;
+    schools: any[];
+    auth: any;
 };
 
 const page = usePage<TeachersPageProps>();
 const teachers = computed(() => page.props.teachers);
 const initialFilters = page.props.filters || {};
+const auth = computed(() => page.props.auth || {});
+const schoolStore = useSchoolStore();
+const { schools, selectedSchool } = storeToRefs(schoolStore);
 
-const filters = ref({
+const filtersForm = useForm({
     role: initialFilters.role || '',
     gender: initialFilters.gender || '',
+    status: initialFilters.status || '',
     search: initialFilters.search || '',
+    school_id: selectedSchool.value?.id || '',
 });
 
 const loading = ref(false);
@@ -165,22 +196,56 @@ const headers = [
     { text: 'Actions', value: 'actions', sortable: false },
 ];
 
-const breadcrumbItems:BreadcrumbItem[] = [
+const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/' },
     { title: 'Teachers', href: '/teachers' },
 ];
 
+// Determine if user is single-school (not superadmin, only one school linked)
+const userSchools = computed(() => auth.value.user?.schools || []);
+const isSingleSchoolUser = computed(() => userSchools.value.length === 1 && !auth.value.user?.isSuperAdmin);
+
+// If single-school user, auto-select and lock school filter
+onMounted(() => {
+    if (!schools.value.length) {
+        schoolStore.fetchSchools();
+    }
+    if (isSingleSchoolUser.value) {
+        filtersForm.school_id = userSchools.value[0].id;
+    } else if (selectedSchool.value?.id) {
+        filtersForm.school_id = selectedSchool.value.id;
+    }
+});
+
+// Watch for filter changes and auto-fetch
+watch(() => filtersForm.role, fetchData);
+watch(() => filtersForm.gender, fetchData);
+watch(() => filtersForm.status, fetchData);
+watch(() => filtersForm.search, fetchData);
+watch(() => filtersForm.school_id, fetchData);
+
+// Watch for global school change and update filter + fetch
+watch(
+    () => selectedSchool.value?.id,
+    (newSchoolId) => {
+        if (newSchoolId && (!isSingleSchoolUser.value || filtersForm.school_id !== newSchoolId)) {
+            filtersForm.school_id = newSchoolId;
+            fetchData();
+        }
+    }
+);
+
 function fetchData() {
     loading.value = true;
-    router.get(
-        '/teachers',
-        { ...filters.value },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onFinish: () => (loading.value = false),
-        }
-    );
+    // Always set school_id to selected global school if not superadmin or multi-school
+    if (!auth.value.user?.isSuperAdmin && selectedSchool.value?.id) {
+        filtersForm.school_id = selectedSchool.value.id;
+    }
+    filtersForm.get('/teachers', {
+        preserveState: true,
+        preserveScroll: true,
+        onFinish: () => (loading.value = false),
+    });
 }
 
 function onServerOptionsUpdate(opts: { page: number; perPage: number }) {
@@ -195,7 +260,7 @@ function toggleRowExpansion(row: any) {
 }
 
 function editTeacher(id: number) {
-    router.visit(`/teachers/${id}/edit`);
+    router.visit(`/teachers/${id}/edit?school_id=${selectedSchool.value?.id || ''}`);
 }
 
 function askDeleteTeacher(id: number) {
@@ -219,6 +284,6 @@ function deleteTeacher() {
     });
 }
 function goToCreate() {
-    router.visit('/teachers/create');
+    router.visit(`/teachers/create?school_id=${selectedSchool.value?.id || ''}`);
 }
 </script>

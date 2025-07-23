@@ -319,7 +319,7 @@ const breadcrumbItems: BreadcrumbItem[] = [
                             </CollapsibleTrigger>
                             <CollapsibleContent
                                 class="px-4 py-3 border-t border-gray-200 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-900">
-                                <div class="flex flex-col gap-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                                     <div v-for="perm in permissions" :key="perm.id" class="flex items-center gap-3">
                                         <Switch :checked="hasPermission(role, perm.id)"
                                             :disabled="updating[`${role.id}-${perm.id}`]"

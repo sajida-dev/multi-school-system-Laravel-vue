@@ -4,6 +4,8 @@ namespace Modules\ClassesSections\App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\Section;
+use Modules\ClassesSections\App\Models\Subject;
+use Modules\Schools\App\Models\School;
 
 class ClassModel extends Model
 {
@@ -24,10 +26,15 @@ class ClassModel extends Model
     public function schools()
     {
         return $this->belongsToMany(
-            \Modules\Schools\App\Models\School::class,
+            School::class,
             'class_schools',
             'class_id',
             'school_id'
         );
+    }
+
+    public function subjects()
+    {
+        return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id');
     }
 }

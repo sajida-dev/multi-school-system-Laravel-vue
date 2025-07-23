@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
-use Modules\Teachers\Models\Teacher; // We'll create this model if not exists
+use Modules\Teachers\Models\Teacher;
 use Spatie\Permission\Models\Role;
 
 class TeachersController extends Controller
@@ -58,9 +58,17 @@ class TeachersController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $roles = Role::whereIn('name', ['teacher', 'principal'])->get(['id', 'name']);
+        $schoolId = $request->input('school_id');
+        $roles = Role::whereIn('name', ['teacher', 'principal'])
+            ->where(function ($q) use ($schoolId) {
+                $q->whereNull('school_id');
+                if ($schoolId) {
+                    $q->orWhere('school_id', $schoolId);
+                }
+            })
+            ->get(['id', 'name']);
         return Inertia::render('Teachers/Create', [
             'roles' => $roles,
         ]);
@@ -74,19 +82,22 @@ class TeachersController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'username' => 'required|username|unique:users,username',
+            'username' => 'required|alpha_dash|unique:users,username',
             'password' => 'required|string|min:8',
             'cnic' => 'required|string|unique:teachers,cnic',
             'gender' => 'required|in:Male,Female',
             'marital_status' => 'required|in:Single,Married',
-            'role' => 'required|in:teacher,principal',
+            'role_id' => ['required', 'exists:roles,id'],
             'dob' => 'required|date',
             'salary' => 'required|numeric',
             'phone_number' => 'required|string',
             'date_of_joining' => 'required|date',
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
+            'class_id' => 'nullable|exists:classes,id',
         ]);
+
+
 
         DB::transaction(function () use ($validated) {
             $user = User::create([
@@ -96,18 +107,22 @@ class TeachersController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'password' => Hash::make($validated['password']),
             ]);
-            $user->assignRole($validated['role']);
-            $teacher = new \Modules\Teachers\Models\Teacher([
+            $role = Role::findOrFail($validated['role_id']);
+            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($validated['school_id']);
+            $user->assignRole($role->name);
+            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+            $teacher = new Teacher([
                 'user_id' => $user->id,
                 'school_id' => $validated['school_id'],
                 'cnic' => $validated['cnic'],
                 'gender' => $validated['gender'],
                 'marital_status' => $validated['marital_status'],
-                'role' => $validated['role'],
+                'role_id' => $role->id,
                 'dob' => $validated['dob'],
                 'salary' => $validated['salary'],
                 'date_of_joining' => $validated['date_of_joining'],
                 'experience_years' => $validated['experience_years'],
+                'class_id' => $validated['class_id'] ?? null,
             ]);
             $teacher->save();
         });
@@ -129,10 +144,18 @@ class TeachersController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
         $user = User::with(['teacher', 'roles'])->findOrFail($id);
-        $roles = Role::whereIn('name', ['teacher', 'principal'])->get(['id', 'name']);
+        $schoolId = $request->input('school_id') ?? $user->teacher->school_id ?? null;
+        $roles = Role::whereIn('name', ['teacher', 'principal'])
+            ->where(function ($q) use ($schoolId) {
+                $q->whereNull('school_id');
+                if ($schoolId) {
+                    $q->orWhere('school_id', $schoolId);
+                }
+            })
+            ->get(['id', 'name']);
         return Inertia::render('Teachers/Edit', [
             'teacher' => $user,
             'roles' => $roles,
@@ -147,16 +170,17 @@ class TeachersController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
-            'username' => 'required|username|unique:users,username,'.$id,
+            'username' => 'required|alpha_dash|unique:users,username,' . $id,
             'gender' => 'required|in:Male,Female',
             'marital_status' => 'required|in:Single,Married',
-            'role' => 'required|in:teacher,principal',
+            'role_id' => ['required', 'exists:roles,id'],
             'dob' => 'required|date',
             'salary' => 'required|numeric',
             'phone_number' => 'required|string',
             'date_of_joining' => 'required|date',
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
+            'class_id' => 'nullable|exists:classes,id',
         ]);
 
         DB::transaction(function () use ($validated, $id) {
@@ -167,18 +191,19 @@ class TeachersController extends Controller
                 'username' => $validated['username'],
                 'phone_number' => $validated['phone_number'],
             ]);
-            $user->syncRoles([$validated['role']]);
+            $role = Role::findOrFail($validated['role_id']);
+            $user->syncRoles([$role->name]);
             $teacher = $user->teacher;
             $teacher->update([
                 'school_id' => $validated['school_id'],
                 'gender' => $validated['gender'],
                 'marital_status' => $validated['marital_status'],
-                'role' => $validated['role'],
+                'role_id' => $role->id,
                 'dob' => $validated['dob'],
                 'salary' => $validated['salary'],
-                
                 'date_of_joining' => $validated['date_of_joining'],
                 'experience_years' => $validated['experience_years'],
+                'class_id' => $validated['class_id'] ?? null,
             ]);
         });
 

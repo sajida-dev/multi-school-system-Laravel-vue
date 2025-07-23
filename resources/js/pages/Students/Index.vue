@@ -8,7 +8,7 @@
             <div class="flex flex-wrap gap-4 mb-4 items-end">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
-                    <select v-model="filters.school_id"
+                    <select v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="s in schools" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
-                    <select v-model="filters.class_id"
+                    <select v-model="filtersForm.class_id"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -24,7 +24,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Section</label>
-                    <select v-model="filters.section_id"
+                    <select v-model="filtersForm.section_id"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}
@@ -33,7 +33,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
-                    <select v-model="filters.gender"
+                    <select v-model="filtersForm.gender"
                         class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="Male">Male</option>
@@ -43,7 +43,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Shift</label>
-                    <select v-model="filters.class_shift"
+                    <select v-model="filtersForm.class_shift"
                         class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="Morning">Morning</option>
@@ -53,7 +53,8 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
-                    <input v-model="filters.search" @keyup.enter="fetchData" type="text" placeholder="Name, Reg #, etc."
+                    <input v-model="filtersForm.search" @keyup.enter="fetchData" type="text"
+                        placeholder="Name, Reg #, etc."
                         class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900" />
                 </div>
             </div>
@@ -169,8 +170,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
-import { router, Head, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch, onMounted } from 'vue';
+import { router, Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
@@ -246,22 +247,40 @@ interface Filters {
     search: string;
 }
 
-// Extend the default Inertia page props with our custom props
 type StudentsPageProps = any & {
     students: PaginatedStudents;
     classes: ClassModel[];
     schools: School[];
     filters: Partial<Filters>;
+    auth: any;
 };
 
 const page = usePage<StudentsPageProps>();
 const students = computed(() => page.props.students);
 const initialFilters = page.props.filters || {};
+const schools = computed(() => page.props.schools || []);
+const auth = computed(() => page.props.auth || {});
+const schoolStore = useSchoolStore();
+const { selectedSchool } = storeToRefs(schoolStore);
 
-const filters = ref<Filters>({
+const classes = computed(() => page.props.classes || []);
+const sections = computed(() => page.props.sections || []);
+
+const items = computed(() => {
+    const data = Array.isArray(students.value?.data) ? students.value.data : [];
+    return data.map((student: Student) => ({
+        ...student,
+        class: student.class ? student.class.name : '',
+        school: student.school ? student.school.name : '',
+        profile_photo_url: student.profile_photo_path ? `/storage/${student.profile_photo_path}` : defaultProfileImage,
+        fee: student.fee || null,
+    }));
+});
+
+const filtersForm = useForm({
     class_id: initialFilters.class_id || '',
     section_id: initialFilters.section_id || '',
-    school_id: initialFilters.school_id || '',
+    school_id: selectedSchool.value?.id || '',
     gender: initialFilters.gender || '',
     class_shift: initialFilters.class_shift || '',
     search: initialFilters.search || '',
@@ -280,8 +299,8 @@ const headers = [
     { text: 'Photo', value: 'profile_photo_path', sortable: false },
     { text: 'Name', value: 'name' },
     { text: 'Reg #', value: 'registration_number' },
-    { text: 'Class', value: 'class' }, // changed from 'class_id'
-    { text: 'School', value: 'school' }, // changed from 'school_id'
+    { text: 'Class', value: 'class' },
+    { text: 'School', value: 'school' },
     { text: 'Gender', value: 'gender' },
     { text: 'Mobile', value: 'mobile_no' },
     { text: 'Actions', value: 'actions', sortable: false },
@@ -292,79 +311,31 @@ const breadcrumbItems: BreadcrumbItem[] = [
     { title: 'Students', href: '/students' },
 ];
 
-// Remove Pinia classes/sections for dropdowns
-// Use backend-provided props for classes and sections
-const classes = computed(() => page.props.classes || []);
-const sections = computed(() => page.props.sections || []);
+const userSchools = computed(() => auth.value.user?.schools || []);
+const isSingleSchoolUser = computed(() => userSchools.value.length === 1 && !auth.value.user?.isSuperAdmin);
 
-// When school changes, reset class and section
-watch(() => filters.value.school_id, (newVal) => {
-    filters.value.class_id = '';
-    filters.value.section_id = '';
-    fetchData();
-});
-// When class changes, reset section
-watch(() => filters.value.class_id, (newVal) => {
-    filters.value.section_id = '';
-    fetchData();
-});
-// When section changes, fetch
-watch(() => filters.value.section_id, fetchData);
-
-// Use global schools for dropdown
-const schools = computed(() => page.props.schools || []);
-
-// Sync filter with global selected school
-// On mount, set filter to selectedSchool
-if (page.props.selectedSchool && page.props.selectedSchool.id) {
-    filters.value.school_id = page.props.selectedSchool.id.toString();
-}
-
-// Watch for changes in global selected school
-watch(page.props.selectedSchool, (newSchool) => {
-    if (newSchool && newSchool.id) {
-        filters.value.school_id = newSchool.id.toString();
-        fetchData();
+onMounted(() => {
+    if (isSingleSchoolUser.value) {
+        filtersForm.school_id = userSchools.value[0].id;
+    } else if (selectedSchool.value?.id) {
+        filtersForm.school_id = selectedSchool.value.id;
     }
 });
 
-// Watch for changes in class_id to reset section_id if class changes
-watch(() => filters.value.class_id, fetchData);
-watch(() => filters.value.section_id, fetchData);
-watch(() => filters.value.school_id, fetchData);
-watch(() => filters.value.gender, fetchData);
-watch(() => filters.value.class_shift, fetchData);
-watch(() => filters.value.search, fetchData);
-
-// Optionally, disable school filter for non-superadmins
-// const isSuperAdmin = computed(() => ...); // implement as needed
-// In template: <select ... :disabled="!isSuperAdmin">
-
-const items = computed(() => {
-    const data = Array.isArray(students.value?.data) ? students.value.data : [];
-    return data.filter((student: Student) => student && student.status === 'admitted')
-        .map((student: Student) => ({
-            ...student,
-            class: student.class ? student.class.name : '',
-            school: student.school ? student.school.name : '',
-            profile_photo_url: student.profile_photo_path ? `/storage/${student.profile_photo_path}` : defaultProfileImage,
-            fee: student.fee || null,
-        }));
-});
-
-console.log('items : ', items)
+watch(() => filtersForm.school_id, fetchData);
+watch(() => filtersForm.class_id, fetchData);
+watch(() => filtersForm.section_id, fetchData);
+watch(() => filtersForm.gender, fetchData);
+watch(() => filtersForm.class_shift, fetchData);
+watch(() => filtersForm.search, fetchData);
 
 function fetchData() {
     loading.value = true;
-    router.get(
-        '/students',
-        { ...filters.value },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onFinish: () => (loading.value = false),
-        }
-    );
+    filtersForm.get('/students', {
+        preserveState: true,
+        preserveScroll: true,
+        onFinish: () => (loading.value = false),
+    });
 }
 
 function onServerOptionsUpdate(opts: { page: number; perPage: number }) {
@@ -401,5 +372,8 @@ function deleteStudent() {
             loading.value = false;
         },
     });
+}
+function goToCreate() {
+    router.visit('/students/create');
 }
 </script>

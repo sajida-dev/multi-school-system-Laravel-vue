@@ -8,7 +8,7 @@
             <div class="flex flex-wrap gap-4 mb-4 items-end">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
-                    <select v-model="filters.status"
+                    <select v-model="filtersForm.status"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="applicant">Applicant</option>
@@ -18,7 +18,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
-                    <select v-model="filters.class_id"
+                    <select v-model="filtersForm.class_id"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -26,7 +26,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Year</label>
-                    <select v-model="filters.year"
+                    <select v-model="filtersForm.year"
                         class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
@@ -34,8 +34,17 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
-                    <input v-model="filters.search" @keyup.enter="fetchData" type="text" placeholder="Name, Reg #, etc."
+                    <input v-model="filtersForm.search" @keyup.enter="fetchData" type="text"
+                        placeholder="Name, Reg #, etc."
                         class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
+                    <select v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
+                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        <option value="">All</option>
+                        <option v-for="s in userSchools" :key="s.id" :value="s.id">{{ s.name }}</option>
+                    </select>
                 </div>
             </div>
             <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
@@ -66,8 +75,7 @@
                         @click="printVoucher(row.id)" aria-label="Print Voucher" title="Print Voucher">
                         <Icon name="printer" class="w-5 h-5" />
                     </button>
-                    <button
-                        v-if="row.status === 'applicant'"
+                    <button v-if="row.status === 'applicant'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 ml-1"
                         @click="rejectStudent(row.id)" aria-label="Reject Student" title="Reject Student">
                         <Icon name="ban" class="w-5 h-5" />
@@ -199,16 +207,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, computed } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { type BreadcrumbItem } from '@/types';
-
-import { usePage, router, Head } from '@inertiajs/vue3';
+import { usePage, router, Head, useForm } from '@inertiajs/vue3';
 import { useAdmissionsStore } from '@/stores/admissions';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
-
 import AppLayout from '@/layouts/AppLayout.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
@@ -216,11 +222,20 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import UploadVoucherModal from '@/components/UploadVoucherModal.vue';
 
+const defaultProfileImage = '/storage/default-profile.png';
 
-declare global {
-    interface Window {
-        Echo: any;
-    }
+interface User {
+    id: number;
+    name: string;
+    email: string;
+    isSuperAdmin?: boolean;
+    schools?: { id: number; name: string }[];
+}
+
+interface StudentsPagination {
+    data: any[];
+    total: number;
+    [key: string]: any;
 }
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -230,35 +245,70 @@ const breadcrumbItems: BreadcrumbItem[] = [
     },
 ];
 
-// Define the type for students pagination
-interface StudentsPagination {
-    data: any[];
-    total: number;
-    [key: string]: any;
-}
-
 const page = usePage();
 const admissionsStore = useAdmissionsStore();
-const students = ref<StudentsPagination | null>(page.props.students as StudentsPagination);
-const search = ref('');
-const defaultProfileImage = '/storage/default-profile.png';
-
+const students = ref<StudentsPagination>(page.props.students as StudentsPagination);
+const auth = computed<{ user: User }>(() => page.props.auth || { user: {} as User });
 const schoolStore = useSchoolStore();
 const { classes, selectedSchool } = storeToRefs(schoolStore);
-
 const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
-const filters = ref({
-    status: '',
-    class_id: '',
-    year: '',
-    search: '',
-    school_id: selectedSchool.value ? selectedSchool.value.id : '',
+const initialFilters: Record<string, any> = page.props.filters || {};
+
+
+const filtersForm = useForm({
+    status: initialFilters.status || '',
+    class_id: initialFilters.class_id || '',
+    year: initialFilters.year || '',
+    search: initialFilters.search || '',
+    school_id: selectedSchool.value?.id || '',
 });
 
-watch(selectedSchool, (newSchool) => {
-    filters.value.school_id = newSchool ? newSchool.id : '';
-    fetchData();
+const userSchools = computed(() => auth.value.user?.schools || []);
+const isSingleSchoolUser = computed(() => userSchools.value.length === 1 && !auth.value.user?.isSuperAdmin);
+
+onMounted(() => {
+    if (isSingleSchoolUser.value) {
+        filtersForm.school_id = userSchools.value[0].id;
+    } else if (selectedSchool.value?.id) {
+        filtersForm.school_id = selectedSchool.value.id;
+    }
 });
+
+watch(() => filtersForm.status, fetchData);
+watch(() => filtersForm.class_id, fetchData);
+watch(() => filtersForm.year, fetchData);
+watch(() => filtersForm.search, fetchData);
+watch(() => filtersForm.school_id, fetchData);
+
+const loading = ref(false);
+const total = ref<number>(students.value && typeof students.value.total === 'number' ? students.value.total : 0);
+const serverOptions = ref({
+    page: 1,
+    rowsPerPage: 10,
+    sortBy: '',
+    sortType: '',
+    search: '',
+    filters: {},
+});
+
+function fetchData() {
+    loading.value = true;
+    filtersForm.get(route('admissions.index'), {
+        preserveState: true,
+        replace: true,
+        onSuccess: (page) => {
+            students.value = page.props.students as StudentsPagination;
+            total.value = students.value && typeof students.value.total === 'number' ? students.value.total : 0;
+            loading.value = false;
+        },
+        onError: () => {
+            loading.value = false;
+        }
+    });
+}
+
+watch(serverOptions, fetchData, { deep: true });
+onMounted(fetchData);
 
 const headers = [
     { text: 'Photo', value: 'profile_photo', sortable: false },
@@ -272,7 +322,7 @@ const headers = [
 
 const items = computed(() => {
     const data = Array.isArray(students.value?.data) ? students.value.data : [];
-    return data.map((student) => ({
+    return data.map((student: any) => ({
         ...student,
         class: student.class ? student.class.name : '',
         profile_photo_url: student.profile_photo_path ? `/storage/${student.profile_photo_path}` : defaultProfileImage,
@@ -280,46 +330,10 @@ const items = computed(() => {
     }));
 });
 
-const total = ref<number>(students.value && typeof students.value.total === 'number' ? students.value.total : 0);
-const loading = ref(false);
-const serverOptions = ref({
-    page: 1,
-    rowsPerPage: 10,
-    sortBy: '',
-    sortType: '',
-    search: '',
-    filters: {},
-});
-
-const expandedRow = ref(null);
+const expandedRow = ref<number | null>(null);
 function toggleRowExpansion(row: any) {
     expandedRow.value = expandedRow.value === row.id ? null : row.id;
 }
-
-const fetchData = () => {
-    loading.value = true;
-    const params = { ...filters.value };
-    router.get(route('admissions.index'), params, {
-        preserveState: true,
-        replace: true,
-        onSuccess: (page) => {
-            students.value = page.props.students as StudentsPagination;
-            total.value = students.value && typeof students.value.total === 'number' ? students.value.total : 0;
-            loading.value = false;
-        },
-    });
-};
-
-watch(serverOptions, fetchData, { deep: true });
-onMounted(fetchData);
-
-const onSearch = () => {
-    router.get(route('admissions.index'), { search: search.value }, { preserveState: true, replace: true });
-};
-
-const goToPage = (pageNum: number) => {
-    router.get(route('admissions.index'), { page: pageNum, search: search.value }, { preserveState: true, replace: true });
-};
 
 const showDeleteDialog = ref(false);
 const studentToDelete = ref<number | null>(null);
@@ -331,7 +345,6 @@ const goToCreate = () => {
 const editStudent = (id: number) => {
     router.get(route('admissions.edit', id));
 };
-
 
 const askDeleteStudent = (id: number) => {
     studentToDelete.value = id;
@@ -427,12 +440,6 @@ watch(
         }
     }
 );
-
-// Add watchers for all filters to auto-fetch data
-watch(() => filters.value.status, fetchData);
-watch(() => filters.value.class_id, fetchData);
-watch(() => filters.value.year, fetchData);
-watch(() => filters.value.search, fetchData);
 
 const showVoucherModal = ref(false);
 const selectedStudentId = ref<number | null>(null);
