@@ -25,8 +25,8 @@ class PapersQuestionsController extends Controller
 
         // Filter by selected school
         if ($schoolId) {
-            $query->whereHas('class', function ($q) use ($schoolId) {
-                $q->where('school_id', $schoolId);
+            $query->whereHas('class.schools', function ($q) use ($schoolId) {
+                $q->where('schools.id', $schoolId);
             });
         }
 
@@ -57,11 +57,23 @@ class PapersQuestionsController extends Controller
         $teachers = collect();
 
         if ($schoolId) {
-            $classes = ClassModel::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']);
-            $sections = Section::whereHas('classes', function ($q) use ($schoolId) {
-                $q->where('school_id', $schoolId);
+            $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
+                $q->where('schools.id', $schoolId);
             })->orderBy('name')->get(['id', 'name']);
-            $teachers = Teacher::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']);
+
+            // Get sections that are associated with classes in this school through pivot tables
+            $sections = Section::whereIn('id', function ($query) use ($schoolId) {
+                $query->select('class_school_sections.section_id')
+                    ->from('class_school_sections')
+                    ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+                    ->where('class_schools.school_id', $schoolId);
+            })->orderBy('name')->get(['id', 'name']);
+
+            // Get teachers with their names from users table
+            $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
+                ->where('teachers.school_id', $schoolId)
+                ->orderBy('users.name')
+                ->get(['teachers.id', 'users.name']);
         }
 
         return Inertia::render('PapersQuestions/Index', [
@@ -85,11 +97,23 @@ class PapersQuestionsController extends Controller
         $teachers = collect();
 
         if ($schoolId) {
-            $classes = ClassModel::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']);
-            $sections = Section::whereHas('classes', function ($q) use ($schoolId) {
-                $q->where('school_id', $schoolId);
+            $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
+                $q->where('schools.id', $schoolId);
             })->orderBy('name')->get(['id', 'name']);
-            $teachers = Teacher::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']);
+
+            // Get sections that are associated with classes in this school through pivot tables
+            $sections = Section::whereIn('id', function ($query) use ($schoolId) {
+                $query->select('class_school_sections.section_id')
+                    ->from('class_school_sections')
+                    ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+                    ->where('class_schools.school_id', $schoolId);
+            })->orderBy('name')->get(['id', 'name']);
+
+            // Get teachers with their names from users table
+            $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
+                ->where('teachers.school_id', $schoolId)
+                ->orderBy('users.name')
+                ->get(['teachers.id', 'users.name']);
         }
 
         return Inertia::render('PapersQuestions/Create', [
@@ -112,12 +136,8 @@ class PapersQuestionsController extends Controller
             'published' => 'boolean',
             'total_marks' => 'nullable|integer|min:0',
             'time_duration' => 'nullable|integer|min:1',
-            'course_name' => 'nullable|string|max:255',
-            'course_code' => 'nullable|string|max:50',
-            'program' => 'nullable|string|max:100',
-            'semester' => 'nullable|string|max:50',
-            'session' => 'nullable|string|max:100',
-            'exam_date' => 'nullable|date',
+            'subject_name' => 'nullable|string|max:255',
+            'subject_code' => 'nullable|string|max:50',
             'instructions' => 'nullable|string',
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',
@@ -125,7 +145,6 @@ class PapersQuestionsController extends Controller
             'questions.*.section' => 'required|in:objective,short_questions,long_questions,essay',
             'questions.*.marks' => 'required|integer|min:1',
             'questions.*.question_number' => 'nullable|integer|min:1',
-            'questions.*.clo' => 'nullable|string|max:50',
             'questions.*.options' => 'nullable|array',
             'questions.*.answer' => 'nullable|string',
         ]);
@@ -145,12 +164,8 @@ class PapersQuestionsController extends Controller
                 'published' => $request->published ?? false,
                 'total_marks' => $request->total_marks,
                 'time_duration' => $request->time_duration ?? 120,
-                'course_name' => $request->course_name,
-                'course_code' => $request->course_code,
-                'program' => $request->program,
-                'semester' => $request->semester,
-                'session' => $request->session,
-                'exam_date' => $request->exam_date,
+                'subject_name' => $request->subject_name,
+                'subject_code' => $request->subject_code,
                 'instructions' => $request->instructions,
             ]);
 
@@ -163,7 +178,6 @@ class PapersQuestionsController extends Controller
                     'section' => $questionData['section'],
                     'marks' => $questionData['marks'],
                     'question_number' => $questionData['question_number'] ?? null,
-                    'clo' => $questionData['clo'] ?? null,
                     'options' => $questionData['options'] ?? null,
                     'answer' => $questionData['answer'] ?? null,
                 ]);
@@ -171,11 +185,12 @@ class PapersQuestionsController extends Controller
 
             DB::commit();
 
-            return redirect()->route('papersquestions.index')
+            // Return redirect to show the created paper
+            return redirect()->route('papersquestions.show', $paper->id)
                 ->with('success', 'Paper created successfully with ' . count($request->questions) . ' questions.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->route('papersquestions.index')->withErrors(['error' => 'Failed to create paper. Please try again.'])->withInput();
+            return redirect()->back()->withErrors(['error' => 'Failed to create paper. Please try again.'])->withInput();
         }
     }
 
@@ -205,11 +220,23 @@ class PapersQuestionsController extends Controller
         $teachers = collect();
 
         if ($schoolId) {
-            $classes = ClassModel::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']);
-            $sections = Section::whereHas('classes', function ($q) use ($schoolId) {
-                $q->where('school_id', $schoolId);
+            $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
+                $q->where('schools.id', $schoolId);
             })->orderBy('name')->get(['id', 'name']);
-            $teachers = Teacher::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']);
+
+            // Get sections that are associated with classes in this school through pivot tables
+            $sections = Section::whereIn('id', function ($query) use ($schoolId) {
+                $query->select('class_school_sections.section_id')
+                    ->from('class_school_sections')
+                    ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+                    ->where('class_schools.school_id', $schoolId);
+            })->orderBy('name')->get(['id', 'name']);
+
+            // Get teachers with their names from users table
+            $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
+                ->where('teachers.school_id', $schoolId)
+                ->orderBy('users.name')
+                ->get(['teachers.id', 'users.name']);
         }
 
         return Inertia::render('PapersQuestions/Edit', [
@@ -235,12 +262,8 @@ class PapersQuestionsController extends Controller
             'published' => 'boolean',
             'total_marks' => 'nullable|integer|min:0',
             'time_duration' => 'nullable|integer|min:1',
-            'course_name' => 'nullable|string|max:255',
-            'course_code' => 'nullable|string|max:50',
-            'program' => 'nullable|string|max:100',
-            'semester' => 'nullable|string|max:50',
-            'session' => 'nullable|string|max:100',
-            'exam_date' => 'nullable|date',
+            'subject_name' => 'nullable|string|max:255',
+            'subject_code' => 'nullable|string|max:50',
             'instructions' => 'nullable|string',
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',

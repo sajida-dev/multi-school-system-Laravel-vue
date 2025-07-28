@@ -67,7 +67,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Create Papers',
-        href: '/papers',
+        href: '/papersquestions',
         icon: FileText,
     },
 

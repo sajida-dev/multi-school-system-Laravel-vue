@@ -171,7 +171,7 @@
                                     <span class="text-green-600">{{ assignment.subject_name }}</span>
                                     <span v-if="assignment.subject_code" class="text-gray-500 text-sm">({{
                                         assignment.subject_code
-                                        }})</span>
+                                    }})</span>
                                     <span class="hidden sm:inline">-</span>
                                     <span class="text-purple-600">{{ assignment.teacher_name }}</span>
                                 </div>
@@ -447,6 +447,7 @@ async function assignToClass() {
             toast.success('Subjects assigned to class successfully!');
             selectedClass.value = '';
             selectedSubjects.value = [];
+            router.reload({ only: ['assignments'] });
         },
         onError: (errors) => {
             toast.error('Failed to assign subjects: ' + (errors.message || 'Unknown error'));
@@ -469,7 +470,7 @@ async function assignToTeacher() {
         onSuccess: () => {
             toast.success('Subject assigned to teacher successfully!');
             teacherAssignment.value = { class_id: '', subject_id: '', teacher_id: '' };
-            loadAssignments();
+            router.reload({ only: ['assignments'] });
         },
         onError: (errors) => {
             toast.error('Failed to assign subject to teacher: ' + (errors.message || 'Unknown error'));
@@ -498,7 +499,7 @@ async function removeAssignment(assignment: any) {
         },
         onSuccess: () => {
             toast.success('Assignment removed successfully!');
-            loadAssignments();
+            router.reload({ only: ['assignments'] });
         },
         onError: () => {
             toast.error('Failed to remove assignment.');

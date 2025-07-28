@@ -100,15 +100,14 @@ class SubjectsController extends Controller
     {
         try {
             Log::info('Subject deletion request received', ['subject_id' => $id]);
-            
+
             $subject = Subject::findOrFail($id);
             $subject->delete();
-            
+
             Log::info('Subject deleted successfully', ['subject_id' => $id]);
-            
+
             // Return redirect for Inertia instead of JSON
             return redirect()->back()->with('success', 'Subject deleted successfully!');
-            
         } catch (\Exception $e) {
             Log::error('Error deleting subject', ['error' => $e->getMessage()]);
             return redirect()->back()->withErrors(['error' => 'Failed to delete subject. Please try again.']);
@@ -131,14 +130,15 @@ class SubjectsController extends Controller
                 'subject_ids' => $request->subject_ids
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Subjects assigned to class successfully']);
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Subjects assigned to class successfully!');
         } catch (\Exception $e) {
             Log::error('Error assigning subjects to class', [
                 'error' => $e->getMessage(),
                 'class_id' => $classId
             ]);
 
-            return response()->json(['error' => 'Failed to assign subjects: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to assign subjects: ' . $e->getMessage()]);
         }
     }
 
@@ -154,7 +154,7 @@ class SubjectsController extends Controller
             // Check if teacher has teacher role
             $teacher = User::findOrFail($request->teacher_id);
             if (!$teacher->hasRole('teacher')) {
-                return response()->json(['error' => 'Selected user is not a teacher'], 400);
+                return redirect()->back()->withErrors(['error' => 'Selected user is not a teacher']);
             }
 
             // Create or update the assignment
@@ -176,14 +176,15 @@ class SubjectsController extends Controller
                 'teacher_id' => $request->teacher_id
             ]);
 
-            return response()->json(['success' => true, 'message' => 'Subject assigned to teacher successfully']);
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Subject assigned to teacher successfully!');
         } catch (\Exception $e) {
             Log::error('Error assigning subject to teacher', [
                 'error' => $e->getMessage(),
                 'data' => $request->all()
             ]);
 
-            return response()->json(['error' => 'Failed to assign subject to teacher: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to assign subject to teacher: ' . $e->getMessage()]);
         }
     }
 
@@ -215,13 +216,14 @@ class SubjectsController extends Controller
 
             $assignments = $query->get();
 
-            return response()->json(['success' => true, 'assignments' => $assignments]);
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('assignments', $assignments);
         } catch (\Exception $e) {
             Log::error('Error fetching assignments', [
                 'error' => $e->getMessage()
             ]);
 
-            return response()->json(['error' => 'Failed to fetch assignments: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to fetch assignments: ' . $e->getMessage()]);
         }
     }
 
@@ -240,14 +242,15 @@ class SubjectsController extends Controller
                 ->where('teacher_id', $request->teacher_id)
                 ->delete();
 
-            return response()->json(['success' => true, 'message' => 'Assignment removed successfully']);
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Assignment removed successfully!');
         } catch (\Exception $e) {
             Log::error('Error removing assignment', [
                 'error' => $e->getMessage(),
                 'data' => $request->all()
             ]);
 
-            return response()->json(['error' => 'Failed to remove assignment: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to remove assignment: ' . $e->getMessage()]);
         }
     }
 }
