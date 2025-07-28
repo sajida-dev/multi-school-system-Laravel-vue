@@ -37,4 +37,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('settings/user-management/remove-role', [UserManagementController::class, 'removeRole'])->name('settings.user-management.remove-role');
     Route::get('settings/user-management/get-password/{id}', [UserManagementController::class, 'getUserPassword'])->name('settings.user-management.get-password');
     Route::post('settings/user-management/verify-password', [UserManagementController::class, 'verifyPassword'])->name('settings.user-management.verify-password');
+    Route::post('settings/user-management/reset-password', [UserManagementController::class, 'resetUserPassword'])->name('settings.user-management.reset-password');
 });

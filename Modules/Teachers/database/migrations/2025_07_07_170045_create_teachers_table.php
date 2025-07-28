@@ -38,7 +38,8 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('teachers');
+
         Schema::dropIfExists('class_subject_teacher');
+        Schema::dropIfExists('teachers');
     }
 };

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, watch } from 'vue';
 import axios from 'axios';
+import { usePage } from '@inertiajs/vue3';
 
 export interface School {
   id: number;
@@ -23,22 +24,45 @@ export const useSchoolStore = defineStore('school', () => {
         try {
             // Always fetch all schools with their linked classes and sections
             const { data } = await axios.get('/admin/schools');
+            console.log('Fetched schools data:', data); // Debug log
             if (data.schools) {
                 schools.value = data.schools;
+                console.log('Schools loaded:', schools.value.length); // Debug log
             }
+            
+            // Get the active school from server-side session (Inertia props)
+            const page = usePage();
+            const serverActiveSchool = page.props.activeSchool as School | null;
+            
             // If no schools, clear selectedSchool
             if (schools.value.length === 0) {
                 selectedSchool.value = null;
                 localStorage.removeItem('selectedSchool');
+            } else if (serverActiveSchool && schools.value.some(s => s.id === serverActiveSchool.id)) {
+                // Use server-side active school if it exists and is valid
+                selectedSchool.value = serverActiveSchool;
+                localStorage.setItem('selectedSchool', JSON.stringify(serverActiveSchool));
+                console.log('Using server-side active school:', serverActiveSchool.name); // Debug log
             } else if (!selectedSchool.value || !schools.value.some(s => s.id === selectedSchool.value?.id)) {
                 // If no selected school or selected school is not in the list, select the first
                 selectedSchool.value = schools.value[0];
                 localStorage.setItem('selectedSchool', JSON.stringify(schools.value[0]));
+                console.log('Using first school as default:', schools.value[0].name); // Debug log
             }
+            
             // Set classes and sections for the selected school
             updateClassesAndSections();
         } catch (e) {
-            // handle error, fallback to cached if needed
+            console.error('Error fetching schools:', e); // Debug log
+            // Try to load from localStorage as fallback
+            const cached = localStorage.getItem('selectedSchool');
+            if (cached) {
+                try {
+                    selectedSchool.value = JSON.parse(cached);
+                } catch (parseError) {
+                    console.error('Error parsing cached school:', parseError);
+                }
+            }
         }
     }
 

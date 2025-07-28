@@ -16,6 +16,13 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
     Route::resource('classes', ClassController::class)->names('classes');
     Route::resource('sections', SectionController::class)->names('sections');
     Route::resource('subjects', SubjectsController::class)->names('subjects');
+
+    // Subject assignment routes
+    Route::post('subjects/{class}/assign-to-class', [SubjectsController::class, 'assignToClass'])->name('subjects.assign-to-class');
+    Route::post('subjects/assign-to-teacher', [SubjectsController::class, 'assignToTeacher'])->name('subjects.assign-to-teacher');
+    Route::get('subjects/assignments', [SubjectsController::class, 'getAssignments'])->name('subjects.assignments');
+    Route::delete('subjects/remove-assignment', [SubjectsController::class, 'removeAssignment'])->name('subjects.remove-assignment');
+
     Route::get('/manage/classes-sections', [Modules\ClassesSections\Http\Controllers\ClassesSectionsController::class, 'index'])->name('classes-sections.manage');
 
     // Assignment pages (can be tabs or separate pages)

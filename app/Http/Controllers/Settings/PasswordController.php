@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Services\PasswordService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -34,14 +35,7 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        UserPassword::updateOrCreate(
-            ['user_id' => $request->user()->id],
-            ['password_encrypted' => Crypt::encryptString($validated['password'])]
-        );
+        PasswordService::updateUserPassword($request->user(), $validated['password']);
 
         // Send password update notification email
         Mail::to($request->user()->email)->send(

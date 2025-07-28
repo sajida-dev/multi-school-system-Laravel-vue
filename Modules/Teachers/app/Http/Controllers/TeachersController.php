@@ -5,6 +5,7 @@ namespace Modules\Teachers\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserPassword;
+use App\Services\PasswordService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -118,18 +119,15 @@ class TeachersController extends Controller
 
 
         DB::transaction(function () use ($validated) {
-            $user = User::create([
+            $userData = [
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'username' => $validated['username'],
                 'phone_number' => $validated['phone_number'],
-                'password' => Hash::make($validated['password']),
-            ]);
-            // Save encrypted password
-            UserPassword::create([
-                'user_id' => $user->id,
-                'password_encrypted' => Crypt::encryptString($validated['password']),
-            ]);
+            ];
+
+            $user = PasswordService::createUserWithPassword($userData, $validated['password']);
+
             $role = Role::findOrFail($validated['role_id']);
             app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($validated['school_id']);
             $user->assignRole($role->name);
@@ -267,25 +265,19 @@ class TeachersController extends Controller
         if (!$admin->hasRole('superadmin') && !$admin->hasRole('admin')) {
             return redirect()->back()->with('error', 'Forbidden');
         }
-        $user = \App\Models\User::find($userId);
-        $userPassword = \App\Models\UserPassword::where('user_id', $userId)->first();
-        if (!$user || !$userPassword) {
+
+        $result = PasswordService::getUserPassword($userId);
+
+        if (!$result['success']) {
             // Return an Inertia partial response for SPA fetch
             if ($request->hasHeader('X-Inertia')) {
-                return redirect()->back()->with('passwordResponse', ['error' => 'Password not found']);
+                return redirect()->back()->with('passwordResponse', ['error' => $result['error']]);
             }
-            return redirect()->back()->with('error', 'Password not found');
+            return redirect()->back()->with('error', $result['error']);
         }
-        try {
-            $decrypted = \Illuminate\Support\Facades\Crypt::decryptString($userPassword->password_encrypted);
-        } catch (\Exception $e) {
-            if ($request->hasHeader('X-Inertia')) {
-                return redirect()->back()->with('passwordResponse', ['error' => 'Decryption failed']);
-            }
-            return redirect()->back()->with('error', 'Decryption failed');
-        }
+
         if ($request->hasHeader('X-Inertia')) {
-            return redirect()->back()->with('passwordResponse', ['password' => $decrypted]);
+            return redirect()->back()->with('passwordResponse', ['password' => $result['password']]);
         }
         return redirect()->back();
     }

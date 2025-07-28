@@ -13,11 +13,14 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
+
+
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'set.active.school'])->name('dashboard');
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'set.active.school'])->prefix('admin')->group(function () {
+
     // Simple explicit routes instead of resource routes to avoid model binding conflicts
     Route::get('roles', [RoleController::class, 'index']);
     Route::post('roles', [RoleController::class, 'store']);
@@ -34,11 +37,13 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('users-roles', [UserRoleController::class, 'destroy']);
 
     Route::get('roles-list', [UserController::class, 'roles']);
+
+    // Add school switcher route inside auth middleware
+    Route::post('set-active-school', SetActiveSchoolController::class);
 });
 
 // Add this route for the school switcher
 Route::get('/admin/schools', [SchoolsController::class, 'allWithClassesSections']);
-Route::post('/set-active-school', SetActiveSchoolController::class);
 
 
 require __DIR__ . '/settings.php';

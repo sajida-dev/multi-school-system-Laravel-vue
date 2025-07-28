@@ -15,8 +15,27 @@
                         placeholder="e.g. teacher" />
                     <TextInput label="Email" v-model="form.email" :error="form.errors.email" required type="email"
                         placeholder="e.g. teacher@email.com" />
-                    <TextInput label="Password" v-model="form.password" :error="form.errors.password" required
-                        type="password" placeholder="At least 8 characters" />
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Password <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" :class="[
+                                'w-full px-3 py-2 pr-10 rounded-lg border bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-colors',
+                                form.errors.password
+                                    ? 'border-red-500 dark:border-red-500'
+                                    : 'border-gray-300 dark:border-neutral-600'
+                            ]" placeholder="At least 8 characters" required />
+                            <button type="button" @click="showPassword = !showPassword"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                                <Eye v-if="!showPassword" class="w-4 h-4" />
+                                <EyeOff v-else class="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div v-if="form.errors.password" class="text-xs text-red-500 mt-1">
+                            {{ form.errors.password }}
+                        </div>
+                    </div>
                     <SelectInput label="Gender" v-model="form.gender" :error="form.errors.gender" required
                         :options="[{ label: 'Male', value: 'Male' }, { label: 'Female', value: 'Female' }]" />
                     <SelectInput label="Marital Status" v-model="form.marital_status"
@@ -66,6 +85,7 @@ import FileInput from '@/components/form/FileInput.vue';
 import { BreadcrumbItem } from '@/types';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
+import { Eye, EyeOff } from 'lucide-vue-next';
 
 const schoolStore = useSchoolStore();
 const { schools: schoolsRaw, selectedSchool: selectedSchoolRaw, classes: classesRaw, sections: sectionsRaw } = storeToRefs(schoolStore);
@@ -75,6 +95,7 @@ const sections = computed(() => Array.isArray(sectionsRaw.value) ? sectionsRaw.v
 const selectedSchool = computed(() => selectedSchoolRaw.value);
 const page = usePage<any>();
 const roles = ref(page.props.roles || []);
+const showPassword = ref(false);
 const form = useForm({
     profile_photo: null,
     name: '',

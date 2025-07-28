@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\PasswordService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -216,21 +217,16 @@ class UserManagementController extends Controller
             $profilePhotoPath = $filePath;
         }
 
-        $user = User::create([
+        $userData = [
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'phone_number' => $request->phone,
             'profile_photo_path' => $profilePhotoPath,
-            'password' => bcrypt($password),
             'email_verified_at' => now(),
-        ]);
+        ];
 
-        // Store the real password in user_passwords table
-        UserPassword::updateOrCreate(
-            ['user_id' => $user->id],
-            ['password_encrypted' => Crypt::encryptString($password)]
-        );
+        $user = PasswordService::createUserWithPassword($userData, $password);
 
         app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
         $user->assignRole($role->name);
@@ -259,27 +255,27 @@ class UserManagementController extends Controller
             'auth_user_id' => $request->user() ? $request->user()->id : null,
             'is_superadmin' => $request->user() && $request->user()->hasRole('superadmin'),
         ]);
+
         // Accept user ID from route param or request
         $userId = $id ?? $request->input('user_id');
         $admin = $request->user();
+
         if (!$admin) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
         // Only allow superadmin or users with explicit permission
         if (!$admin->hasRole('superadmin')) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
-        $user = \App\Models\User::find($userId);
-        $userPassword = UserPassword::where('user_id', $userId)->first();
-        if (!$user || !$userPassword) {
-            return response()->json(['error' => 'Password not found'], 404);
+
+        $result = PasswordService::getUserPassword($userId);
+
+        if (!$result['success']) {
+            return response()->json(['error' => $result['error']], 404);
         }
-        try {
-            $decrypted = Crypt::decryptString($userPassword->password_encrypted);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Decryption failed'], 500);
-        }
-        return response()->json(['password' => $decrypted]);
+
+        return response()->json(['password' => $result['password']]);
     }
 
     /**
@@ -458,18 +454,8 @@ class UserManagementController extends Controller
             return response()->json(['error' => 'Invalid admin password'], 422);
         }
 
-        $user = \App\Models\User::findOrFail($request->user_id);
-        $user->password = Hash::make($request->new_password);
-        $user->save();
+        $result = PasswordService::resetUserPassword($request->user_id, $request->new_password);
 
-        // Store the new password in user_passwords table
-        UserPassword::updateOrCreate(
-            ['user_id' => $user->id],
-            ['password_encrypted' => Crypt::encryptString($request->new_password)]
-        );
-
-        // Optionally, email the new password to the user here
-
-        return response()->json(['new_password' => $request->new_password]);
+        return response()->json(['new_password' => $result['new_password']]);
     }
 }

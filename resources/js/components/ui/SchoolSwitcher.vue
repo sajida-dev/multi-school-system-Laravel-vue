@@ -16,15 +16,23 @@ const emit = defineEmits(['switched']);
 
 // RULE: Always use Inertia router methods for navigation and form submissions in Inertia-powered Vue apps.
 function switchSchool(school: any) {
+    console.log('switchSchool called with:', school); // Debug log
     if (school.id !== selectedSchool.value?.id) {
+        console.log('Switching from school ID:', selectedSchool.value?.id, 'to:', school.id); // Debug log
         schoolStore.setSchool(school);
-        router.post('/set-active-school', { school_id: school.id }, {
+        router.post('/admin/set-active-school', { school_id: school.id }, {
             preserveScroll: true,
             onSuccess: () => {
+                console.log('School switch successful'); // Debug log
                 router.reload({ only: ['schools', 'activeSchoolId'] });
                 emit('switched', school);
+            },
+            onError: (errors) => {
+                console.error('School switch failed:', errors); // Debug log
             }
         });
+    } else {
+        console.log('School already selected, no switch needed'); // Debug log
     }
 }
 
@@ -112,7 +120,7 @@ onUnmounted(() => {
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ school.phone || ''
-                            }}</span>
+                                }}</span>
                         </div>
                         <Check v-if="school.id === selectedSchool?.id" class="ml-auto text-primary" />
                     </DropdownMenuItem>

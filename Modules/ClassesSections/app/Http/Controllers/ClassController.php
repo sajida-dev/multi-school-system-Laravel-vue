@@ -4,6 +4,8 @@ namespace Modules\ClassesSections\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Modules\ClassesSections\app\Models\ClassModel;
 use Inertia\Inertia;
 use Modules\ClassesSections\app\Models\Section;
@@ -25,37 +27,42 @@ class ClassController extends Controller
 
     public function store(Request $request)
     {
+        Log::info('Class creation request received', [
+            'data' => $request->all(),
+            'user_id' => Auth::id(),
+            'headers' => $request->headers->all()
+        ]);
+
         $request->validate(['name' => 'required|string|max:255']);
-        $class = ClassModel::create($request->only('name'));
 
-        // Auto-assign Section A or multiple sections if requested
-        if ($request->boolean('auto_assign_sections')) {
-            $sectionNames = $request->input('section_names', ['A']);
-            $sectionIds = [];
-            foreach ($sectionNames as $sectionName) {
-                $section = Section::firstOrCreate([
-                    'name' => $sectionName
-                ]);
-                $sectionIds[] = $section->id;
+        try {
+            $class = ClassModel::create($request->only('name'));
+
+            // Auto-assign Section A or multiple sections if requested
+            if ($request->boolean('auto_assign_sections')) {
+                $sectionNames = $request->input('section_names', ['A']);
+                $sectionIds = [];
+                foreach ($sectionNames as $sectionName) {
+                    $section = Section::firstOrCreate([
+                        'name' => $sectionName
+                    ]);
+                    $sectionIds[] = $section->id;
+                }
+                $class->sections()->syncWithoutDetaching($sectionIds);
             }
-            $class->sections()->syncWithoutDetaching($sectionIds);
-        }
 
-        if ($request->hasHeader('X-Inertia')) {
-            return redirect()->route('classes-sections.manage')
-                ->with([
-                    'success' => 'Class created!',
-                    'initialTab' => 'classes'
-                ]);
-        }
-        if ($request->expectsJson()) {
+            Log::info('Class created successfully', ['class_id' => $class->id, 'class_name' => $class->name]);
+
+            // Always return JSON response for Inertia requests
             return response()->json(['success' => true, 'class' => $class], 201);
-        }
-        return redirect()->route('classes-sections.manage')
-            ->with([
-                'success' => 'Class created!',
-                'initialTab' => 'classes'
+        } catch (\Exception $e) {
+            Log::error('Error creating class', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+
+            return response()->json(['error' => 'Failed to create class: ' . $e->getMessage()], 500);
+        }
     }
 
     public function edit(ClassModel $class)
@@ -69,40 +76,16 @@ class ClassController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
         $class->update($request->only('name'));
-        if ($request->hasHeader('X-Inertia')) {
-            return redirect()->route('classes-sections.manage')
-                ->with([
-                    'success' => 'Class updated!',
-                    'initialTab' => 'classes'
-                ]);
-        }
-        if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'class' => $class]);
-        }
-        return redirect()->route('classes-sections.manage')
-            ->with([
-                'success' => 'Class updated!',
-                'initialTab' => 'classes'
-            ]);
+
+        // Always return JSON response for Inertia requests
+        return response()->json(['success' => true, 'class' => $class]);
     }
 
     public function destroy(ClassModel $class)
     {
         $class->delete();
-        if (request()->hasHeader('X-Inertia')) {
-            return redirect()->route('classes-sections.manage')
-                ->with([
-                    'success' => 'Class deleted!',
-                    'initialTab' => 'classes'
-                ]);
-        }
-        if (request()->expectsJson()) {
-            return response()->json(['success' => true]);
-        }
-        return redirect()->route('classes-sections.manage')
-            ->with([
-                'success' => 'Class deleted!',
-                'initialTab' => 'classes'
-            ]);
+
+        // Always return JSON response for Inertia requests
+        return response()->json(['success' => true]);
     }
 }

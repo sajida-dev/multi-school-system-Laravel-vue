@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserPassword;
+use App\Services\PasswordService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,18 +41,14 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
+        $userData = [
             'name' => $request->name,
             'username' => $request->username,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
-            'password' => Hash::make($request->password),
-        ]);
+        ];
 
-        UserPassword::updateOrCreate(
-            ['user_id' => $user->id],
-            ['password_encrypted' => Crypt::encryptString($request->password)]
-        );
+        $user = PasswordService::createUserWithPassword($userData, $request->password);
 
         event(new Registered($user));
 

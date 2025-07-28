@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
@@ -90,10 +90,6 @@ const editingClass = ref<{ id: number; name: string } | null>(null);
 const showDeleteDialog = ref(false);
 const classToDelete = ref<{ id: number; name: string } | null>(null);
 const form = ref({ name: '', errors: { name: '' }, autoAssignSections: true, sectionNames: 'A' });
-
-function getCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-}
 
 const breadcrumbItems = [
     { title: 'Classes', href: '/classes' },
@@ -132,53 +128,54 @@ function closeModal() {
 async function handleSubmit() {
     loading.value = true;
     form.value.errors.name = '';
+
     try {
         if (isEdit.value && editingClass.value) {
-            const response = await fetch(`/classes/${editingClass.value.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': getCsrfToken(),
+            // Update existing class
+            router.put(`/classes/${editingClass.value.id}`, {
+                name: form.value.name
+            }, {
+                onSuccess: () => {
+                    toast.success('Class updated!');
+                    closeModal();
+                    router.reload({ only: ['classes'] });
                 },
-                body: JSON.stringify({ name: form.value.name }),
+                onError: (errors) => {
+                    form.value.errors.name = errors.name || 'Update failed.';
+                    console.error('Update errors:', errors);
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
             });
-            const data = await response.json();
-            const idx = classes.value.findIndex(c => c.id === editingClass.value!.id);
-            if (data && data.class && idx !== -1) {
-                classes.value[idx] = data.class;
-                toast.success('Class updated!');
-                closeModal();
-            } else if (data.errors) {
-                form.value.errors.name = data.errors.name?.[0] || 'Update failed.';
-            }
         } else {
+            // Create new class
             const payload: any = { name: form.value.name };
             if (form.value.autoAssignSections) {
                 payload.auto_assign_sections = true;
                 payload.section_names = form.value.sectionNames.split(',').map((s: string) => s.trim()).filter(Boolean);
             }
-            const response = await fetch('/classes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': getCsrfToken(),
+
+            console.log('Creating class with payload:', payload);
+
+            router.post('/classes', payload, {
+                onSuccess: () => {
+                    toast.success('Class created!');
+                    closeModal();
+                    router.reload({ only: ['classes'] });
                 },
-                body: JSON.stringify(payload),
+                onError: (errors) => {
+                    form.value.errors.name = errors.name || 'Creation failed.';
+                    console.error('Creation errors:', errors);
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
             });
-            const data = await response.json();
-            if (data && data.class) {
-                classes.value.push(data.class);
-                toast.success('Class created!');
-                closeModal();
-            } else if (data.errors) {
-                form.value.errors.name = data.errors.name?.[0] || 'Creation failed.';
-            }
         }
     } catch (e) {
-        toast.error('An error occurred.');
-    } finally {
+        console.error('Error in handleSubmit:', e);
+        toast.error('An error occurred: ' + (e as Error).message);
         loading.value = false;
     }
 }
@@ -191,29 +188,21 @@ function handleDelete(cls: { id: number; name: string }) {
 async function confirmDelete() {
     if (!classToDelete.value) return;
     loading.value = true;
-    try {
-        const response = await fetch(`/classes/${classToDelete.value.id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': getCsrfToken(),
-            },
-        });
-        const data = await response.json();
-        if (data && data.success) {
-            classes.value = classes.value.filter(c => c.id !== classToDelete.value!.id);
+
+    router.delete(`/classes/${classToDelete.value.id}`, {
+        onSuccess: () => {
             toast.success('Class deleted!');
             showDeleteDialog.value = false;
             classToDelete.value = null;
-        } else {
+            router.reload({ only: ['classes'] });
+        },
+        onError: () => {
             toast.error('Failed to delete class.');
+        },
+        onFinish: () => {
+            loading.value = false;
         }
-    } catch (e) {
-        toast.error('An error occurred.');
-    } finally {
-        loading.value = false;
-    }
+    });
 }
 
 function cancelDelete() {

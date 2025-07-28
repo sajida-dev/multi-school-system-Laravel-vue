@@ -284,6 +284,8 @@
             </template>
         </AlertDialog>
         <AlertDialog v-model="showPasswordErrorDialog" :title="passwordErrorTitle" :message="passwordErrorMessage" />
+        <PasswordResetModal v-if="showPasswordResetModal" :user-id="resetUserId" @success="onPasswordResetSuccess"
+            @cancel="() => showPasswordResetModal = false" />
         <SchoolSwitcher :isSuperAdmin="true" @switched="onSchoolSwitched" />
         <!-- Touch-friendly Bottom Sheet for Mobile Filters (direct child of AppLayout) -->
         <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
@@ -365,6 +367,7 @@ import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
 import { Eye, EyeOff, Filter as FilterIcon } from 'lucide-vue-next';
 import { nextTick } from 'vue';
+import PasswordResetModal from '@/components/ui/PasswordResetModal.vue';
 
 const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
 
@@ -442,8 +445,8 @@ const passwordHideTimeouts = ref<Record<number, number>>({});
 const showPasswordErrorDialog = ref(false);
 const passwordErrorTitle = ref('Password Error');
 const passwordErrorMessage = ref('');
-
-
+const showPasswordResetModal = ref(false);
+const resetUserId = ref<number | undefined>(undefined);
 
 
 const headers = [
@@ -633,11 +636,14 @@ function clearSearch() {
 }
 
 function resetPassword(id: number) {
-    // Implement your reset password logic here, e.g.:
-    router.post(`/teachers/${id}/reset-password`, {}, {
-        preserveState: true,
-        onSuccess: () => fetchData(),
-    });
+    resetUserId.value = id;
+    showPasswordResetModal.value = true;
+}
+
+function onPasswordResetSuccess() {
+    showPasswordResetModal.value = false;
+    resetUserId.value = undefined;
+    fetchData(); // Refetch teachers to show updated password
 }
 </script>
 
