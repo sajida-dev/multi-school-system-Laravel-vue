@@ -11,6 +11,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Modules\Schools\App\Events\SchoolCreated;
 use Modules\Schools\App\Imports\SchoolsImport;
+use Illuminate\Support\Facades\Auth;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\app\Models\Section;
 
 class SchoolsController extends Controller
 {
@@ -71,8 +74,6 @@ class SchoolsController extends Controller
             $school->main_image = $mainImagePath;
         }
         $school->save();
-        // Broadcast the event
-        // event(new \Modules\Schools\App\Events\SchoolCreated($school));
         return redirect()->route('schools.index')->with([
             'success' => 'School created successfully.',
             'school' => $school,
@@ -127,8 +128,6 @@ class SchoolsController extends Controller
             $school->save();
         }
 
-        // Broadcast the event
-        // event(new \Modules\Schools\App\Events\SchoolUpdated($school));
 
         // If AJAX or expects JSON, return updated school
         if ($request->ajax() || $request->wantsJson()) {
@@ -148,8 +147,6 @@ class SchoolsController extends Controller
     {
         $school = School::findOrFail($id);
         $school->delete();
-        // Broadcast the event
-        // event(new \Modules\Schools\App\Events\SchoolDeleted($school->id));
         return redirect()->route('schools.index')->with('success', 'School deleted successfully.');
     }
 
@@ -175,7 +172,7 @@ class SchoolsController extends Controller
      */
     public function exportPdf()
     {
-        $schools = \Modules\Schools\App\Models\School::all();
+        $schools = School::all();
         $pdf = Pdf::loadView('schools.pdf', compact('schools'));
         return $pdf->download('schools.pdf');
     }
@@ -185,9 +182,9 @@ class SchoolsController extends Controller
      */
     public function listJson()
     {
-        $schools = \Modules\Schools\App\Models\School::select('id', 'name')->orderBy('name')->get();
-        $classes = \Modules\ClassesSections\App\Models\ClassSchool::select('id', 'name')->get();
-        $sections = \Modules\ClassesSections\App\Models\Section::select('id', 'name')->get();
+        $schools = School::select('id', 'name')->orderBy('name')->get();
+        $classes = ClassModel::select('id', 'name')->get();
+        $sections = Section::select('id', 'name')->get();
         return response()->json([
             'schools' => $schools,
             'classes' => $classes,
@@ -200,9 +197,27 @@ class SchoolsController extends Controller
      */
     public function allWithClassesSections()
     {
-        $schools = \Modules\Schools\App\Models\School::with('classes.sections')->get();
+        $schools = School::with('classes.sections')->get();
         return response()->json([
             'schools' => $schools
         ]);
+    }
+
+    /**
+     * Switch the active school for the user and persist the choice.
+     */
+    public function switchSchool(Request $request)
+    {
+        $schoolId = $request->input('school_id');
+        if (Auth::check() && $schoolId) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            // Update session
+            session(['active_school_id' => $schoolId]);
+            // Update DB
+            $user->last_school_id = $schoolId;
+            $user->save();
+        }
+        return redirect()->back();
     }
 }

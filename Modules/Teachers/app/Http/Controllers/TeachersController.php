@@ -4,12 +4,15 @@ namespace Modules\Teachers\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserPassword;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Modules\Teachers\Models\Teacher;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Log;
 
 class TeachersController extends Controller
 {
@@ -18,11 +21,18 @@ class TeachersController extends Controller
      */
     public function index(Request $request)
     {
+        $schoolId = session('active_school_id');
+        if ($schoolId) {
+            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+        }
         $query = User::query()
             ->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['teacher', 'principal']);
             })
-            ->with(['teacher', 'roles']);
+            ->whereHas('teacher', function ($q) use ($schoolId) {
+                $q->where('school_id', $schoolId);
+            })
+            ->with(['teacher.school', 'teacher.role', 'roles']);
 
         // Filters
         if ($request->filled('search')) {
@@ -46,12 +56,20 @@ class TeachersController extends Controller
                 $q->where('gender', $request->gender);
             });
         }
+        if ($request->filled('status')) {
+            $query->whereHas('teacher', function ($q) use ($request) {
+                $q->where('status', $request->status);
+            });
+        }
         $perPage = $request->input('per_page', 12);
         $users = $query->orderBy('name')->paginate($perPage);
 
+        // Optionally clear the team context after
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+
         return Inertia::render('Teachers/Index', [
             'teachers' => $users,
-            'filters' => $request->only(['search', 'role', 'gender']),
+            'filters' => $request->only(['search', 'role', 'gender', 'status']),
         ]);
     }
 
@@ -107,6 +125,11 @@ class TeachersController extends Controller
                 'phone_number' => $validated['phone_number'],
                 'password' => Hash::make($validated['password']),
             ]);
+            // Save encrypted password
+            UserPassword::create([
+                'user_id' => $user->id,
+                'password_encrypted' => Crypt::encryptString($validated['password']),
+            ]);
             $role = Role::findOrFail($validated['role_id']);
             app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($validated['school_id']);
             $user->assignRole($role->name);
@@ -123,6 +146,7 @@ class TeachersController extends Controller
                 'date_of_joining' => $validated['date_of_joining'],
                 'experience_years' => $validated['experience_years'],
                 'class_id' => $validated['class_id'] ?? null,
+                'status' => 'pending', // Set status to pending by default
             ]);
             $teacher->save();
         });
@@ -194,7 +218,7 @@ class TeachersController extends Controller
             $role = Role::findOrFail($validated['role_id']);
             $user->syncRoles([$role->name]);
             $teacher = $user->teacher;
-            $teacher->update([
+            $updateData = [
                 'school_id' => $validated['school_id'],
                 'gender' => $validated['gender'],
                 'marital_status' => $validated['marital_status'],
@@ -204,7 +228,11 @@ class TeachersController extends Controller
                 'date_of_joining' => $validated['date_of_joining'],
                 'experience_years' => $validated['experience_years'],
                 'class_id' => $validated['class_id'] ?? null,
-            ]);
+            ];
+            if (isset($validated['status'])) {
+                $updateData['status'] = $validated['status'];
+            }
+            $teacher->update($updateData);
         });
 
         return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
@@ -223,5 +251,57 @@ class TeachersController extends Controller
             $user->delete();
         });
         return redirect()->route('teachers.index')->with('success', 'Teacher deleted successfully.');
+    }
+
+    /**
+     * Securely return decrypted password for a teacher (admin/superadmin only)
+     */
+    public function getTeacherPassword(Request $request, $id = null)
+    {
+        $userId = $id ?? $request->input('user_id');
+        $admin = $request->user();
+        if (!$admin) {
+            return redirect()->back()->with('error', 'Unauthorized');
+        }
+        // Only allow superadmin or admin
+        if (!$admin->hasRole('superadmin') && !$admin->hasRole('admin')) {
+            return redirect()->back()->with('error', 'Forbidden');
+        }
+        $user = \App\Models\User::find($userId);
+        $userPassword = \App\Models\UserPassword::where('user_id', $userId)->first();
+        if (!$user || !$userPassword) {
+            // Return an Inertia partial response for SPA fetch
+            if ($request->hasHeader('X-Inertia')) {
+                return redirect()->back()->with('passwordResponse', ['error' => 'Password not found']);
+            }
+            return redirect()->back()->with('error', 'Password not found');
+        }
+        try {
+            $decrypted = \Illuminate\Support\Facades\Crypt::decryptString($userPassword->password_encrypted);
+        } catch (\Exception $e) {
+            if ($request->hasHeader('X-Inertia')) {
+                return redirect()->back()->with('passwordResponse', ['error' => 'Decryption failed']);
+            }
+            return redirect()->back()->with('error', 'Decryption failed');
+        }
+        if ($request->hasHeader('X-Inertia')) {
+            return redirect()->back()->with('passwordResponse', ['password' => $decrypted]);
+        }
+        return redirect()->back();
+    }
+
+    /**
+     * Approve a teacher (admin/superadmin only)
+     */
+    public function approveTeacher($id)
+    {
+        $admin = request()->user();
+        if (!$admin || (!$admin->hasRole('superadmin') && !$admin->hasRole('admin'))) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+        $teacher = Teacher::findOrFail($id);
+        $teacher->status = 'approved';
+        $teacher->save();
+        return redirect()->back()->with('success', 'Teacher approved successfully.');
     }
 }

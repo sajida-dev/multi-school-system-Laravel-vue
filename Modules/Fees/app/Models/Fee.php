@@ -14,6 +14,7 @@ class Fee extends Model
     protected $dates = ['deleted_at'];
     protected $fillable = [
         'student_id',
+        'class_id',
         'type',
         'amount',
         'status',
@@ -26,6 +27,11 @@ class Fee extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(\Modules\Admissions\App\Models\Student::class);
+    }
+
+    public function class(): BelongsTo
+    {
+        return $this->belongsTo(\Modules\ClassesSections\App\Models\ClassModel::class, 'class_id');
     }
 
     public function items(): HasMany

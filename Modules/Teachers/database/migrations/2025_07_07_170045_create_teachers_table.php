@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('salary', 12, 2);
             $table->date('date_of_joining');
             $table->integer('experience_years')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
             $table->softDeletes();
         });

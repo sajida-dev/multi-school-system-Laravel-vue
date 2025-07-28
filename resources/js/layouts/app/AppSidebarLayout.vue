@@ -3,6 +3,7 @@ import AppContent from '@/components/AppContent.vue';
 import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
+import GlobalAlertDialog from '@/components/GlobalAlertDialog.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { watch } from 'vue';
@@ -60,5 +61,6 @@ watch(
                 </AppContent>
             </div>
         </div>
+        <GlobalAlertDialog />
     </AppShell>
 </template>

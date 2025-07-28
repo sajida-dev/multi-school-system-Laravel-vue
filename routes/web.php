@@ -4,8 +4,10 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
+use App\Http\Controllers\Admin\SetActiveSchoolController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Modules\Schools\Http\Controllers\SchoolsController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -35,7 +37,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 });
 
 // Add this route for the school switcher
-Route::get('/admin/schools', [\Modules\Schools\Http\Controllers\SchoolsController::class, 'allWithClassesSections']);
+Route::get('/admin/schools', [SchoolsController::class, 'allWithClassesSections']);
+Route::post('/set-active-school', SetActiveSchoolController::class);
 
 
 require __DIR__ . '/settings.php';

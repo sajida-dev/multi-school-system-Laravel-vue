@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('phone_number')->unique();
             $table->string('profile_photo_path')->default("default-profile.png");
+            $table->unsignedBigInteger('last_school_id')->nullable()->comment('Tracks the last selected school for the user');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

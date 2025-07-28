@@ -6,8 +6,12 @@
             <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Add New Student</h1>
             <AdmissionsForm v-if="schools.length && classes.length" :form="form" :errors="form.errors" mode="create"
                 :classes="classesList" :schools="schoolsList" @submit="submit" @cancel="goBack" />
-            <div v-else class="flex items-center justify-center py-10">
-                <span>Loading...</span>
+            <div v-else class="flex flex-col items-center justify-center py-10 gap-2">
+                <span v-if="!schools.length && !classes.length">Loading schools and classes...</span>
+                <span v-else-if="!schools.length">Unable to load schools. Please check your network or contact
+                    admin.</span>
+                <span v-else-if="!classes.length">Unable to load classes. Please check your network or contact
+                    admin.</span>
             </div>
         </div>
     </AppLayout>
@@ -15,7 +19,6 @@
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { usePage } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';

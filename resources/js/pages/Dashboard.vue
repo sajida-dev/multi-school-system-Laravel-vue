@@ -5,8 +5,30 @@ import VueApexCharts from 'vue3-apexcharts';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import { ref } from 'vue';
-import { ArrowUpRight } from 'lucide-vue-next';
+// import axios from 'axios';
+import { router } from '@inertiajs/vue3';
 import StatCard from '@/components/StatCard.vue';
+
+interface School {
+  id: string | number;
+  name: string;
+}
+
+const props = defineProps<{
+  schools: School[];
+  activeSchoolId: string | number;
+}>();
+
+const selectedSchool = ref<string | number>(props.activeSchoolId);
+
+function switchSchool() {
+  router.post('/switch-school', { school_id: selectedSchool.value }, {
+    preserveScroll: true,
+    onSuccess: () => {
+      router.reload({ only: ['schools', 'activeSchoolId'] });
+    }
+  });
+}
 
 // Dummy student data
 const student = {
@@ -72,12 +94,22 @@ const calendarOptions = {
 </script>
 
 <template>
+
   <Head title="Dashboard" />
   <AppLayout>
     <div class="p-4 md:p-8 bg-gradient-to-br from-indigo-50 via-white to-pink-50 min-h-screen">
+      <!-- School Switcher -->
+      <div v-if="props.schools && props.schools.length" class="mb-6 flex justify-end">
+        <select v-model="selectedSchool" @change="switchSchool" class="border rounded px-3 py-2">
+          <option v-for="school in props.schools" :key="(school as School).id" :value="(school as School).id">
+            {{ (school as School).name }}
+          </option>
+        </select>
+      </div>
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <!-- Profile Card -->
-        <div class="col-span-1 bg-white/90 rounded-2xl shadow-xl p-6 flex flex-col items-center relative overflow-hidden border border-indigo-100">
+        <div
+          class="col-span-1 bg-white/90 rounded-2xl shadow-xl p-6 flex flex-col items-center relative overflow-hidden border border-indigo-100">
           <div class="absolute -top-8 -left-8 w-32 h-32 bg-indigo-100 rounded-full opacity-30 z-0"></div>
           <div class="relative mb-4 z-10 flex items-center justify-center">
             <svg width="130" height="130" viewBox="0 0 130 130" class="absolute">
@@ -87,11 +119,14 @@ const calendarOptions = {
                   <stop offset="100%" stop-color="#06b6d4" />
                 </linearGradient>
               </defs>
-              <circle cx="65" cy="65" r="58" fill="none" stroke="url(#profileRingGradient)" stroke-width="6" stroke-dasharray="32 8 32 8 32 8 32 8" stroke-linecap="round" />
+              <circle cx="65" cy="65" r="58" fill="none" stroke="url(#profileRingGradient)" stroke-width="6"
+                stroke-dasharray="32 8 32 8 32 8 32 8" stroke-linecap="round" />
             </svg>
-            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="w-28 h-28 rounded-full border-4 border-white shadow-lg relative z-10" />
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile"
+              class="w-28 h-28 rounded-full border-4 border-white shadow-lg relative z-10" />
           </div>
-          <h2 class="text-xl font-bold z-10">{{ student.name }} <span class="text-indigo-500">({{ student.roll }})</span></h2>
+          <h2 class="text-xl font-bold z-10">{{ student.name }} <span class="text-indigo-500">({{ student.roll
+          }})</span></h2>
           <p class="text-sm text-gray-500 z-10">{{ student.email }}</p>
           <p class="text-sm text-gray-500 mb-2 z-10">{{ student.phone }}</p>
           <div class="w-full mt-4 z-10">
@@ -161,7 +196,8 @@ const calendarOptions = {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(result, idx) in examResults" :key="result.subject" :class="idx % 2 === 0 ? 'bg-white' : 'bg-indigo-50' + ' hover:bg-indigo-100'">
+                <tr v-for="(result, idx) in examResults" :key="result.subject"
+                  :class="idx % 2 === 0 ? 'bg-white' : 'bg-indigo-50' + ' hover:bg-indigo-100'">
                   <td class="py-2 px-2 font-mono">{{ result.id }}</td>
                   <td class="py-2 px-2">{{ result.type }}</td>
                   <td class="py-2 px-2">{{ result.subject }}</td>

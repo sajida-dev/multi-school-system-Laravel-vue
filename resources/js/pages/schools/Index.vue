@@ -14,6 +14,19 @@
                     <Button variant="secondary" size="lg" class="mr-2" @click="importSchools">Import</Button>
                     <Button variant="outline" size="lg" @click="exportSchools">Export</Button>
                 </template>
+                <template #item-name="row">
+                    <div>
+                        <span>{{ row.name }}</span>
+                    </div>
+                </template>
+                <template #item-id="row">
+                    <div class="flex items-center justify-center h-full">
+                        <Avatar class="w-8 h-8">
+                            <AvatarImage v-if="row.logo" :src="row.logo" :alt="row.name" />
+                            <AvatarFallback v-else>{{ getInitials(row.name) }}</AvatarFallback>
+                        </Avatar>
+                    </div>
+                </template>
                 <template #item-actions="row">
                     <button
                         class="inline-flex items-center justify-center rounded-full p-2 text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400 mr-1"
@@ -58,6 +71,9 @@ import { Button } from '@/components/ui/button';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 import Icon from '@/components/Icon.vue';
+import Avatar from '@/components/ui/avatar/Avatar.vue';
+import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
+import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
 
 interface SchoolsPagination {
     data: any[];
@@ -102,6 +118,10 @@ const serverOptions = ref<{ page: number; rowsPerPage: number; sortBy: string; s
 
 const showDeleteDialog = ref(false);
 const schoolToDelete = ref<number | null>(null);
+const expandedRow = ref<string | number | null>(null);
+function toggleRowExpansion(row: any) {
+    expandedRow.value = expandedRow.value === row.id ? null : row.id;
+}
 
 const schoolStore = useSchoolStore();
 const { schools: globalSchools } = storeToRefs(schoolStore);
@@ -161,7 +181,14 @@ const deleteSchool = () => {
     showDeleteDialog.value = false;
 };
 
-
+function getInitials(name: string) {
+    return name
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+}
 
 
 onMounted(() => {

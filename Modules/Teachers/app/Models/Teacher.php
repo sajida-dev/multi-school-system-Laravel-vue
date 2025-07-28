@@ -29,6 +29,7 @@ class Teacher extends Model
         'date_of_joining',
         'experience_years',
         'class_id',
+        'status',
     ];
 
     public function user()

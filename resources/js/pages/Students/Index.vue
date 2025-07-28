@@ -2,39 +2,72 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Students" />
-        <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
+        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8 mt-20 sm:mt-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Students</h1>
-            <!-- Filter UI -->
-            <div class="flex flex-wrap gap-4 mb-4 items-end">
-                <div>
+
+            <!-- Standalone Search Input -->
+            <div class="mb-6">
+                <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input v-model="filtersForm.search" type="text"
+                        placeholder="Search students by name, registration number..."
+                        class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
+                        @input="onSearchInput" />
+                    <button v-if="filtersForm.search" @click="clearSearch"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Filter Icon with Tooltip and Label -->
+            <div class="flex lg:hidden justify-end mb-4">
+                <button @click="openFilterSheet"
+                    class="flex items-center gap-2 p-2 rounded-full bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 shadow transition"
+                    title="Show filters for student records">
+                    <FilterIcon class="w-6 h-6 text-primary-700 dark:text-primary-200" />
+                    <span class="text-primary-700 dark:text-primary-200 font-medium text-base">Filters</span>
+                </button>
+            </div>
+            <!-- Filter UI (hidden on mobile, shown in bottom sheet) -->
+            <div class=" grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 mb-4 items-end hidden lg:grid">
+                <div class="flex flex-col">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
                     <select v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="s in schools" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                 </div>
-                <div>
+                <div class="flex flex-col">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
                     <select v-model="filtersForm.class_id"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
                 </div>
-                <div>
+                <div class="flex flex-col">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Section</label>
                     <select v-model="filtersForm.section_id"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}
                         </option>
                     </select>
                 </div>
-                <div>
+                <div class="flex flex-col">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
                     <select v-model="filtersForm.gender"
-                        class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -44,23 +77,18 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Shift</label>
                     <select v-model="filtersForm.class_shift"
-                        class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="Morning">Morning</option>
                         <option value="Evening">Evening</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
-                    <input v-model="filtersForm.search" @keyup.enter="fetchData" type="text"
-                        placeholder="Name, Reg #, etc."
-                        class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900" />
-                </div>
             </div>
             <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
                 :server-items-length="students.total" :expandable="true"
-                :expand-row-keys="expandedRow ? [expandedRow] : []" @update:server-options="onServerOptionsUpdate"
+                :expand-row-keys="expandedRow ? [expandedRow] : []"
+                @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
                 table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all"
                 row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
                 <template #item-profile_photo_path="row">
@@ -166,10 +194,96 @@
                 </div>
             </template>
         </AlertDialog>
+        <!-- Touch-friendly Bottom Sheet for Mobile Filters -->
+        <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
+            ref="filterSheet" class="dark:bg-neutral-900">
+            <div class="sheet-content dark:bg-neutral-900">
+                <h2 class="text-lg font-semibold mb-4">Student Filters</h2>
+
+                <!-- Search Input in Bottom Sheet -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input v-model="filtersForm.search" type="text"
+                            placeholder="Search students by name, registration number..."
+                            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
+                            @input="onSearchInput" />
+                        <button v-if="filtersForm.search" @click="clearSearch"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col">
+                        <label for="school-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
+                        <select id="school-mobile" v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option v-for="s in schools" :key="s.id" :value="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="class-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
+                        <select id="class-mobile" v-model="filtersForm.class_id"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="section-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Section</label>
+                        <select id="section-mobile" v-model="filtersForm.section_id"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="gender-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
+                        <select id="gender-mobile" v-model="filtersForm.gender"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="shift-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Shift</label>
+                        <select id="shift-mobile" v-model="filtersForm.class_shift"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option value="Morning">Morning</option>
+                            <option value="Evening">Evening</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                </div>
+            </div>
+        </vue-bottom-sheet>
     </AppLayout>
 </template>
 
 <script setup lang="ts">
+import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
+import "@webzlodimir/vue-bottom-sheet/dist/style.css";
 import { ref, computed, watch, onMounted } from 'vue';
 import { router, Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -180,7 +294,18 @@ import Icon from '@/components/Icon.vue';
 import { storeToRefs } from 'pinia';
 import { useSchoolStore } from '@/stores/school';
 import { BreadcrumbItem } from '@/types';
+import { FilterIcon } from 'lucide-vue-next';
 const defaultProfileImage = '/storage/default-avatar.png';
+
+const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
+
+function openFilterSheet() {
+    filterSheet.value?.open();
+}
+
+function closeFilterSheet() {
+    filterSheet.value?.close();
+}
 
 // --- TypeScript interfaces ---
 interface School {
@@ -284,13 +409,27 @@ const filtersForm = useForm({
     gender: initialFilters.gender || '',
     class_shift: initialFilters.class_shift || '',
     search: initialFilters.search || '',
+    page: 1,
+    per_page: 12,
 });
 
 const loading = ref(false);
-const serverOptions = ref<{ page: number; perPage: number }>({
-    page: students.value.current_page || 1,
-    perPage: students.value.per_page || 12,
+const serverOptions = ref({
+    page: 1,
+    rowsPerPage: 12,
+    sortBy: '',
+    sortType: '',
+    search: '',
+    filters: {},
 });
+
+// Initialize serverOptions with actual data when students data is available
+watch(() => students.value, (newStudents) => {
+    if (newStudents && newStudents.current_page) {
+        serverOptions.value.page = newStudents.current_page;
+        serverOptions.value.rowsPerPage = newStudents.per_page || 12;
+    }
+}, { immediate: true });
 const expandedRow = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 const studentToDelete = ref<number | null>(null);
@@ -322,27 +461,35 @@ onMounted(() => {
     }
 });
 
-watch(() => filtersForm.school_id, fetchData);
-watch(() => filtersForm.class_id, fetchData);
-watch(() => filtersForm.section_id, fetchData);
-watch(() => filtersForm.gender, fetchData);
-watch(() => filtersForm.class_shift, fetchData);
-watch(() => filtersForm.search, fetchData);
+// Watch for filter changes with debounce
+let debounceTimer: number;
+type FilterField = 'school_id' | 'class_id' | 'section_id' | 'gender' | 'class_shift' | 'search';
+const watchedFields: FilterField[] = ['school_id', 'class_id', 'section_id', 'gender', 'class_shift', 'search'];
+
+watchedFields.forEach((field: FilterField) => {
+    watch(() => filtersForm[field], () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetchData();
+        }, 500); // 500ms debounce
+    });
+});
+
+// Watch serverOptions for pagination changes
+watch(serverOptions, fetchData, { deep: true });
 
 function fetchData() {
     loading.value = true;
+
+    // Set pagination parameters in the form
+    filtersForm.page = serverOptions.value.page;
+    filtersForm.per_page = serverOptions.value.rowsPerPage;
+
     filtersForm.get('/students', {
         preserveState: true,
         preserveScroll: true,
         onFinish: () => (loading.value = false),
     });
-}
-
-function onServerOptionsUpdate(opts: { page: number; perPage: number }) {
-    if (opts.page !== serverOptions.value.page || opts.perPage !== serverOptions.value.perPage) {
-        serverOptions.value = opts;
-        fetchData();
-    }
 }
 
 function toggleRowExpansion(row: Student) {
@@ -376,4 +523,22 @@ function deleteStudent() {
 function goToCreate() {
     router.visit('/students/create');
 }
+
+function onSearchInput(event: Event) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        fetchData();
+    }, 500); // 500ms debounce
+}
+
+function clearSearch() {
+    filtersForm.search = '';
+    fetchData();
+}
 </script>
+
+<style scoped>
+.sheet-content {
+    padding: 20px;
+}
+</style>

@@ -14,6 +14,6 @@ class SetActiveSchoolController extends Controller
             'school_id' => 'required|exists:schools,id',
         ]);
         session(['active_school_id' => $request->school_id]);
-        return response()->json(['success' => true]);
+        return redirect()->back();
     }
 }

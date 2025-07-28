@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('fees', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('student_id');
+            $table->unsignedBigInteger('class_id');
             $table->enum('type', ['admission', 'tuition', 'papers']);
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['unpaid', 'paid', 'cancelled'])->default('unpaid');
@@ -22,6 +23,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
+            $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->index('student_id');
         });
     }

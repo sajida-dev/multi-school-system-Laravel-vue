@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Check } from 'lucide-vue-next';
+import { router } from '@inertiajs/vue3';
 
 const schoolStore = useSchoolStore();
 const { schools, selectedSchool } = storeToRefs(schoolStore);
@@ -13,10 +14,17 @@ defineProps<{ isSuperAdmin: boolean }>();
 
 const emit = defineEmits(['switched']);
 
+// RULE: Always use Inertia router methods for navigation and form submissions in Inertia-powered Vue apps.
 function switchSchool(school: any) {
     if (school.id !== selectedSchool.value?.id) {
         schoolStore.setSchool(school);
-        emit('switched', school);
+        router.post('/set-active-school', { school_id: school.id }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                router.reload({ only: ['schools', 'activeSchoolId'] });
+                emit('switched', school);
+            }
+        });
     }
 }
 

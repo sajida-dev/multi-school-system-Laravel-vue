@@ -11,7 +11,12 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
+use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\Teacher;
 
+/**
+ * @method bool hasRole(string|array $roles, string|null $guard = null)
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -86,5 +91,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function userPassword()
     {
         return $this->hasOne(UserPassword::class);
+    }
+
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class, 'user_id');
+    }
+
+    // Add the schools relationship if not present
+    public function schools()
+    {
+        return $this->belongsToMany(School::class);
+    }
+    // Optionally, add an accessor/mutator for last_school_id if you add it to the DB
+    public function getLastSchoolIdAttribute()
+    {
+        return $this->attributes['last_school_id'] ?? null;
+    }
+    public function setLastSchoolIdAttribute($value)
+    {
+        $this->attributes['last_school_id'] = $value;
     }
 }

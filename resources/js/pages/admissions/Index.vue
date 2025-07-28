@@ -2,10 +2,43 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Student Admissions" />
-        <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
+        <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8 mt-20 sm:mt-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Student Admissions</h1>
-            <!-- Filter UI -->
-            <div class="flex flex-wrap gap-4 mb-4 items-end">
+
+            <!-- Standalone Search Input -->
+            <div class="mb-6">
+                <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input v-model="filtersForm.search" type="text"
+                        placeholder="Search admissions by name, registration number..."
+                        class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
+                        @input="onSearchInput" />
+                    <button v-if="filtersForm.search" @click="clearSearch"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Filter Icon with Tooltip and Label -->
+            <div class="flex lg:hidden justify-end mb-4">
+                <button @click="openFilterSheet"
+                    class="flex items-center gap-2 p-2 rounded-full bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 shadow transition"
+                    title="Show filters for admissions records">
+                    <FilterIcon class="w-6 h-6 text-primary-700 dark:text-primary-200" />
+                    <span class="text-primary-700 dark:text-primary-200 font-medium text-base">Filters</span>
+                </button>
+            </div>
+            <!-- Filter UI (hidden on mobile, shown in bottom sheet) -->
+            <div class=" flex-wrap gap-4 mb-4 items-end hidden lg:flex">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
                     <select v-model="filtersForm.status"
@@ -31,12 +64,6 @@
                         <option value="">All</option>
                         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
                     </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
-                    <input v-model="filtersForm.search" @keyup.enter="fetchData" type="text"
-                        placeholder="Name, Reg #, etc."
-                        class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
@@ -203,6 +230,78 @@
                 </div>
             </template>
         </AlertDialog>
+        <!-- Touch-friendly Bottom Sheet for Mobile Filters -->
+        <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
+            ref="filterSheet" class="dark:bg-neutral-900">
+            <div class="sheet-content dark:bg-neutral-900">
+                <h2 class="text-lg font-semibold mb-4">Admission Filters</h2>
+
+                <!-- Search Input in Bottom Sheet -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input v-model="filtersForm.search" type="text"
+                            placeholder="Search admissions by name, registration number..."
+                            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
+                            @input="onSearchInput" />
+                        <button v-if="filtersForm.search" @click="clearSearch"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col">
+                        <label for="status-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
+                        <select id="status-mobile" v-model="filtersForm.status"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option value="applicant">Applicant</option>
+                            <option value="admitted">Admitted</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="class-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
+                        <select id="class-mobile" v-model="filtersForm.class_id"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="year-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Year</label>
+                        <select id="year-mobile" v-model="filtersForm.year"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="school-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
+                        <select id="school-mobile" v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option v-for="s in userSchools" :key="s.id" :value="s.id">{{ s.name }}</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </vue-bottom-sheet>
     </AppLayout>
 </template>
 
@@ -221,6 +320,9 @@ import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import UploadVoucherModal from '@/components/UploadVoucherModal.vue';
+import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
+import "@webzlodimir/vue-bottom-sheet/dist/style.css";
+import { FilterIcon } from 'lucide-vue-next';
 
 const defaultProfileImage = '/storage/default-profile.png';
 
@@ -274,11 +376,22 @@ onMounted(() => {
     }
 });
 
-watch(() => filtersForm.status, fetchData);
-watch(() => filtersForm.class_id, fetchData);
-watch(() => filtersForm.year, fetchData);
-watch(() => filtersForm.search, fetchData);
-watch(() => filtersForm.school_id, fetchData);
+const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
+function openFilterSheet() { filterSheet.value?.open(); }
+function closeFilterSheet() { filterSheet.value?.close(); }
+
+// Debounced filter watchers
+let debounceTimer: number;
+type FilterField = 'status' | 'class_id' | 'year' | 'search' | 'school_id';
+const watchedFields: FilterField[] = ['status', 'class_id', 'year', 'search', 'school_id'];
+watchedFields.forEach((field: FilterField) => {
+    watch(() => filtersForm[field], () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetchData();
+        }, 500);
+    });
+});
 
 const loading = ref(false);
 const total = ref<number>(students.value && typeof students.value.total === 'number' ? students.value.total : 0);
@@ -457,6 +570,18 @@ function onVoucherUploaded() {
     fetchData();
     closeVoucherModal();
 }
+
+function onSearchInput() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        fetchData();
+    }, 500);
+}
+
+function clearSearch() {
+    filtersForm.search = '';
+    fetchData();
+}
 </script>
 
 <style scoped>
@@ -505,5 +630,9 @@ function onVoucherUploaded() {
 
 .btn-primary:hover {
     background: var(--color-primary-dark, #6d28d9);
+}
+
+.sheet-content {
+    padding: 20px;
 }
 </style>

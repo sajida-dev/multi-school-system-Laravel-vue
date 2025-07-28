@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, inject } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
@@ -56,16 +56,30 @@ const removePhoto = () => {
     }
 };
 
+const emitter = inject('emitter') as { emit?: Function } | undefined;
+
 const onFileInput = (event: Event) => {
     const target = event.target as HTMLInputElement | null;
     if (target && target.files && target.files[0]) {
         const file = target.files[0];
         if (!allowedTypes.includes(file.type)) {
-            alert('Only JPG and PNG images are allowed.');
+            if (emitter && emitter.emit) {
+                emitter.emit('alert', {
+                    title: 'Invalid File Type',
+                    message: 'Only JPG and PNG images are allowed.',
+                    confirmText: 'OK',
+                });
+            }
             return;
         }
         if (file.size > maxSizeMB * 1024 * 1024) {
-            alert('Image size must be less than 2MB.');
+            if (emitter && emitter.emit) {
+                emitter.emit('alert', {
+                    title: 'File Too Large',
+                    message: 'Image size must be less than 2MB.',
+                    confirmText: 'OK',
+                });
+            }
             return;
         }
         form.profile_photo = file;
@@ -82,6 +96,7 @@ const submit = () => {
     if (form.profile_photo) {
         data.profile_photo = form.profile_photo;
     }
+    (data as any)._method = 'PATCH';
     form.transform(() => data).post(route('profile.update'), {
         preserveScroll: true,
         forceFormData: true,

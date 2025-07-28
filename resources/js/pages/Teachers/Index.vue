@@ -2,15 +2,48 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Teachers" />
-        <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
+        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8 mt-20 sm:mt-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Teachers</h1>
-            <!-- Filter UI -->
-            <div class="flex flex-wrap gap-1 mb-4 items-end">
+
+            <!-- Standalone Search Input -->
+            <div class="mb-6">
+                <div class="relative max-w-md">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input v-model="filtersForm.search" type="text"
+                        placeholder="Search teachers by name, email, CNIC, contact..."
+                        class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
+                        @input="onSearchInput" />
+                    <button v-if="filtersForm.search" @click="clearSearch"
+                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Filter Icon with Tooltip and Label -->
+            <div class="flex lg:hidden justify-end mb-4">
+                <button @click="openFilterSheet"
+                    class="flex items-center gap-2 p-2 rounded-full bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 shadow transition"
+                    title="Show filters for teacher records">
+                    <FilterIcon class="w-6 h-6 text-primary-700 dark:text-primary-200" />
+                    <span class="text-primary-700 dark:text-primary-200 font-medium text-base">Filters</span>
+                </button>
+            </div>
+            <!-- Filter UI (hidden on mobile, shown in bottom sheet) -->
+            <div class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 items-end hidden lg:grid">
                 <div class="flex flex-col">
                     <label for="role"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Role</label>
                     <select id="role" v-model="filtersForm.role"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="teacher">Teacher</option>
                         <option value="principal">Principal</option>
@@ -20,7 +53,7 @@
                     <label for="gender"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
                     <select id="gender" v-model="filtersForm.gender"
-                        class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -30,50 +63,79 @@
                     <label for="status"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
                     <select id="status" v-model="filtersForm.status"
-                        class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
                     </select>
-                </div>
-                <div class="flex flex-col">
-                    <label for="search"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
-                    <input id="search" v-model="filtersForm.search" type="text" placeholder="Name, Email, CNIC, Contact"
-                        class="w-56 border border-gray-300 dark:border-gray-600 rounded px-2 py-0.5 bg-white dark:bg-neutral-900" />
                 </div>
                 <div class="flex flex-col">
                     <label for="school"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
                     <select id="school" v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
-                        class="min-w-[220px] border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All Schools</option>
                         <option v-for="school in schools" :key="school.id" :value="school.id">
                             {{ school.name }}
                         </option>
                     </select>
                 </div>
-                <Button variant="default" class="h-10 ml-auto" @click="goToCreate">Add Teacher</Button>
+                <div class="flex flex-col">
+                    <Button variant="default" class="h-10" @click="goToCreate">Add Teacher</Button>
+                </div>
             </div>
             <BaseDataTable :headers="headers" :items="teachers.data" :loading="loading" :server-options="serverOptions"
-                :server-items-length="teachers.total" :expandable="true"
-                :expand-row-keys="expandedRow ? [expandedRow] : []" @update:server-options="onServerOptionsUpdate"
-                table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all"
+                :server-items-length="serverItemsLength" :expandable="true"
+                :expand-row-keys="expandedRow ? [expandedRow] : []"
+                @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
+                table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all min-w-full"
                 row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
+                <template #item-name="row">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <Avatar class="flex-shrink-0">
+                            <AvatarImage v-if="row.profile_photo_url" :src="row.profile_photo_url" :alt="row.name" />
+                            <AvatarFallback>{{ getInitials(row.name) }}</AvatarFallback>
+                        </Avatar>
+                        <span class="truncate">{{ row.name }}</span>
+                    </div>
+                </template>
+                <template #item-email="row">
+                    <span class="truncate block max-w-[200px] sm:max-w-none">{{ row.email }}</span>
+                </template>
                 <template #item-role="row">
-                    <span class="capitalize">{{ row.teacher?.role || '-' }}</span>
+                    <div class="flex flex-wrap gap-1">
+                        <span v-for="role in row.roles" :key="role.id"
+                            class="inline-block bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-200 rounded-full px-2 py-0.5 text-xs font-semibold">
+                            {{ role.name }}
+                        </span>
+                    </div>
                 </template>
                 <template #item-gender="row">
                     {{ row.teacher?.gender || '-' }}
                 </template>
                 <template #item-cnic="row">
-                    {{ row.teacher?.cnic || '-' }}
+                    <span class="truncate block max-w-[120px] sm:max-w-none">{{ row.teacher?.cnic || '-' }}</span>
                 </template>
                 <template #item-contact_no="row">
-                    {{ row.teacher?.contact_no || '-' }}
+                    <span class="truncate block max-w-[120px] sm:max-w-none">{{ row.phone_number || '-' }}</span>
                 </template>
                 <template #item-school_id="row">
-                    {{ row.teacher?.school_id || '-' }}
+                    <span v-if="row.teacher && row.teacher.school"
+                        class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full px-2 py-0.5 text-xs font-semibold">
+                        {{ row.teacher.school.name }}
+                    </span>
+                    <span v-else>-</span>
+                </template>
+                <template #item-status="row">
+                    <span :class="{
+                        'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': row.teacher?.status === 'pending',
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': row.teacher?.status === 'approved',
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': row.teacher?.status === 'rejected',
+                    }">
+                        {{ row.teacher?.status || '-' }}
+                    </span>
                 </template>
                 <template #item-actions="row">
                     <button
@@ -100,28 +162,111 @@
                     </button>
                 </template>
                 <template #expand="row">
-                    <div v-if="expandedRow === row.id" class="p-6 bg-gray-50 dark:bg-neutral-800 rounded shadow-inner">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div v-if="expandedRow === row.id"
+                        class="bg-white dark:bg-neutral-900 rounded-xl shadow p-6 border border-gray-200 dark:border-gray-700">
+                        <!-- Header -->
+                        <div
+                            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+                            <div class="flex items-center gap-4">
+                                <Avatar class="w-16 h-16 shadow">
+                                    <AvatarImage v-if="row.profile_photo_url" :src="row.profile_photo_url"
+                                        :alt="row.name" />
+                                    <AvatarFallback>{{ getInitials(row.name) }}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <div class="text-xl font-semibold text-gray-900 dark:text-white">{{ row.name }}
+                                    </div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ row.email }}</div>
+                                    <div class="text-xs text-gray-400 dark:text-gray-500">@{{ row.username }}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-2 flex-1">
+                                <div class="flex flex-wrap gap-2 justify-center">
+                                    <span v-if="row.teacher && row.teacher.school"
+                                        class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full px-3 py-1 text-xs font-semibold">
+                                        {{ row.teacher.school.name }}
+                                    </span>
+                                    <span v-for="role in row.roles" :key="role.id"
+                                        class="inline-block bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-full px-3 py-1 text-xs font-semibold">
+                                        {{ role.name }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <Button v-if="isAdmin && row.teacher?.status !== 'approved'" variant="outline"
+                                    @click="approveTeacher(row.id)">Approve</Button>
+                                <Button variant="default" @click="resetPassword(row.id)">Reset Password</Button>
+
+                            </div>
+                        </div>
+                        <!-- Details -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                             <div>
-                                <h3 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">Teacher Information</h3>
-                                <div><strong>Name:</strong> {{ row.name }}</div>
-                                <div><strong>Email:</strong> {{ row.email }}</div>
-                                <div><strong>CNIC:</strong> {{ row.teacher?.cnic }}</div>
-                                <div><strong>Gender:</strong> {{ row.teacher?.gender }}</div>
-                                <div><strong>Marital Status:</strong> {{ row.teacher?.marital_status }}</div>
-                                <div><strong>Role:</strong> <span class="capitalize">{{ row.teacher?.role }}</span>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Contact Information
                                 </div>
-                                <div><strong>Date of Birth:</strong> {{ row.teacher?.dob }}</div>
-                                <div><strong>Salary:</strong> {{ row.teacher?.salary }}</div>
-                                <div><strong>Contact No:</strong> {{ row.teacher?.contact_no }}</div>
-                                <div><strong>Date of Joining:</strong> {{ row.teacher?.date_of_joining }}</div>
-                                <div><strong>Experience (years):</strong> {{ row.teacher?.experience_years || '-' }}
-                                </div>
-                                <div><strong>School ID:</strong> {{ row.teacher?.school_id }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Email:</span> {{ row.email }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Phone:</span> {{ row.teacher?.contact_no ||
+                                            row.phone_number
+                                            || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Username:</span> {{ row.username }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">CNIC:</span> {{ row.teacher?.cnic || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Gender:</span> {{ row.teacher?.gender || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Marital
+                                        Status:</span> {{ row.teacher?.marital_status || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Date
+                                        of
+                                        Birth:</span> {{ row.teacher?.dob || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Date
+                                        of
+                                        Joining:</span> {{ row.teacher?.date_of_joining || '-' }}</div>
                             </div>
                             <div>
-                                <h3 class="font-semibold text-green-700 dark:text-green-300 mb-2">Roles</h3>
-                                <div v-for="role in row.roles" :key="role.id">{{ role.name }}</div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Classes &
+                                    Affiliations
+                                </div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Class:</span> {{ row.teacher?.class_name || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Experience (years):</span> {{
+                                            row.teacher?.experience_years
+                                            || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Salary:</span> {{ row.teacher?.salary || '-' }}</div>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Other Details</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
+                                        class="font-medium">Status:</span> {{ row.teacher?.status || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">School
+                                        ID:</span> {{ row.teacher?.school_id || '-' }}</div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2">Password</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-700 dark:text-gray-200">
+                                        <template v-if="showPassword[row.id]">
+                                            {{ decryptedPasswords[row.id] }}
+                                        </template>
+                                        <template v-else>
+                                            •••••••••
+                                        </template>
+                                    </span>
+                                    <button class="text-gray-500 hover:text-primary-600 p-2"
+                                        @click="toggleShowPassword(row.id)">
+                                        <Eye v-if="!showPassword[row.id] && !passwordLoading[row.id]" class="w-5 h-5" />
+                                        <EyeOff v-else-if="showPassword[row.id] && !passwordLoading[row.id]"
+                                            class="w-5 h-5" />
+                                        <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -138,11 +283,73 @@
                 </div>
             </template>
         </AlertDialog>
+        <AlertDialog v-model="showPasswordErrorDialog" :title="passwordErrorTitle" :message="passwordErrorMessage" />
+        <SchoolSwitcher :isSuperAdmin="true" @switched="onSchoolSwitched" />
+        <!-- Touch-friendly Bottom Sheet for Mobile Filters (direct child of AppLayout) -->
+        <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
+            ref="filterSheet" class="dark:bg-neutral-900">
+            <div class="sheet-content dark:bg-neutral-900">
+                <h2 class="text-lg font-semibold mb-4">Teacher Filters</h2>
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col">
+                        <label for="role-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Role</label>
+                        <select id="role-mobile" v-model="filtersForm.role"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option value="teacher">Teacher</option>
+                            <option value="principal">Principal</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="gender-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Gender</label>
+                        <select id="gender-mobile" v-model="filtersForm.gender"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="status-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
+                        <select id="status-mobile" v-model="filtersForm.status"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="search-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Search</label>
+                        <input id="search-mobile" v-model="filtersForm.search" type="text"
+                            placeholder="Name, Email, CNIC, Contact"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-0.5 bg-white dark:bg-neutral-900" />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="school-mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
+                        <select id="school-mobile" v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
+                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                            <option value="">All Schools</option>
+                            <option v-for="school in schools" :key="school.id" :value="school.id">
+                                {{ school.name }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </vue-bottom-sheet>
     </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
+import "@webzlodimir/vue-bottom-sheet/dist/style.css";
+import { ref, computed, watch, onMounted, inject } from 'vue';
 import { router, Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
@@ -152,6 +359,22 @@ import Icon from '@/components/Icon.vue';
 import { BreadcrumbItem } from '@/types';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
+import SchoolSwitcher from '@/components/ui/SchoolSwitcher.vue';
+import Avatar from '@/components/ui/avatar/Avatar.vue';
+import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
+import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
+import { Eye, EyeOff, Filter as FilterIcon } from 'lucide-vue-next';
+import { nextTick } from 'vue';
+
+const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
+
+function openFilterSheet() {
+    filterSheet.value?.open();
+}
+
+function closeFilterSheet() {
+    filterSheet.value?.close();
+}
 
 // Extend the default Inertia page props with our custom props
 type TeachersPageProps = any & {
@@ -160,6 +383,8 @@ type TeachersPageProps = any & {
     schools: any[];
     auth: any;
 };
+
+
 
 const page = usePage<TeachersPageProps>();
 const teachers = computed(() => page.props.teachers);
@@ -174,16 +399,52 @@ const filtersForm = useForm({
     status: initialFilters.status || '',
     search: initialFilters.search || '',
     school_id: selectedSchool.value?.id || '',
+    page: 1,
+    per_page: 12,
 });
 
 const loading = ref(false);
-const serverOptions = ref<{ page: number; perPage: number }>({
-    page: teachers.value.current_page || 1,
-    perPage: teachers.value.per_page || 12,
+const serverOptions = ref({
+    page: 1,
+    rowsPerPage: 12,
+    sortBy: '',
+    sortType: '',
+    search: '',
+    filters: {},
+});
+
+// Initialize serverOptions with actual data when teachers data is available
+watch(() => teachers.value, (newTeachers) => {
+    if (newTeachers && newTeachers.current_page) {
+        serverOptions.value.page = newTeachers.current_page;
+        serverOptions.value.rowsPerPage = newTeachers.per_page || 12;
+    }
+}, { immediate: true });
+
+// Computed properties for pagination
+const serverItemsLength = computed(() => {
+    return teachers.value?.total || 0;
+});
+
+const currentServerOptions = computed(() => {
+    return {
+        page: serverOptions.value.page,
+        perPage: serverOptions.value.rowsPerPage,
+    };
 });
 const expandedRow = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 const teacherToDelete = ref<number | null>(null);
+const showPassword = ref<Record<number, boolean>>({});
+const decryptedPasswords = ref<Record<number, string>>({});
+const passwordLoading = ref<Record<number, boolean>>({});
+const passwordHideTimeouts = ref<Record<number, number>>({});
+const showPasswordErrorDialog = ref(false);
+const passwordErrorTitle = ref('Password Error');
+const passwordErrorMessage = ref('');
+
+
+
 
 const headers = [
     { text: 'Name', value: 'name' },
@@ -193,6 +454,7 @@ const headers = [
     { text: 'Gender', value: 'gender' },
     { text: 'Contact', value: 'contact_no' },
     { text: 'School', value: 'school_id' },
+    { text: 'Status', value: 'status' }, // Add status column
     { text: 'Actions', value: 'actions', sortable: false },
 ];
 
@@ -217,12 +479,22 @@ onMounted(() => {
     }
 });
 
-// Watch for filter changes and auto-fetch
-watch(() => filtersForm.role, fetchData);
-watch(() => filtersForm.gender, fetchData);
-watch(() => filtersForm.status, fetchData);
-watch(() => filtersForm.search, fetchData);
-watch(() => filtersForm.school_id, fetchData);
+// Watch for filter changes with debounce
+let debounceTimer: number;
+type FilterField = 'role' | 'gender' | 'status' | 'school_id';
+const watchedFields: FilterField[] = ['role', 'gender', 'status', 'school_id'];
+
+watchedFields.forEach((field: FilterField) => {
+    watch(() => filtersForm[field], () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetchData();
+        }, 500); // 500ms debounce
+    });
+});
+
+// Watch serverOptions for pagination changes
+watch(serverOptions, fetchData, { deep: true });
 
 // Watch for global school change and update filter + fetch
 watch(
@@ -241,18 +513,16 @@ function fetchData() {
     if (!auth.value.user?.isSuperAdmin && selectedSchool.value?.id) {
         filtersForm.school_id = selectedSchool.value.id;
     }
+
+    // Set pagination parameters in the form
+    filtersForm.page = serverOptions.value.page;
+    filtersForm.per_page = serverOptions.value.rowsPerPage;
+
     filtersForm.get('/teachers', {
         preserveState: true,
         preserveScroll: true,
         onFinish: () => (loading.value = false),
     });
-}
-
-function onServerOptionsUpdate(opts: { page: number; perPage: number }) {
-    if (opts.page !== serverOptions.value.page || opts.perPage !== serverOptions.value.perPage) {
-        serverOptions.value = opts;
-        fetchData();
-    }
 }
 
 function toggleRowExpansion(row: any) {
@@ -286,4 +556,135 @@ function deleteTeacher() {
 function goToCreate() {
     router.visit(`/teachers/create?school_id=${selectedSchool.value?.id || ''}`);
 }
+
+function onSchoolSwitched(school: any) {
+    fetchData(); // Refetch teachers list when school is switched
+}
+
+function getInitials(name: string) {
+    return name
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+}
+
+const isAdmin = computed(() => auth.value.user?.roles?.some((r: any) => r.name === 'admin'));
+
+function approveTeacher(id: number) {
+    router.post(`/teachers/${id}/approve`, {}, {
+        preserveState: true,
+        onSuccess: () => fetchData(),
+    });
+}
+
+function toggleShowPassword(id: number) {
+    if (showPassword.value[id]) {
+        // Hide password and clear timeout
+        showPassword.value[id] = false;
+        decryptedPasswords.value[id] = '';
+        if (passwordHideTimeouts.value[id]) {
+            clearTimeout(passwordHideTimeouts.value[id]);
+            delete passwordHideTimeouts.value[id];
+        }
+        return;
+    }
+    // Show password: use Inertia router to get password
+    passwordLoading.value[id] = true;
+    router.get(`/teachers/get-password/${id}`, {}, {
+        preserveState: true,
+        onSuccess: (page) => {
+            const data = (page.props.passwordResponse || page.props) as any;
+            if (data && data.password) {
+                decryptedPasswords.value[id] = data.password;
+                showPassword.value[id] = true;
+                // Hide after 5 minutes
+                passwordHideTimeouts.value[id] = setTimeout(() => {
+                    showPassword.value[id] = false;
+                    decryptedPasswords.value[id] = '';
+                }, 300000);
+            } else {
+                passwordErrorMessage.value = data.error || 'Failed to retrieve password.';
+                showPasswordErrorDialog.value = true;
+            }
+        },
+        onError: () => {
+            passwordErrorMessage.value = 'Failed to retrieve password.';
+            showPasswordErrorDialog.value = true;
+        },
+        onFinish: () => {
+            passwordLoading.value[id] = false;
+        },
+        only: ['passwordResponse'],
+    });
+}
+
+function onSearchInput(event: Event) {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        fetchData();
+    }, 500); // 500ms debounce
+}
+
+function clearSearch() {
+    filtersForm.search = '';
+    fetchData();
+}
+
+function resetPassword(id: number) {
+    // Implement your reset password logic here, e.g.:
+    router.post(`/teachers/${id}/reset-password`, {}, {
+        preserveState: true,
+        onSuccess: () => fetchData(),
+    });
+}
 </script>
+
+<style scoped>
+.sheet-content {
+    padding: 20px;
+}
+
+/* Ensure table responsiveness */
+.overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+    height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.7);
+}
+
+/* Ensure table cells don't wrap unnecessarily */
+:deep(.v-data-table) {
+    min-width: 1200px;
+    /* Minimum width to accommodate all columns */
+}
+
+:deep(.v-data-table th),
+:deep(.v-data-table td) {
+    white-space: nowrap;
+    padding: 0.75rem 0.5rem;
+}
+
+/* Allow some columns to wrap if needed */
+:deep(.v-data-table td .truncate) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+</style>

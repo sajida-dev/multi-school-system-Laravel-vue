@@ -10,6 +10,8 @@ import Vue3Toastify, {toast} from 'vue3-toastify'
 import { createPinia } from 'pinia';
 import Vue3EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
+import mitt from 'mitt';
+import GlobalAlertDialog from './components/GlobalAlertDialog.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Multi Schools System';
 
@@ -18,7 +20,8 @@ createInertiaApp({
     resolve: (name) => resolvePageComponent(`./pages/${name}.vue`, import.meta.glob<DefineComponent>('./pages/**/*.vue')),
     setup({ el, App, props, plugin }) {
         const pinia = createPinia()
-        createApp({ render: () => h(App, props) })
+        const emitter = mitt();
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
             .use(pinia)
@@ -28,7 +31,10 @@ createInertiaApp({
                 theme: "light",
             })
             .component('EasyDataTable', Vue3EasyDataTable)
-            .mount(el);
+            .provide('emitter', emitter);
+        // Mount global alert dialog
+        app.component('GlobalAlertDialog', GlobalAlertDialog);
+        app.mount(el);
     },
     progress: {
         color: 'rgb(174, 29, 188)',
