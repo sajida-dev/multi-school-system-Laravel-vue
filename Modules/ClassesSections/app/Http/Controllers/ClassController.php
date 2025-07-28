@@ -53,15 +53,15 @@ class ClassController extends Controller
 
             Log::info('Class created successfully', ['class_id' => $class->id, 'class_name' => $class->name]);
 
-            // Always return JSON response for Inertia requests
-            return response()->json(['success' => true, 'class' => $class], 201);
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Class created successfully!');
         } catch (\Exception $e) {
             Log::error('Error creating class', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json(['error' => 'Failed to create class: ' . $e->getMessage()], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to create class: ' . $e->getMessage()]);
         }
     }
 
@@ -77,15 +77,15 @@ class ClassController extends Controller
         $request->validate(['name' => 'required|string|max:255']);
         $class->update($request->only('name'));
 
-        // Always return JSON response for Inertia requests
-        return response()->json(['success' => true, 'class' => $class]);
+        // Return redirect for Inertia instead of JSON
+        return redirect()->back()->with('success', 'Class updated successfully!');
     }
 
     public function destroy(ClassModel $class)
     {
         $class->delete();
 
-        // Always return JSON response for Inertia requests
-        return response()->json(['success' => true]);
+        // Return redirect for Inertia instead of JSON
+        return redirect()->back()->with('success', 'Class deleted successfully!');
     }
 }

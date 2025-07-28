@@ -19,7 +19,8 @@ import {
     Receipt,
     Award,
     LayoutGrid,
-    Settings
+    Settings,
+    BookOpenCheck
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
@@ -50,6 +51,11 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Manage Subjects',
+        href: '/subjects',
+        icon: BookOpenCheck,
+    },
+    {
         title: 'Admissions',
         href: '/admissions',
         icon: UserPlus,
@@ -64,11 +70,7 @@ const mainNavItems: NavItem[] = [
         href: '/papers',
         icon: FileText,
     },
-    // {
-    //     title: 'Exams',
-    //     href: '/exams',
-    //     icon: ClipboardList,
-    // },
+
     {
         title: 'Manage Results',
         href: '/results',

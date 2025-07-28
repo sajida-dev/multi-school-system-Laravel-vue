@@ -79,17 +79,28 @@ class TeachersController extends Controller
      */
     public function create(Request $request)
     {
-        $schoolId = $request->input('school_id');
+        // Use the global selected school from session
+        $schoolId = session('active_school_id');
+
+        if (!$schoolId) {
+            return redirect()->back()->withErrors(['error' => 'No school is currently selected. Please select a school first.']);
+        }
+
+        // Get roles for the selected school (including global roles)
         $roles = Role::whereIn('name', ['teacher', 'principal'])
             ->where(function ($q) use ($schoolId) {
-                $q->whereNull('school_id');
-                if ($schoolId) {
-                    $q->orWhere('school_id', $schoolId);
-                }
+                $q->whereNull('school_id'); // Global roles
+                $q->orWhere('school_id', $schoolId); // School-specific roles
             })
             ->get(['id', 'name']);
+
+        // Check if any roles are available
+        $hasRoles = $roles->count() > 0;
+
         return Inertia::render('Teachers/Create', [
             'roles' => $roles,
+            'hasRoles' => $hasRoles,
+            'selectedSchoolId' => $schoolId,
         ]);
     }
 
@@ -116,40 +127,61 @@ class TeachersController extends Controller
             'class_id' => 'nullable|exists:classes,id',
         ]);
 
+        try {
+            DB::transaction(function () use ($validated) {
+                $userData = [
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'username' => $validated['username'],
+                    'phone_number' => $validated['phone_number'],
+                ];
 
+                $user = PasswordService::createUserWithPassword($userData, $validated['password']);
 
-        DB::transaction(function () use ($validated) {
-            $userData = [
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'username' => $validated['username'],
-                'phone_number' => $validated['phone_number'],
-            ];
+                // Get the role and validate it exists
+                $role = Role::find($validated['role_id']);
+                if (!$role) {
+                    throw new \Exception('Selected role does not exist.');
+                }
 
-            $user = PasswordService::createUserWithPassword($userData, $validated['password']);
+                // Check if the role name exists in the system
+                $roleExists = Role::where('name', $role->name)->exists();
+                if (!$roleExists) {
+                    throw new \Exception("Role '{$role->name}' does not exist in the system.");
+                }
 
-            $role = Role::findOrFail($validated['role_id']);
-            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($validated['school_id']);
-            $user->assignRole($role->name);
-            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
-            $teacher = new Teacher([
-                'user_id' => $user->id,
-                'school_id' => $validated['school_id'],
-                'cnic' => $validated['cnic'],
-                'gender' => $validated['gender'],
-                'marital_status' => $validated['marital_status'],
-                'role_id' => $role->id,
-                'dob' => $validated['dob'],
-                'salary' => $validated['salary'],
-                'date_of_joining' => $validated['date_of_joining'],
-                'experience_years' => $validated['experience_years'],
-                'class_id' => $validated['class_id'] ?? null,
-                'status' => 'pending', // Set status to pending by default
-            ]);
-            $teacher->save();
-        });
+                // Assign role with proper error handling
+                try {
+                    app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($validated['school_id']);
+                    $user->assignRole($role->name);
+                    app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+                } catch (\Exception $e) {
+                    // If role assignment fails, delete the user and throw error
+                    $user->delete();
+                    throw new \Exception("Failed to assign role '{$role->name}': " . $e->getMessage());
+                }
 
-        return redirect()->route('teachers.index')->with('success', 'Teacher added successfully.');
+                $teacher = new Teacher([
+                    'user_id' => $user->id,
+                    'school_id' => $validated['school_id'],
+                    'cnic' => $validated['cnic'],
+                    'gender' => $validated['gender'],
+                    'marital_status' => $validated['marital_status'],
+                    'role_id' => $role->id,
+                    'dob' => $validated['dob'],
+                    'salary' => $validated['salary'],
+                    'date_of_joining' => $validated['date_of_joining'],
+                    'experience_years' => $validated['experience_years'],
+                    'class_id' => $validated['class_id'] ?? null,
+                    'status' => 'pending', // Set status to pending by default
+                ]);
+                $teacher->save();
+            });
+
+            return redirect()->route('teachers.index')->with('success', 'Teacher added successfully.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Failed to create teacher: ' . $e->getMessage()]);
+        }
     }
 
     /**

@@ -41,8 +41,37 @@
                     <SelectInput label="Marital Status" v-model="form.marital_status"
                         :error="form.errors.marital_status" required
                         :options="[{ label: 'Single', value: 'Single' }, { label: 'Married', value: 'Married' }]" />
-                    <SelectInput label="Select Role" v-model="form.role_id" :error="form.errors.role_id" required
+
+                    <!-- Warning when no roles are available -->
+                    <div v-if="!hasRoles" class="md:col-span-3">
+                        <div
+                            class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd"
+                                            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                        No roles available for this school
+                                    </h3>
+                                    <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                                        <p>There are no teacher or principal roles configured for the selected school.
+                                            Please contact the administrator to set up roles before creating teachers.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <SelectInput v-if="hasRoles" label="Select Role" v-model="form.role_id" :error="form.errors.role_id"
+                        required
                         :options="roles.map((r: any) => ({ label: r.name.charAt(0).toUpperCase() + r.name.slice(1), value: r.id }))" />
+
                     <TextInput label="Date of Birth" v-model="form.dob" :error="form.errors.dob" required type="date"
                         placeholder="mm/dd/yyyy" />
                     <TextInput label="Salary" v-model="form.salary" :error="form.errors.salary" required type="number"
@@ -53,9 +82,7 @@
                         :error="form.errors.date_of_joining" required type="date" placeholder="mm/dd/yyyy" />
                     <TextInput label="Current Experience in Years" v-model="form.experience_years"
                         :error="form.errors.experience_years" type="number" min="0" placeholder="e.g. 5" />
-                    <SelectInput v-if="schools.length" label="School" v-model="form.school_id"
-                        :error="form.errors.school_id" required
-                        :options="schools.map((s: any) => ({ label: s.name, value: s.id }))" />
+
                     <SelectInput v-if="filteredClasses.length" label="Assign Class" v-model="form.class_id"
                         :error="form.errors.class_id" required
                         :options="filteredClasses.map((c: any) => ({ label: c.name, value: c.id }))" />
@@ -67,7 +94,8 @@
                 </div>
                 <div class="mt-8 flex gap-2 justify-end">
                     <Button variant="outline" type="button" @click="goBack">Cancel</Button>
-                    <Button variant="default" type="submit" :disabled="form.processing">Add Teacher</Button>
+                    <Button variant="default" type="submit" :disabled="form.processing || !hasRoles">Add
+                        Teacher</Button>
                 </div>
             </form>
         </div>
@@ -95,6 +123,8 @@ const sections = computed(() => Array.isArray(sectionsRaw.value) ? sectionsRaw.v
 const selectedSchool = computed(() => selectedSchoolRaw.value);
 const page = usePage<any>();
 const roles = ref(page.props.roles || []);
+const hasRoles = ref(page.props.hasRoles || false);
+const selectedSchoolId = ref(page.props.selectedSchoolId || null);
 const showPassword = ref(false);
 const form = useForm({
     profile_photo: null,
@@ -111,7 +141,7 @@ const form = useForm({
     phone_number: '',
     date_of_joining: '',
     experience_years: '',
-    school_id: selectedSchool.value?.id ?? '',
+    school_id: selectedSchoolId.value || '',
     class_id: '',
 });
 

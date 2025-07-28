@@ -18,80 +18,100 @@ class SubjectsController extends Controller
     {
         $subjects = Subject::query()->orderBy('name')->get();
         $classes = ClassModel::all();
-        $teachers = User::role('teacher')->get();
+
+        // Get teachers - handle both school-specific and global teacher roles
+        $teachers = User::whereHas('roles', function ($query) {
+            $query->where('name', 'teacher');
+        })->get();
+
+        // Get assignments data
+        $assignments = DB::table('class_subject_teacher')
+            ->join('classes', 'class_subject_teacher.class_id', '=', 'classes.id')
+            ->join('subjects', 'class_subject_teacher.subject_id', '=', 'subjects.id')
+            ->join('users', 'class_subject_teacher.teacher_id', '=', 'users.id')
+            ->select(
+                'class_subject_teacher.*',
+                'classes.name as class_name',
+                'subjects.name as subject_name',
+                'subjects.code as subject_code',
+                'users.name as teacher_name'
+            )
+            ->get();
 
         return Inertia::render('Subjects/Index', [
             'subjects' => $subjects,
             'classes' => $classes,
             'teachers' => $teachers,
+            'assignments' => $assignments,
         ]);
     }
 
     public function store(Request $request)
     {
-        Log::info('Subject creation request received', [
-            'data' => $request->all(),
-            'user_id' => Auth::id()
-        ]);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'nullable|string|max:50',
-            'description' => 'nullable|string',
-        ]);
-
         try {
-            $subject = Subject::create($validated);
-            Log::info('Subject created successfully', ['subject_id' => $subject->id, 'subject_name' => $subject->name]);
+            Log::info('Subject creation request received', $request->all());
 
-            return response()->json(['success' => true, 'subject' => $subject], 201);
-        } catch (\Exception $e) {
-            Log::error('Error creating subject', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'code' => 'nullable|string|max:50|unique:subjects,code',
+                'description' => 'nullable|string|max:1000',
             ]);
 
-            return response()->json(['error' => 'Failed to create subject: ' . $e->getMessage()], 500);
+            $validated['school_id'] = Auth::user()->school_id;
+
+            $subject = Subject::create($validated);
+
+            Log::info('Subject created successfully', ['subject_id' => $subject->id]);
+
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Subject created successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error creating subject', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to create subject. Please try again.']);
         }
     }
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'nullable|string|max:50',
-            'description' => 'nullable|string',
-        ]);
-
         try {
-            $subject = Subject::findOrFail($id);
-            $subject->update($validated);
+            Log::info('Subject update request received', ['subject_id' => $id, 'data' => $request->all()]);
 
-            return response()->json(['success' => true, 'subject' => $subject]);
-        } catch (\Exception $e) {
-            Log::error('Error updating subject', [
-                'error' => $e->getMessage(),
-                'subject_id' => $id
+            $subject = Subject::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'code' => 'nullable|string|max:50|unique:subjects,code,' . $id,
+                'description' => 'nullable|string|max:1000',
             ]);
 
-            return response()->json(['error' => 'Failed to update subject: ' . $e->getMessage()], 500);
+            $subject->update($validated);
+
+            Log::info('Subject updated successfully', ['subject_id' => $subject->id]);
+
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Subject updated successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error updating subject', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to update subject. Please try again.']);
         }
     }
 
     public function destroy($id)
     {
         try {
+            Log::info('Subject deletion request received', ['subject_id' => $id]);
+            
             $subject = Subject::findOrFail($id);
             $subject->delete();
-
-            return response()->json(['success' => true]);
+            
+            Log::info('Subject deleted successfully', ['subject_id' => $id]);
+            
+            // Return redirect for Inertia instead of JSON
+            return redirect()->back()->with('success', 'Subject deleted successfully!');
+            
         } catch (\Exception $e) {
-            Log::error('Error deleting subject', [
-                'error' => $e->getMessage(),
-                'subject_id' => $id
-            ]);
-
-            return response()->json(['error' => 'Failed to delete subject: ' . $e->getMessage()], 500);
+            Log::error('Error deleting subject', ['error' => $e->getMessage()]);
+            return redirect()->back()->withErrors(['error' => 'Failed to delete subject. Please try again.']);
         }
     }
 
