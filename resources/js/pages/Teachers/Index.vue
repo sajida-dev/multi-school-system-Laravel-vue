@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Teachers" />
-        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8 mt-20 sm:mt-8">
+        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Teachers</h1>
 
             <!-- Standalone Search Input -->
@@ -29,7 +29,11 @@
             </div>
 
             <!-- Mobile Filter Icon with Tooltip and Label -->
-            <div class="flex lg:hidden justify-end mb-4">
+            <div class="flex lg:hidden justify-between items-center mb-4">
+                <Button variant="default" class="h-10" @click="goToCreate">
+                    <Plus class="w-4 h-4 mr-2" />
+                    Add Teacher
+                </Button>
                 <button @click="openFilterSheet"
                     class="flex items-center gap-2 p-2 rounded-full bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 shadow transition"
                     title="Show filters for teacher records">
@@ -117,7 +121,7 @@
                 <template #item-cnic="row">
                     <span class="truncate block max-w-[120px] sm:max-w-none">{{ row.teacher?.cnic || '-' }}</span>
                 </template>
-                <template #item-contact_no="row">
+                <template #item-phone_number="row">
                     <span class="truncate block max-w-[120px] sm:max-w-none">{{ row.phone_number || '-' }}</span>
                 </template>
                 <template #item-school_id="row">
@@ -207,9 +211,7 @@
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
                                         class="font-medium">Email:</span> {{ row.email }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
-                                        class="font-medium">Phone:</span> {{ row.teacher?.contact_no ||
-                                            row.phone_number
-                                            || '-' }}</div>
+                                        class="font-medium">Phone:</span> {{ row.phone_number || '-' }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
                                         class="font-medium">Username:</span> {{ row.username }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
@@ -230,7 +232,7 @@
                                     Affiliations
                                 </div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
-                                        class="font-medium">Class:</span> {{ row.teacher?.class_name || '-' }}</div>
+                                        class="font-medium">Class:</span> {{ row.teacher?.class?.name || '-' }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
                                         class="font-medium">Experience (years):</span> {{
                                             row.teacher?.experience_years
@@ -365,7 +367,7 @@ import SchoolSwitcher from '@/components/ui/SchoolSwitcher.vue';
 import Avatar from '@/components/ui/avatar/Avatar.vue';
 import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
-import { Eye, EyeOff, Filter as FilterIcon } from 'lucide-vue-next';
+import { Eye, EyeOff, Filter as FilterIcon, Plus } from 'lucide-vue-next';
 import { nextTick } from 'vue';
 import PasswordResetModal from '@/components/ui/PasswordResetModal.vue';
 
@@ -455,7 +457,7 @@ const headers = [
     { text: 'CNIC', value: 'cnic' },
     { text: 'Role', value: 'role' },
     { text: 'Gender', value: 'gender' },
-    { text: 'Contact', value: 'contact_no' },
+    { text: 'Phone', value: 'phone_number' },
     { text: 'School', value: 'school_id' },
     { text: 'Status', value: 'status' }, // Add status column
     { text: 'Actions', value: 'actions', sortable: false },
@@ -573,7 +575,7 @@ function getInitials(name: string) {
         .slice(0, 2);
 }
 
-const isAdmin = computed(() => auth.value.user?.roles?.some((r: any) => r.name === 'admin'));
+const isAdmin = computed(() => auth.value.user?.roles?.some((r: any) => r.name === 'admin' || r.name === 'superadmin'));
 
 function approveTeacher(id: number) {
     router.post(`/teachers/${id}/approve`, {}, {

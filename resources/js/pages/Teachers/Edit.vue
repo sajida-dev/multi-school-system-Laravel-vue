@@ -86,10 +86,10 @@ const form = useForm({
     role_id: teacher.teacher?.role_id || '',
     dob: teacher.teacher?.dob || '',
     salary: teacher.teacher?.salary || '',
-    phone_number: teacher.teacher?.phone_number || '',
+    phone_number: teacher.phone_number || '',
     date_of_joining: teacher.teacher?.date_of_joining || '',
     experience_years: teacher.teacher?.experience_years || '',
-    school_id: selectedSchool.value?.id ?? '',
+    school_id: teacher.teacher?.school_id || selectedSchool.value?.id || '',
     class_id: teacher.teacher?.class_id || '',
 });
 
@@ -113,10 +113,25 @@ onMounted(() => {
 });
 
 function submit() {
-    form.post(`/teachers/${teacher.id}`, {
+    console.log('Form data being sent:', form.data()); // Debug log
+
+    const formData = new FormData();
+    const formDataObj = form.data();
+    Object.keys(formDataObj).forEach(key => {
+        const value = formDataObj[key as keyof typeof formDataObj];
+        if (value !== null && value !== undefined) {
+            formData.append(key, value);
+        }
+    });
+    formData.append('_method', 'PUT');
+
+    router.post(`/teachers/${teacher.id}`, formData, {
         forceFormData: true,
         onSuccess: () => {
             router.visit('/teachers');
+        },
+        onError: (errors) => {
+            console.error('Form errors:', errors); // Debug log
         },
     });
 }

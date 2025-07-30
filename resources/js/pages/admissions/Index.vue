@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Student Admissions" />
-        <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8 mt-20 sm:mt-8">
+        <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Student Admissions</h1>
 
             <!-- Standalone Search Input -->

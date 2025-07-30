@@ -21,7 +21,12 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
     Route::post('subjects/{class}/assign-to-class', [SubjectsController::class, 'assignToClass'])->name('subjects.assign-to-class');
     Route::post('subjects/assign-to-teacher', [SubjectsController::class, 'assignToTeacher'])->name('subjects.assign-to-teacher');
     Route::get('subjects/assignments', [SubjectsController::class, 'getAssignments'])->name('subjects.assignments');
+    Route::get('subjects/teacher-assignments', [SubjectsController::class, 'getTeacherAssignments'])->name('subjects.teacher-assignments');
+    Route::get('subjects/api/assignments', [SubjectsController::class, 'getAssignmentsApi'])->name('subjects.assignments.api');
     Route::delete('subjects/remove-assignment', [SubjectsController::class, 'removeAssignment'])->name('subjects.remove-assignment');
+    Route::delete('subjects/remove-specific-assignment', [SubjectsController::class, 'removeSpecificAssignment'])->name('subjects.remove-specific-assignment');
+    Route::delete('subjects/remove-teacher-assignment', [SubjectsController::class, 'removeTeacherAssignment'])->name('subjects.remove-teacher-assignment');
+    Route::get('subjects/debug/teacher-assignments', [SubjectsController::class, 'debugTeacherAssignments'])->name('subjects.debug.teacher-assignments');
 
     Route::get('/manage/classes-sections', [Modules\ClassesSections\Http\Controllers\ClassesSectionsController::class, 'index'])->name('classes-sections.manage');
 

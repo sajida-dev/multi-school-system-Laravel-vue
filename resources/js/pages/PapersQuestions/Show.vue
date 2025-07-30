@@ -3,9 +3,9 @@
 
         <Head title="View Paper" />
 
-        <div class="max-w-4xl mx-auto w-full px-4 py-8 mt-20 sm:mt-8">
+        <div class="max-w-4xl mx-auto w-full px-4 py-8">
             <!-- Paper Header -->
-            <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+            <div class="mb-6">
                 <!-- School Logo and Name -->
                 <div class="flex justify-between items-start mb-6">
                     <div class="flex-1">
@@ -19,12 +19,18 @@
                             GRADE {{ paper.class?.name || '12' }}
                         </div>
                     </div>
-                    <div class="text-right">
-                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-2">
-                            <span class="text-white font-bold text-xl">S</span>
+                    <div class="text-center flex flex-col items-center">
+                        <!-- School Logo -->
+                        <div v-if="activeSchool?.logo" class="w-16 h-16 mb-2">
+                            <img :src="activeSchool.logo" :alt="activeSchool.name"
+                                class="w-full h-full object-contain rounded-full">
                         </div>
-                        <div class="text-sm font-semibold text-gray-800">SCHOOL NAME</div>
-                        <div class="text-xs text-gray-600">Education for Life</div>
+                        <div v-else class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-2">
+                            <span class="text-white font-bold text-xl">{{ getSchoolInitials(activeSchool?.name)
+                                }}</span>
+                        </div>
+                        <div class="text-sm font-semibold text-gray-800">{{ activeSchool?.name || 'SCHOOL NAME' }}</div>
+                        <div class="text-xs text-gray-600">{{ activeSchool?.address || 'Location' }}</div>
                     </div>
                 </div>
 
@@ -60,7 +66,7 @@
             <!-- Questions by Section -->
             <div class="space-y-8">
                 <!-- Section A: Objective Questions -->
-                <div v-if="getSectionQuestions('objective').length > 0" class="bg-white rounded-lg shadow-lg p-8">
+                <div v-if="getSectionQuestions('objective').length > 0">
                     <h2 class="text-xl font-bold text-center text-gray-900 mb-4 underline">SECTION A</h2>
                     <p class="text-gray-700 mb-6 text-center">
                         This section consists of <strong>{{ getSectionCount('objective') }} Multiple Choice
@@ -73,8 +79,7 @@
                     </p>
 
                     <div class="space-y-6">
-                        <div v-for="(question, index) in getSectionQuestions('objective')" :key="question.id"
-                            class="border-b border-gray-200 pb-4">
+                        <div v-for="(question, index) in getSectionQuestions('objective')" :key="question.id">
                             <div class="flex items-start gap-3 mb-3">
                                 <span class="font-semibold text-gray-900 min-w-[30px]">{{ question.question_number ||
                                     index + 1 }}.</span>
@@ -111,7 +116,7 @@
                 </div>
 
                 <!-- Section B: Short Questions -->
-                <div v-if="getSectionQuestions('short_questions').length > 0" class="bg-white rounded-lg shadow-lg p-8">
+                <div v-if="getSectionQuestions('short_questions').length > 0" class="border-t border-gray-200 pt-4">
                     <h2 class="text-xl font-bold text-center text-gray-900 mb-4 underline">SECTION B</h2>
                     <p class="text-gray-700 mb-6 text-center">
                         This section consists of <strong>{{ getSectionCount('short_questions') }} Short Answer
@@ -121,8 +126,7 @@
                     </p>
 
                     <div class="space-y-6">
-                        <div v-for="(question, index) in getSectionQuestions('short_questions')" :key="question.id"
-                            class="border-b border-gray-200 pb-4">
+                        <div v-for="(question, index) in getSectionQuestions('short_questions')" :key="question.id">
                             <div class="flex items-start gap-3 mb-3">
                                 <span class="font-semibold text-gray-900 min-w-[30px]">{{ question.question_number ||
                                     index + 1 }}.</span>
@@ -135,7 +139,7 @@
                 </div>
 
                 <!-- Section C: Long Questions -->
-                <div v-if="getSectionQuestions('long_questions').length > 0" class="bg-white rounded-lg shadow-lg p-8">
+                <div v-if="getSectionQuestions('long_questions').length > 0" class="border-t border-gray-200 pt-4">
                     <h2 class="text-xl font-bold text-center text-gray-900 mb-4 underline">SECTION C</h2>
                     <p class="text-gray-700 mb-6 text-center">
                         This section consists of <strong>{{ getSectionCount('long_questions') }} Long Answer
@@ -145,8 +149,7 @@
                     </p>
 
                     <div class="space-y-6">
-                        <div v-for="(question, index) in getSectionQuestions('long_questions')" :key="question.id"
-                            class="border-b border-gray-200 pb-4">
+                        <div v-for="(question, index) in getSectionQuestions('long_questions')" :key="question.id">
                             <div class="flex items-start gap-3 mb-3">
                                 <span class="font-semibold text-gray-900 min-w-[30px]">{{ question.question_number ||
                                     index + 1 }}.</span>
@@ -160,9 +163,9 @@
             </div>
 
             <!-- Footer -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <div class="mt-6 border-t border-gray-200 pt-4">
                 <div class="flex justify-between items-center text-sm text-gray-600">
-                    <div>SCHOOL NAME, Location</div>
+                    <div>{{ activeSchool?.name || 'SCHOOL NAME' }}, {{ activeSchool?.address || 'Location' }}</div>
                     <div>{{ paper.title }} – Grade {{ paper.class?.name }} {{ paper.subject_name }} – {{ new
                         Date().toLocaleDateString() }}</div>
                     <div>Page 1</div>
@@ -184,7 +187,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { router, Head } from '@inertiajs/vue3';
+import { router, Head, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
 
@@ -204,6 +207,15 @@ interface ClassModel {
     name: string;
 }
 
+interface School {
+    id: number;
+    name: string;
+    address: string;
+    contact: string;
+    logo?: string;
+    main_image?: string;
+}
+
 interface Paper {
     id: number;
     title: string;
@@ -221,8 +233,20 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage();
 
 const paper = computed(() => props.paper);
+const activeSchool = computed(() => page.props.activeSchool as School);
+
+function getSchoolInitials(schoolName?: string): string {
+    if (!schoolName) return 'S';
+    return schoolName
+        .split(' ')
+        .map(word => word.charAt(0))
+        .join('')
+        .toUpperCase()
+        .substring(0, 2);
+}
 
 function getSectionQuestions(section: string): Question[] {
     return paper.value.questions?.filter(q => q.section === section) || [];
@@ -236,12 +260,168 @@ function calculateTotalMarks(): number {
     return paper.value.questions?.reduce((total, q) => total + q.marks, 0) || 0;
 }
 
+function calculatePageBreaks(): { section: string; questions: Question[]; pageNumber: number }[] {
+    const questionsPerPage = 8; // Approximate questions that fit on one page
+    const pages: { section: string; questions: Question[]; pageNumber: number }[] = [];
+    let currentPage = 1;
+    let currentQuestions = 0;
+
+    const sections = ['objective', 'short_questions', 'long_questions'];
+
+    sections.forEach(section => {
+        const sectionQuestions = getSectionQuestions(section);
+        if (sectionQuestions.length === 0) return;
+
+        // Check if we need a new page for this section
+        if (currentQuestions > 0 && currentQuestions + sectionQuestions.length > questionsPerPage) {
+            currentPage++;
+            currentQuestions = 0;
+        }
+
+        // Split questions if they don't fit on current page
+        let remainingQuestions = [...sectionQuestions];
+        while (remainingQuestions.length > 0) {
+            const questionsForThisPage = remainingQuestions.splice(0, questionsPerPage - currentQuestions);
+            pages.push({
+                section,
+                questions: questionsForThisPage,
+                pageNumber: currentPage
+            });
+
+            currentQuestions += questionsForThisPage.length;
+
+            if (remainingQuestions.length > 0) {
+                currentPage++;
+                currentQuestions = 0;
+            }
+        }
+    });
+
+    return pages;
+}
+
 function goBack() {
     router.visit(route('papersquestions.index'));
 }
 
 function printPaper() {
-    window.print();
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert('Please allow popups to print the paper');
+        return;
+    }
+
+    // Get the paper content
+    const paperContent = document.querySelector('.max-w-4xl');
+    if (!paperContent) return;
+
+    // Create the print HTML
+    const printHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>${paper.value.title || 'Exam Paper'}</title>
+            <style>
+                body {
+                    font-family: 'Times New Roman', serif;
+                    margin: 0;
+                    padding: 20px;
+                    line-height: 1.6;
+                    color: black;
+                    background: white;
+                }
+                .paper-container {
+                    max-width: 800px;
+                    margin: 0 auto;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+                .school-info {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 30px;
+                }
+                .school-logo {
+                    width: 60px;
+                    height: 60px;
+                    background: #3b82f6;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 18px;
+                }
+                .exam-details {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 20px;
+                    font-size: 16px;
+                }
+                .instructions {
+                    margin-bottom: 30px;
+                }
+                .instructions ol {
+                    margin-left: 20px;
+                }
+                .section {
+                    margin-bottom: 40px;
+                    page-break-inside: avoid;
+                }
+                .section h2 {
+                    text-align: center;
+                    text-decoration: underline;
+                    margin-bottom: 15px;
+                }
+                .question {
+                    margin-bottom: 20px;
+                    page-break-inside: avoid;
+                }
+                .question-text {
+                    margin-bottom: 10px;
+                }
+                .options {
+                    margin-left: 20px;
+                }
+                .option {
+                    margin-bottom: 5px;
+                }
+                .footer {
+                    margin-top: 40px;
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 12px;
+                    border-top: 1px solid #ccc;
+                    padding-top: 10px;
+                }
+                @media print {
+                    body { margin: 0; }
+                    .section { page-break-inside: avoid; }
+                    .question { page-break-inside: avoid; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="paper-container">
+                ${paperContent.innerHTML}
+            </div>
+        </body>
+        </html>
+    `;
+
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+
+    // Wait for content to load then print
+    printWindow.onload = function () {
+        printWindow.print();
+        printWindow.close();
+    };
 }
 </script>
 

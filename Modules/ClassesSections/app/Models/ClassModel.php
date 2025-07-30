@@ -6,15 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\Section;
 use Modules\ClassesSections\App\Models\Subject;
 use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\Teacher;
 
 class ClassModel extends Model
 {
-    protected $table = 'classes'; // or 'classes' if that's your table name
+    protected $table = 'classes';
     protected $fillable = ['name'];
 
     public function sections()
     {
-        // Updated to use the plural class_school_sections pivot table
         return $this->belongsToMany(
             Section::class,
             'class_school_sections',
@@ -35,6 +35,50 @@ class ClassModel extends Model
 
     public function subjects()
     {
-        return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id');
+        return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id')
+            ->withPivot('school_id')
+            ->withTimestamps();
+    }
+
+    public function teachers()
+    {
+        return $this->belongsToMany(Teacher::class, 'class_subject_teacher', 'class_id', 'teacher_id')
+            ->withPivot(['subject_id', 'school_id'])
+            ->withTimestamps();
+    }
+
+    // Scope for school-specific classes
+    public function scopeForSchool($query, $schoolId)
+    {
+        return $query->whereHas('schools', function ($q) use ($schoolId) {
+            $q->where('schools.id', $schoolId);
+        });
+    }
+
+    // Get classes with subjects for a specific school
+    public static function getWithSubjectsForSchool($schoolId)
+    {
+        return static::with(['subjects' => function ($query) use ($schoolId) {
+            $query->wherePivot('school_id', $schoolId);
+        }])->forSchool($schoolId)->get();
+    }
+
+    // Get classes with teachers for a specific school
+    public static function getWithTeachersForSchool($schoolId)
+    {
+        return static::with(['teachers' => function ($query) use ($schoolId) {
+            $query->wherePivot('school_id', $schoolId);
+        }])->forSchool($schoolId)->get();
+    }
+
+    // Assign subjects to class for a specific school
+    public function assignSubjects($subjectIds, $schoolId)
+    {
+        $assignments = [];
+        foreach ($subjectIds as $subjectId) {
+            $assignments[$subjectId] = ['school_id' => $schoolId];
+        }
+
+        return $this->subjects()->sync($assignments);
     }
 }

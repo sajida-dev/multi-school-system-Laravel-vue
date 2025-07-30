@@ -12,6 +12,22 @@ class TestRoleAssignment extends Command
     protected $signature = 'test:role-assignment';
     protected $description = 'Test role assignment functionality';
 
+    /**
+     * Helper method to set school context for role operations
+     */
+    private function setSchoolContextForRoles($schoolId)
+    {
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+    }
+
+    /**
+     * Helper method to clear school context
+     */
+    private function clearSchoolContext()
+    {
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+    }
+
     public function handle()
     {
         $this->info('=== TESTING ROLE ASSIGNMENT ===');
@@ -51,7 +67,7 @@ class TestRoleAssignment extends Command
                 $this->line("   - Assigning role '{$role->name}' to user '{$user->name}' for school '{$school->name}'");
 
                 // Set team context
-                app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($school->id);
+                $this->setSchoolContextForRoles($school->id);
 
                 // Check if user already has this role
                 if ($user->hasRole($role->name)) {
@@ -63,7 +79,7 @@ class TestRoleAssignment extends Command
                 }
 
                 // Reset team context
-                app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+                $this->clearSchoolContext();
 
                 // Check the result
                 $user->load('roles');

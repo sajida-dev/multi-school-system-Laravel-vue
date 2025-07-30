@@ -18,13 +18,29 @@ use Illuminate\Support\Facades\Log;
 class TeachersController extends Controller
 {
     /**
+     * Helper method to set school context for role operations
+     */
+    private function setSchoolContextForRoles($schoolId)
+    {
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+    }
+
+    /**
+     * Helper method to clear school context
+     */
+    private function clearSchoolContext()
+    {
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
         $schoolId = session('active_school_id');
         if ($schoolId) {
-            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+            $this->setSchoolContextForRoles($schoolId);
         }
         $query = User::query()
             ->whereHas('roles', function ($q) {
@@ -33,7 +49,7 @@ class TeachersController extends Controller
             ->whereHas('teacher', function ($q) use ($schoolId) {
                 $q->where('school_id', $schoolId);
             })
-            ->with(['teacher.school', 'teacher.role', 'roles']);
+            ->with(['teacher.school', 'teacher.role', 'teacher.class', 'roles']);
 
         // Filters
         if ($request->filled('search')) {
@@ -41,9 +57,9 @@ class TeachersController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%")
                     ->orWhereHas('teacher', function ($tq) use ($search) {
-                        $tq->where('cnic', 'like', "%{$search}%")
-                            ->orWhere('contact_no', 'like', "%{$search}%");
+                        $tq->where('cnic', 'like', "%{$search}%");
                     });
             });
         }
@@ -66,7 +82,7 @@ class TeachersController extends Controller
         $users = $query->orderBy('name')->paginate($perPage);
 
         // Optionally clear the team context after
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+        $this->clearSchoolContext();
 
         return Inertia::render('Teachers/Index', [
             'teachers' => $users,
@@ -96,6 +112,10 @@ class TeachersController extends Controller
 
         // Check if any roles are available
         $hasRoles = $roles->count() > 0;
+
+        if (!$hasRoles) {
+            return redirect()->back()->withErrors(['error' => 'No teacher or principal roles are available for the selected school. Please contact an administrator to create the necessary roles.']);
+        }
 
         return Inertia::render('Teachers/Create', [
             'roles' => $roles,
@@ -139,27 +159,40 @@ class TeachersController extends Controller
                 $user = PasswordService::createUserWithPassword($userData, $validated['password']);
 
                 // Get the role and validate it exists
-                $role = Role::find($validated['role_id']);
-                if (!$role) {
-                    throw new \Exception('Selected role does not exist.');
+                $role = Role::findOrFail($validated['role_id']);
+
+                // Validate that the role exists for the specific school
+                $this->setSchoolContextForRoles($validated['school_id']);
+
+                // Check if the role exists in the current school context
+                if (!Role::where('name', $role->name)->where('school_id', $validated['school_id'])->exists()) {
+                    $this->clearSchoolContext();
+                    throw new \Exception("Role '{$role->name}' does not exist for the selected school.");
                 }
 
-                // Check if the role name exists in the system
-                $roleExists = Role::where('name', $role->name)->exists();
-                if (!$roleExists) {
-                    throw new \Exception("Role '{$role->name}' does not exist in the system.");
-                }
-
-                // Assign role with proper error handling
                 try {
-                    app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($validated['school_id']);
+                    // Assign role with proper error handling
                     $user->assignRole($role->name);
-                    app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
                 } catch (\Exception $e) {
-                    // If role assignment fails, delete the user and throw error
+                    // Log the error for debugging
+                    Log::error('Role assignment failed during teacher creation', [
+                        'user_id' => $user->id,
+                        'role_id' => $validated['role_id'],
+                        'role_name' => $role->name,
+                        'school_id' => $validated['school_id'],
+                        'error' => $e->getMessage()
+                    ]);
+
+                    // Clear the team context
+                    $this->clearSchoolContext();
+
+                    // Delete the user and throw error
                     $user->delete();
-                    throw new \Exception("Failed to assign role '{$role->name}': " . $e->getMessage());
+                    throw new \Exception('Failed to assign role. Please try again or contact support.');
                 }
+
+                // Clear the team context
+                $this->clearSchoolContext();
 
                 $teacher = new Teacher([
                     'user_id' => $user->id,
@@ -180,6 +213,11 @@ class TeachersController extends Controller
 
             return redirect()->route('teachers.index')->with('success', 'Teacher added successfully.');
         } catch (\Exception $e) {
+            Log::error('Teacher creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return redirect()->back()->withErrors(['error' => 'Failed to create teacher: ' . $e->getMessage()]);
         }
     }
@@ -226,6 +264,7 @@ class TeachersController extends Controller
             'email' => 'required|email|unique:users,email,' . $id,
             'username' => 'required|alpha_dash|unique:users,username,' . $id,
             'gender' => 'required|in:Male,Female',
+            'cnic' => 'required|string|unique:teachers,cnic,' . $id,
             'marital_status' => 'required|in:Single,Married',
             'role_id' => ['required', 'exists:roles,id'],
             'dob' => 'required|date',
@@ -237,35 +276,82 @@ class TeachersController extends Controller
             'class_id' => 'nullable|exists:classes,id',
         ]);
 
-        DB::transaction(function () use ($validated, $id) {
-            $user = User::findOrFail($id);
-            $user->update([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'username' => $validated['username'],
-                'phone_number' => $validated['phone_number'],
-            ]);
-            $role = Role::findOrFail($validated['role_id']);
-            $user->syncRoles([$role->name]);
-            $teacher = $user->teacher;
-            $updateData = [
-                'school_id' => $validated['school_id'],
-                'gender' => $validated['gender'],
-                'marital_status' => $validated['marital_status'],
-                'role_id' => $role->id,
-                'dob' => $validated['dob'],
-                'salary' => $validated['salary'],
-                'date_of_joining' => $validated['date_of_joining'],
-                'experience_years' => $validated['experience_years'],
-                'class_id' => $validated['class_id'] ?? null,
-            ];
-            if (isset($validated['status'])) {
-                $updateData['status'] = $validated['status'];
-            }
-            $teacher->update($updateData);
-        });
+        try {
+            DB::transaction(function () use ($validated, $id) {
+                $user = User::findOrFail($id);
+                $user->update([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'username' => $validated['username'],
+                    'phone_number' => $validated['phone_number'],
+                ]);
 
-        return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
+                // Get the role and validate it exists
+                $role = Role::findOrFail($validated['role_id']);
+
+                // Validate that the role exists for the specific school
+                $this->setSchoolContextForRoles($validated['school_id']);
+
+                // Check if the role exists in the current school context
+                if (!Role::where('name', $role->name)->where('school_id', $validated['school_id'])->exists()) {
+                    $this->clearSchoolContext();
+                    throw new \Exception("Role '{$role->name}' does not exist for the selected school.");
+                }
+
+                try {
+                    // Remove all existing roles first
+                    $user->syncRoles([]);
+
+                    // Assign the new role
+                    $user->assignRole($role->name);
+                } catch (\Exception $e) {
+                    // Log the error for debugging
+                    Log::error('Role assignment failed', [
+                        'user_id' => $user->id,
+                        'role_id' => $validated['role_id'],
+                        'role_name' => $role->name,
+                        'school_id' => $validated['school_id'],
+                        'error' => $e->getMessage()
+                    ]);
+
+                    // Clear the team context
+                    $this->clearSchoolContext();
+
+                    throw new \Exception('Failed to assign role. Please try again or contact support.');
+                }
+
+                // Clear the team context
+                $this->clearSchoolContext();
+
+                $teacher = $user->teacher;
+                $updateData = [
+                    'school_id' => $validated['school_id'],
+                    'cnic' => $validated['cnic'],
+                    'gender' => $validated['gender'],
+                    'marital_status' => $validated['marital_status'],
+                    'role_id' => $role->id,
+                    'dob' => $validated['dob'],
+                    'salary' => $validated['salary'],
+                    'date_of_joining' => $validated['date_of_joining'],
+                    'experience_years' => $validated['experience_years'],
+                    'class_id' => $validated['class_id'] ?? null,
+                ];
+                if (isset($validated['status'])) {
+                    $updateData['status'] = $validated['status'];
+                }
+                $teacher->update($updateData);
+            });
+
+            return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('Teacher update failed', [
+                'user_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->withErrors(['error' => 'Failed to update teacher: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -323,9 +409,17 @@ class TeachersController extends Controller
         if (!$admin || (!$admin->hasRole('superadmin') && !$admin->hasRole('admin'))) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
-        $teacher = Teacher::findOrFail($id);
+
+        // Find the teacher record by user_id
+        $teacher = Teacher::where('user_id', $id)->first();
+
+        if (!$teacher) {
+            return response()->json(['error' => 'Teacher not found'], 404);
+        }
+
         $teacher->status = 'approved';
         $teacher->save();
+
         return redirect()->back()->with('success', 'Teacher approved successfully.');
     }
 }

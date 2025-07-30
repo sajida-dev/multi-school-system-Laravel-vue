@@ -3,7 +3,7 @@
 
         <Head title="Edit Fee" />
 
-        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8 mt-20 sm:mt-8">
+        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
             <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Fee</h1>

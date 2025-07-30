@@ -24,10 +24,8 @@ export const useSchoolStore = defineStore('school', () => {
         try {
             // Always fetch all schools with their linked classes and sections
             const { data } = await axios.get('/admin/schools');
-            console.log('Fetched schools data:', data); // Debug log
             if (data.schools) {
                 schools.value = data.schools;
-                console.log('Schools loaded:', schools.value.length); // Debug log
             }
             
             // Get the active school from server-side session (Inertia props)
@@ -42,12 +40,10 @@ export const useSchoolStore = defineStore('school', () => {
                 // Use server-side active school if it exists and is valid
                 selectedSchool.value = serverActiveSchool;
                 localStorage.setItem('selectedSchool', JSON.stringify(serverActiveSchool));
-                console.log('Using server-side active school:', serverActiveSchool.name); // Debug log
             } else if (!selectedSchool.value || !schools.value.some(s => s.id === selectedSchool.value?.id)) {
                 // If no selected school or selected school is not in the list, select the first
                 selectedSchool.value = schools.value[0];
                 localStorage.setItem('selectedSchool', JSON.stringify(schools.value[0]));
-                console.log('Using first school as default:', schools.value[0].name); // Debug log
             }
             
             // Set classes and sections for the selected school

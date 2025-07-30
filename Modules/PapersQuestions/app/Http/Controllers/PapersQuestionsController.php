@@ -12,6 +12,8 @@ use Modules\ClassesSections\App\Models\Section;
 use Modules\Teachers\Models\Teacher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Modules\Schools\App\Models\School;
 
 class PapersQuestionsController extends Controller
 {
@@ -91,12 +93,20 @@ class PapersQuestionsController extends Controller
     public function create()
     {
         $schoolId = session('active_school_id');
+        $user = Auth::user();
 
         $classes = collect();
         $sections = collect();
         $teachers = collect();
+        $subjects = collect();
+        $userRole = null;
+        $teacherSubjects = collect();
 
         if ($schoolId) {
+            // Get user role
+            $userRole = $user->roles->first()?->name;
+
+            // Get classes for the school
             $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
                 $q->where('schools.id', $schoolId);
             })->orderBy('name')->get(['id', 'name']);
@@ -114,13 +124,72 @@ class PapersQuestionsController extends Controller
                 ->where('teachers.school_id', $schoolId)
                 ->orderBy('users.name')
                 ->get(['teachers.id', 'users.name']);
+
+            // Get subjects based on user role
+            if (in_array($userRole, ['admin', 'superadmin'])) {
+                // Admin/SuperAdmin can see all subjects
+                $subjects = \Modules\ClassesSections\App\Models\Subject::orderBy('name')->get(['id', 'name', 'code']);
+            } else {
+                // Teachers can only see their assigned subjects
+                $teacher = Teacher::where('user_id', $user->id)->where('school_id', $schoolId)->first();
+                if ($teacher) {
+                    $teacherSubjects = $teacher->subjects()->orderBy('name')->get(['id', 'name', 'code']);
+                }
+            }
         }
 
         return Inertia::render('PapersQuestions/Create', [
             'classes' => $classes,
             'sections' => $sections,
             'teachers' => $teachers,
+            'subjects' => $subjects,
+            'teacherSubjects' => $teacherSubjects,
+            'userRole' => $userRole,
         ]);
+    }
+
+    /**
+     * Get subjects by class for dynamic loading
+     */
+    public function getSubjectsByClass($classId)
+    {
+        $schoolId = session('active_school_id');
+
+        // Fallback: if no school is set in session, try to set one automatically
+        if (!$schoolId) {
+            /** @var \App\Models\User $user */
+            $user = Auth::user();
+            if ($user->hasRole('superadmin')) {
+                $firstSchool = School::first();
+                if ($firstSchool) {
+                    $schoolId = $firstSchool->id;
+                    session(['active_school_id' => $schoolId]);
+                }
+            } elseif ($user->hasRole('admin')) {
+                $userSchools = $user->schools;
+                if ($userSchools->count() > 0) {
+                    $schoolId = $userSchools->first()->id;
+                    session(['active_school_id' => $schoolId]);
+                }
+            }
+        }
+
+        $subjects = collect();
+
+        if ($schoolId) {
+            $class = ClassModel::findOrFail($classId);
+
+            // Check if class belongs to the school
+            if ($class->schools()->where('schools.id', $schoolId)->exists()) {
+                // Get subjects for the class that are assigned to this school
+                $subjects = $class->subjects()
+                    ->wherePivot('school_id', $schoolId)
+                    ->orderBy('name')
+                    ->get(['subjects.id', 'subjects.name', 'subjects.code']);
+            }
+        }
+
+        return response()->json($subjects);
     }
 
     /**
@@ -128,6 +197,26 @@ class PapersQuestionsController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $userRole = $user->roles->first()?->name;
+        $schoolId = session('active_school_id');
+
+        // Determine subject_id based on user role
+        $subjectId = null;
+        if (in_array($userRole, ['admin', 'superadmin'])) {
+            // Admin/SuperAdmin must select a subject
+            $subjectId = $request->subject_id;
+        } else {
+            // For teachers, auto-assign their subject based on class
+            $teacher = Teacher::where('user_id', $user->id)->where('school_id', $schoolId)->first();
+            if ($teacher) {
+                $teacherSubject = $teacher->subjects()
+                    ->wherePivot('class_id', $request->class_id)
+                    ->first();
+                $subjectId = $teacherSubject ? $teacherSubject->id : null;
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'class_id' => 'required|exists:classes,id',
@@ -136,8 +225,7 @@ class PapersQuestionsController extends Controller
             'published' => 'boolean',
             'total_marks' => 'nullable|integer|min:0',
             'time_duration' => 'nullable|integer|min:1',
-            'subject_name' => 'nullable|string|max:255',
-            'subject_code' => 'nullable|string|max:50',
+            'subject_id' => in_array($userRole, ['admin', 'superadmin']) ? 'required|exists:subjects,id' : 'nullable',
             'instructions' => 'nullable|string',
             'questions' => 'required|array|min:1',
             'questions.*.text' => 'required|string',
@@ -153,6 +241,13 @@ class PapersQuestionsController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        // Validate that teacher has access to the subject for this class
+        if (!in_array($userRole, ['admin', 'superadmin'])) {
+            if (!$subjectId) {
+                return back()->withErrors(['error' => 'You are not assigned to teach any subject for this class.'])->withInput();
+            }
+        }
+
         try {
             DB::beginTransaction();
 
@@ -161,11 +256,10 @@ class PapersQuestionsController extends Controller
                 'class_id' => $request->class_id,
                 'section_id' => $request->section_id,
                 'teacher_id' => $request->teacher_id,
+                'subject_id' => $subjectId,
                 'published' => $request->published ?? false,
                 'total_marks' => $request->total_marks,
                 'time_duration' => $request->time_duration ?? 120,
-                'subject_name' => $request->subject_name,
-                'subject_code' => $request->subject_code,
                 'instructions' => $request->instructions,
             ]);
 

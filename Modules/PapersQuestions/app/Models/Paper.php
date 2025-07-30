@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\app\Models\Section;
+use Modules\ClassesSections\app\Models\Subject;
+use Modules\Teachers\Models\Teacher;
 
 class Paper extends Model
 {
@@ -17,6 +21,7 @@ class Paper extends Model
         'class_id',
         'section_id',
         'teacher_id',
+        'subject_id',
         'title',
         'published',
         'total_marks',
@@ -39,17 +44,22 @@ class Paper extends Model
 
     public function class(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\ClassModel::class, 'class_id');
+        return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
     public function section(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\Section::class, 'section_id');
+        return $this->belongsTo(Section::class, 'section_id');
     }
 
     public function teacher(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Teachers\Models\Teacher::class, 'teacher_id');
+        return $this->belongsTo(Teacher::class, 'teacher_id');
+    }
+
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(Subject::class, 'subject_id');
     }
 
     public function questions(): HasMany

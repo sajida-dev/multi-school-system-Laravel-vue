@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Papers & Questions" />
-        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8 mt-20 sm:mt-8">
+        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Papers & Questions</h1>
 
             <!-- Standalone Search Input -->
@@ -28,8 +28,12 @@
             </div>
 
             <!-- Mobile Filter Icon with Tooltip and Label -->
-            <div class="flex lg:hidden justify-end mb-4">
-                <button @click="open"
+            <div class="flex lg:hidden justify-between items-center mb-4 gap-3">
+                <Button variant="default" class="h-10" @click="goToCreate">
+                    <Plus class="w-4 h-4 mr-2" />
+                    Add Paper
+                </Button>
+                <button @click="openFilterSheet"
                     class="flex items-center gap-2 p-2 rounded-full bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 shadow transition"
                     title="Show filters for paper records">
                     <FilterIcon class="w-6 h-6 text-primary-700 dark:text-primary-200" />
@@ -218,7 +222,7 @@ import { useForm, router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
-import { FilterIcon } from "lucide-vue-next";
+import { FilterIcon, Plus } from "lucide-vue-next";
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Icon from '@/components/Icon.vue';
@@ -271,11 +275,11 @@ const breadcrumbItems: BreadcrumbItem[] = [
 
 const myBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
 
-const open = () => {
+const openFilterSheet = () => {
     myBottomSheet?.value?.open();
 }
 
-const close = () => {
+const closeFilterSheet = () => {
     myBottomSheet?.value?.close();
 }
 

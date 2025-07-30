@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Fees" />
-        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8 mt-20 sm:mt-8">
+        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Fees</h1>
 
             <!-- Standalone Search Input -->
@@ -29,7 +29,11 @@
             </div>
 
             <!-- Mobile Filter Icon with Tooltip and Label -->
-            <div class="flex lg:hidden justify-end mb-4">
+            <div class="flex lg:hidden justify-between items-center mb-4 gap-3">
+                <Button variant="default" class="h-10" @click="goToCreate">
+                    <Plus class="w-4 h-4 mr-2" />
+                    Add Fee
+                </Button>
                 <button @click="open"
                     class="flex items-center gap-2 p-2 rounded-full bg-primary-100 dark:bg-primary-900 hover:bg-primary-200 dark:hover:bg-primary-800 shadow transition"
                     title="Show filters for fee records">
@@ -234,6 +238,7 @@ import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Icon from '@/components/Icon.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
+import { Plus } from "lucide-vue-next";
 
 // Define props interface for the data coming from backend
 interface Props {

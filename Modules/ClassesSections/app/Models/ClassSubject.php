@@ -1,33 +1,27 @@
 <?php
 
-namespace Modules\Teachers\Models;
+namespace Modules\ClassesSections\app\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
-class ClassSubjectTeacher extends Model
+class ClassSubject extends Model
 {
-    protected $table = 'class_subject_teacher';
+    use HasFactory;
+
+    protected $table = 'class_subject';
+
     protected $fillable = [
-        'teacher_id',
         'class_id',
         'subject_id',
-        'school_id'
+        'school_id',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
-
-    /**
-     * Get the teacher that owns the assignment.
-     */
-    public function teacher(): BelongsTo
-    {
-        return $this->belongsTo(\Modules\Teachers\Models\Teacher::class);
-    }
 
     /**
      * Get the class that owns the assignment.
@@ -42,7 +36,7 @@ class ClassSubjectTeacher extends Model
      */
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\Subject::class);
+        return $this->belongsTo(\Modules\ClassesSections\App\Models\Subject::class, 'subject_id');
     }
 
     /**
@@ -50,7 +44,7 @@ class ClassSubjectTeacher extends Model
      */
     public function school(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Schools\App\Models\School::class);
+        return $this->belongsTo(\Modules\Schools\App\Models\School::class, 'school_id');
     }
 
     /**
@@ -75,13 +69,5 @@ class ClassSubjectTeacher extends Model
     public function scopeForSubject($query, $subjectId)
     {
         return $query->where('subject_id', $subjectId);
-    }
-
-    /**
-     * Scope to filter by teacher.
-     */
-    public function scopeForTeacher($query, $teacherId)
-    {
-        return $query->where('teacher_id', $teacherId);
     }
 }

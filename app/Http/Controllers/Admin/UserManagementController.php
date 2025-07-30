@@ -19,6 +19,22 @@ use App\Models\UserPassword;
 class UserManagementController extends Controller
 {
     /**
+     * Helper method to set school context for role operations
+     */
+    private function setSchoolContextForRoles($schoolId)
+    {
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+    }
+
+    /**
+     * Helper method to clear school context
+     */
+    private function clearSchoolContext()
+    {
+        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+    }
+
+    /**
      * Display a listing of users with their roles
      */
     public function index(Request $request)
@@ -61,7 +77,7 @@ class UserManagementController extends Controller
 
             foreach ($schools as $school) {
                 // Set team context for this school
-                app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($school->id);
+                $this->setSchoolContextForRoles($school->id);
 
                 // Get user's roles for this school
                 $userRolesForSchool = $user->roles()->get();
@@ -79,7 +95,7 @@ class UserManagementController extends Controller
             }
 
             // Reset team context
-            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+            $this->clearSchoolContext();
 
             // Add roles_by_school to user
             $user->roles_by_school = $rolesBySchool;
@@ -228,9 +244,9 @@ class UserManagementController extends Controller
 
         $user = PasswordService::createUserWithPassword($userData, $password);
 
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+        $this->setSchoolContextForRoles($schoolId);
         $user->assignRole($role->name);
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+        $this->clearSchoolContext();
 
         $school = \Modules\Schools\App\Models\School::find($schoolId);
         $message = "User '{$user->name}' created successfully with role '{$role->name}' for {$school->name}. Temporary password: {$password}";
@@ -332,7 +348,7 @@ class UserManagementController extends Controller
         }
 
         // Set Spatie team context for the target school
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($schoolId);
+        $this->setSchoolContextForRoles($schoolId);
 
         // Check if user already has this role for this school
         $alreadyHasRole = $user->hasRole($role->name);
@@ -350,7 +366,7 @@ class UserManagementController extends Controller
         }
 
         // Reset team context
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+        $this->clearSchoolContext();
 
         $school = \Modules\Schools\App\Models\School::find($schoolId);
         $message = "Role '{$role->name}' assigned to {$user->name} for {$school->name} successfully";
@@ -388,16 +404,16 @@ class UserManagementController extends Controller
 
         // Set team context based on role's school_id
         if ($role->school_id) {
-            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($role->school_id);
+            $this->setSchoolContextForRoles($role->school_id);
         } else {
-            app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+            $this->clearSchoolContext();
         }
 
         // Remove the role
         $user->removeRole($role->name);
 
         // Reset team context
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId(null);
+        $this->clearSchoolContext();
 
         return redirect()->back()->with('success', "Role '{$role->name}' removed from {$user->name} successfully");
     }

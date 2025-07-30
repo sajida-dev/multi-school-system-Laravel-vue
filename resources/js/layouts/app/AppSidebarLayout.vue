@@ -57,7 +57,10 @@ watch(
             <div class="flex-1 flex flex-col min-w-0">
                 <AppSidebarHeader :breadcrumbs="breadcrumbs" />
                 <AppContent variant="sidebar" class="flex flex-col overflow-x-hidden">
-                    <slot />
+                    <!-- Add proper spacing for fixed school switcher -->
+                    <div class="mt-14 md:mt-3 lg:mt-3">
+                        <slot />
+                    </div>
                 </AppContent>
             </div>
         </div>
