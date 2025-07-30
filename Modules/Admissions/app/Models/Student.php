@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Fees\App\Models\Fee;
 use Modules\Schools\App\Models\School;
+use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
 {
@@ -51,6 +52,43 @@ class Student extends Model
         'mobile_no',
         'status',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'profile_photo_url',
+        'initials',
+    ];
+
+    /**
+     * Get the URL to the student's profile photo.
+     *
+     * @return string
+     */
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path && Storage::disk('public')->exists($this->profile_photo_path)) {
+            return asset('storage/' . $this->profile_photo_path);
+        }
+        // Return a default student image
+        return asset('storage/default-images/default-student.png');
+    }
+
+    /**
+     * Get the initials for the student's name.
+     *
+     * @return string
+     */
+    public function getInitialsAttribute()
+    {
+        return collect(explode(' ', $this->name))
+            ->map(fn($word) => strtoupper(substr($word, 0, 1)))
+            ->take(2)
+            ->join('');
+    }
 
     public function fees()
     {

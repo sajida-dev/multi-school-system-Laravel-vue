@@ -17,13 +17,8 @@ const { getInitials } = useInitials();
 
 // Compute the avatar source
 const avatarSrc = computed(() => {
-    // Use the profile_photo_url accessor if available
-    if (props.user.profile_photo_url) {
-        return props.user.profile_photo_url;
-    }
-
-    // Return default profile image
-    return '/storage/default-profile.png';
+    // Use the profile_photo_url accessor from the User model
+    return props.user.profile_photo_url || '/storage/default-profile.png';
 });
 
 // Always show avatar since we have a default

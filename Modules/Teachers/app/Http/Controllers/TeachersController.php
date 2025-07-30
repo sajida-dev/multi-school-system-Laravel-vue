@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Modules\Teachers\Models\Teacher;
 use Spatie\Permission\Models\Role;
@@ -145,16 +146,23 @@ class TeachersController extends Controller
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
             'class_id' => 'nullable|exists:classes,id',
+            'profile_photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
         ]);
 
         try {
-            DB::transaction(function () use ($validated) {
+            DB::transaction(function () use ($validated, $request) {
                 $userData = [
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'username' => $validated['username'],
                     'phone_number' => $validated['phone_number'],
                 ];
+
+                // Handle profile photo upload
+                if ($request->hasFile('profile_photo')) {
+                    $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
+                    $userData['profile_photo_path'] = $photoPath;
+                }
 
                 $user = PasswordService::createUserWithPassword($userData, $validated['password']);
 
@@ -274,17 +282,33 @@ class TeachersController extends Controller
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
             'class_id' => 'nullable|exists:classes,id',
+            'profile_photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
         ]);
 
         try {
-            DB::transaction(function () use ($validated, $id) {
+            DB::transaction(function () use ($validated, $id, $request) {
                 $user = User::findOrFail($id);
-                $user->update([
+
+                $userUpdateData = [
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'username' => $validated['username'],
                     'phone_number' => $validated['phone_number'],
-                ]);
+                ];
+
+                // Handle profile photo upload
+                if ($request->hasFile('profile_photo')) {
+                    // Delete old profile photo if it exists and is not the default
+                    if ($user->profile_photo_path && $user->profile_photo_path !== 'default-profile.png') {
+                        Storage::disk('public')->delete($user->profile_photo_path);
+                    }
+
+                    // Store new profile photo
+                    $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
+                    $userUpdateData['profile_photo_path'] = $photoPath;
+                }
+
+                $user->update($userUpdateData);
 
                 // Get the role and validate it exists
                 $role = Role::findOrFail($validated['role_id']);

@@ -11,7 +11,9 @@ export interface School {
   address?: string;
   contact?: string;
   mainImage?: string;
-  classes?: any[]; // [{ id, name, sections: [...] }]
+    classes?: any[]; // [{ id, name, sections: [...] }]
+logo_url?: string;
+  main_image_url?: string;
 }
 
 export const useSchoolStore = defineStore('school', () => {

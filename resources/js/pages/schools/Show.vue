@@ -43,6 +43,6 @@ const goBack = () => {
     router.visit(route('schools.index'));
 };
 
-const logoSrc = computed(() => '/storage/' + school.logo || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s');
-const mainImageSrc = computed(() => '/storage/' + school.mainImage || 'https://www.shutterstock.com/image-vector/school-building-front-view-entrance-260nw-2494026401.jpg');
+const logoSrc = computed(() => school.logo_url || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s');
+const mainImageSrc = computed(() => school.main_image_url || 'https://www.shutterstock.com/image-vector/school-building-front-view-entrance-260nw-2494026401.jpg');
 </script>

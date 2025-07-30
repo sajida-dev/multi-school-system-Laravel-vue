@@ -21,9 +21,9 @@
                     </div>
                     <div class="text-center flex flex-col items-center">
                         <!-- School Logo -->
-                        <div v-if="activeSchool?.logo" class="w-16 h-16 mb-2">
-                            <img :src="activeSchool.logo" :alt="activeSchool.name"
-                                class="w-full h-full object-contain rounded-full">
+                        <div v-if="activeSchool?.logo_url" class="w-16 h-16 mb-2">
+                            <img :src="activeSchool.logo_url" :alt="activeSchool.name"
+                                class="w-full h-full object-contain" />
                         </div>
                         <div v-else class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mb-2">
                             <span class="text-white font-bold text-xl">{{ getSchoolInitials(activeSchool?.name)
@@ -214,6 +214,8 @@ interface School {
     contact: string;
     logo?: string;
     main_image?: string;
+    logo_url?: string;
+    main_image_url?: string;
 }
 
 interface Paper {

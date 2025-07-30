@@ -91,7 +91,7 @@ onUnmounted(() => {
                 <div
                     class="flex items-center gap-3 bg-white dark:bg-neutral-900 shadow-lg rounded-xl px-4 py-2 cursor-pointer min-w-[220px] border border-gray-200 dark:border-neutral-700">
                     <Avatar class="h-10 w-10">
-                        <AvatarImage v-if="selectedSchool?.logo" :src="selectedSchool.logo"
+                        <AvatarImage v-if="selectedSchool?.logo_url" :src="selectedSchool.logo_url"
                             :alt="selectedSchool.name" />
                         <AvatarFallback>{{ getInitials(selectedSchool?.name || '') }}</AvatarFallback>
                     </Avatar>
@@ -114,13 +114,13 @@ onUnmounted(() => {
                     <DropdownMenuItem v-for="school in schools" :key="school.id" @click="switchSchool(school)"
                         :class="[school.id === selectedSchool?.id ? 'bg-primary/10 dark:bg-primary/20' : '', 'flex items-center gap-3 px-4 py-2 cursor-pointer']">
                         <Avatar class="h-8 w-8">
-                            <AvatarImage v-if="school.logo" :src="school.logo" :alt="school.name" />
+                            <AvatarImage v-if="school.logo_url" :src="school.logo_url" :alt="school.name" />
                             <AvatarFallback>{{ getInitials(school.name) }}</AvatarFallback>
                         </Avatar>
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ school.phone || ''
-                                }}</span>
+                            }}</span>
                         </div>
                         <Check v-if="school.id === selectedSchool?.id" class="ml-auto text-primary" />
                     </DropdownMenuItem>

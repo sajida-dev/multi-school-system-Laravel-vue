@@ -92,7 +92,7 @@ const form = useForm({
 });
 
 const logoFile = ref<File | undefined>();
-const logoPreview = ref<string>(school.logo || '/favicon.svg');
+const logoPreview = ref<string>(school.logo_url || '/favicon.svg');
 const mainImageFile = ref<File | undefined>();
 const mainImagePreview = ref<string>(school.main_image || '/favicon.svg');
 const schoolStore = useSchoolStore();

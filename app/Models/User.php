@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Crypt;
 use Modules\Schools\App\Models\School;
 use Modules\Teachers\Models\Teacher;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @method bool hasRole(string|array $roles, string|null $guard = null)
@@ -67,11 +68,24 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function getProfilePhotoUrlAttribute()
     {
-        if ($this->profile_photo_path) {
+        if ($this->profile_photo_path && Storage::disk('public')->exists($this->profile_photo_path)) {
             return asset('storage/' . $this->profile_photo_path);
         }
         // Return a default image if no profile photo is set
         return asset('storage/default-profile.png');
+    }
+
+    /**
+     * Get the initials for the user's name.
+     *
+     * @return string
+     */
+    public function getInitialsAttribute()
+    {
+        return collect(explode(' ', $this->name))
+            ->map(fn($word) => strtoupper(substr($word, 0, 1)))
+            ->take(2)
+            ->join('');
     }
 
     /**
@@ -81,6 +95,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $appends = [
         'profile_photo_url',
+        'initials',
     ];
 
     protected $guard_name = 'web';

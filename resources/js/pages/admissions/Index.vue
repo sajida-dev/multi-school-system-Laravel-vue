@@ -438,7 +438,7 @@ const items = computed(() => {
     return data.map((student: any) => ({
         ...student,
         class: student.class ? student.class.name : '',
-        profile_photo_url: student.profile_photo_path ? `/storage/${student.profile_photo_path}` : defaultProfileImage,
+        profile_photo_url: student.profile_photo_url || defaultProfileImage,
         fee: student.fee || null, // Expecting fee data from backend
     }));
 });

@@ -94,6 +94,10 @@
                 <template #item-profile_photo_path="row">
                     <img v-if="row && row.profile_photo_url" :src="row.profile_photo_url" alt="Profile Photo"
                         class="w-10 h-10 rounded-full object-cover border" />
+                    <div v-else
+                        class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">
+                        {{ row?.initials || 'NA' }}
+                    </div>
                 </template>
                 <template #item-class="row">
                     {{ row.class || '-' }}
@@ -328,6 +332,8 @@ export interface Student {
     gender: string;
     mobile_no: string;
     profile_photo_path?: string | null;
+    profile_photo_url?: string;
+    initials?: string;
     nationality: string;
     admission_date: string;
     date_of_birth: string;
@@ -397,7 +403,7 @@ const items = computed(() => {
         ...student,
         class: student.class ? student.class.name : '',
         school: student.school ? student.school.name : '',
-        profile_photo_url: student.profile_photo_path ? `/storage/${student.profile_photo_path}` : defaultProfileImage,
+        profile_photo_url: student.profile_photo_url || defaultProfileImage,
         fee: student.fee || null,
     }));
 });

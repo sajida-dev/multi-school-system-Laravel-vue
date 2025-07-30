@@ -108,7 +108,7 @@ function onSearch() {
                                         class="w-full h-full object-cover" :alt="auth.user.name" />
                                     <AvatarFallback
                                         class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ getInitials(auth.user?.name) }}
+                                        {{ auth.user.initials || getInitials(auth.user?.name) }}
                                     </AvatarFallback>
                                 </Avatar>
                             </Button>

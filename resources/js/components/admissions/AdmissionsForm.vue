@@ -51,7 +51,12 @@
                         <img :src="profilePhotoUrl" alt="Profile Photo"
                             class="h-24 w-24 object-cover rounded-full border mb-2 mx-auto" />
                     </div>
-                    <div v-else class="text-center text-red-800 text-sm mb-2">No image uploaded</div>
+                    <div v-else class="text-center mb-2">
+                        <div
+                            class="w-24 h-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center mx-auto">
+                            <span class="text-gray-500 dark:text-gray-400 text-sm">No Photo</span>
+                        </div>
+                    </div>
                 </div>
                 <FileInput id="profile_photo_path" v-model="form.profile_photo_path" />
                 <InputError :message="errors.profile_photo_path" />
