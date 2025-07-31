@@ -14,6 +14,23 @@ class StoreStudentRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'gender' => $this->normalizeEnumValue($this->gender),
+            'religion' => $this->normalizeEnumValue($this->religion),
+            'blood_group' => $this->blood_group ? $this->normalizeEnumValue($this->blood_group) : null,
+        ]);
+    }
+
+    private function normalizeEnumValue($value)
+    {
+        if (!$value) return $value;
+
+        // Convert to lowercase and replace spaces/slashes with underscores
+        return strtolower(str_replace([' ', '/'], '_', trim($value)));
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -96,8 +113,7 @@ class StoreStudentRequest extends FormRequest
             ],
             'religion' => [
                 'required',
-                'string',
-                'max:100'
+                'in:islam,christianity,hinduism,other'
             ],
             'blood_group' => [
                 'nullable',
@@ -126,10 +142,6 @@ class StoreStudentRequest extends FormRequest
                 'image',
                 'mimes:jpeg,png,jpg,gif',
                 'max:2048'
-            ],
-            'status' => [
-                'required',
-                'in:pending,admitted,rejected'
             ],
             'school_id' => [
                 'nullable',
@@ -169,6 +181,7 @@ class StoreStudentRequest extends FormRequest
             'gender.required' => 'Gender is required.',
             'gender.in' => 'Gender must be male, female, or other.',
             'religion.required' => 'Religion is required.',
+            'religion.in' => 'Please select a valid religion.',
             'blood_group.in' => 'Blood group must be a valid type.',
             'admission_date.required' => 'Admission date is required.',
             'admission_date.before_or_equal' => 'Admission date cannot be in the future.',
@@ -179,8 +192,6 @@ class StoreStudentRequest extends FormRequest
             'profile_photo_path.image' => 'Profile photo must be an image.',
             'profile_photo_path.mimes' => 'Profile photo must be JPEG, PNG, JPG, or GIF.',
             'profile_photo_path.max' => 'Profile photo must not exceed 2MB.',
-            'status.required' => 'Status is required.',
-            'status.in' => 'Status must be pending, admitted, or rejected.',
             'school_id.exists' => 'Selected school does not exist.',
         ];
     }
@@ -208,7 +219,6 @@ class StoreStudentRequest extends FormRequest
             'class_id' => 'class',
             'section_id' => 'section',
             'profile_photo_path' => 'profile photo',
-            'status' => 'status',
             'school_id' => 'school',
         ];
     }
