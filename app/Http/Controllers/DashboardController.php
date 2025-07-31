@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Modules\Schools\App\Models\School;
 use App\Models\User;
 use Modules\Admissions\App\Models\Student;
@@ -13,29 +14,41 @@ use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\App\Models\Section;
 use Modules\Fees\App\Models\Fee;
 use Modules\PapersQuestions\App\Models\Paper;
-use Modules\ResultsPromotions\App\Models\ExamResult;
+
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        /** @var User $user */
-        $user = Auth::user();
-        $activeSchoolId = session('active_school_id');
-
-        // Initialize basic data
-        $dashboardData = [
-            'user' => $user,
-            'userRoles' => $user->roles->pluck('name'),
-            'activeSchoolId' => $activeSchoolId,
-            'schools' => [],
-            'stats' => [],
-            'recentData' => [],
-            'errors' => []
-        ];
-
         try {
+            /** @var User $user */
+            $user = Auth::user();
+
+            if (!$user) {
+                Log::error('Dashboard accessed without authenticated user');
+                return redirect()->route('login');
+            }
+
+            $activeSchoolId = session('active_school_id');
+
+            Log::info('Dashboard accessed', [
+                'user_id' => $user->id,
+                'user_roles' => $user->roles->pluck('name'),
+                'active_school_id' => $activeSchoolId
+            ]);
+
+            // Initialize basic data
+            $dashboardData = [
+                'user' => $user,
+                'userRoles' => $user->roles->pluck('name'),
+                'activeSchoolId' => $activeSchoolId,
+                'schools' => [],
+                'stats' => [],
+                'recentData' => [],
+                'errors' => []
+            ];
+
             // Handle Super Admin (no school required)
             if ($user->hasRole('superadmin')) {
                 $dashboardData = $this->getSuperAdminData($dashboardData);
@@ -44,12 +57,14 @@ class DashboardController extends Controller
             elseif ($user->hasRole(['admin', 'principal', 'teacher'])) {
                 if (!$activeSchoolId) {
                     $dashboardData['errors'][] = 'No active school selected. Please select a school.';
+                    Log::warning('No active school for user', ['user_id' => $user->id, 'roles' => $user->roles->pluck('name')]);
                     return Inertia::render('Dashboard', $dashboardData);
                 }
 
                 $school = School::find($activeSchoolId);
                 if (!$school) {
                     $dashboardData['errors'][] = 'Selected school not found.';
+                    Log::error('School not found', ['school_id' => $activeSchoolId, 'user_id' => $user->id]);
                     return Inertia::render('Dashboard', $dashboardData);
                 }
 
@@ -57,12 +72,23 @@ class DashboardController extends Controller
                 $dashboardData = $this->getRoleBasedData($dashboardData, $user, $school);
             } else {
                 $dashboardData['errors'][] = 'No valid role assigned. Please contact administrator.';
+                Log::warning('User has no valid role', ['user_id' => $user->id]);
             }
-        } catch (\Exception $e) {
-            $dashboardData['errors'][] = 'An error occurred while loading dashboard data: ' . $e->getMessage();
-        }
 
-        return Inertia::render('Dashboard', $dashboardData);
+            return Inertia::render('Dashboard', $dashboardData);
+        } catch (\Exception $e) {
+            Log::error('Dashboard error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+
+            return Inertia::render('Dashboard', [
+                'user' => Auth::user(),
+                'userRoles' => Auth::user() ? Auth::user()->roles->pluck('name') : [],
+                'errors' => ['An error occurred while loading dashboard data. Please try again.']
+            ]);
+        }
     }
 
     private function getSuperAdminData($dashboardData)
@@ -121,12 +147,23 @@ class DashboardController extends Controller
             ]
         ];
 
-        // Add recent data
-        $dashboardData['recentData'] = [
-            'recentStudents' => Student::with('school')->latest()->take(5)->get(),
-            'recentFees' => Fee::with(['student', 'school'])->latest()->take(5)->get(),
-            'recentResults' => ExamResult::with(['student', 'school'])->latest()->take(5)->get(),
-        ];
+        // Add recent data with error handling
+        try {
+            $dashboardData['recentData'] = [
+                'recentSchools' => School::latest()->take(5)->get(),
+                'recentTeachers' => Teacher::with('school')->latest()->take(5)->get(),
+                'recentStudents' => Student::with('school')->latest()->take(5)->get(),
+                'recentFees' => Fee::with(['student', 'school'])->latest()->take(5)->get(),
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error loading recent data', ['error' => $e->getMessage()]);
+            $dashboardData['recentData'] = [
+                'recentSchools' => collect([]),
+                'recentTeachers' => collect([]),
+                'recentStudents' => collect([]),
+                'recentFees' => collect([]),
+            ];
+        }
 
         return $dashboardData;
     }
@@ -215,14 +252,11 @@ class DashboardController extends Controller
         $schoolId = $school->id;
 
         // Get real counts for this school
-        $totalStudents = Student::where('school_id', $schoolId)->count();
+        $totalStudents = Student::where('school_id', $schoolId)->where('status', 'admitted')->count();
         $totalTeachers = Teacher::where('school_id', $schoolId)->count();
-        $totalResults = ExamResult::where('school_id', $schoolId)->count();
+        $totalApplicants = Student::where('school_id', $schoolId)->where('status', 'applicant')->count();
+        $totalAdmitted = Student::where('school_id', $schoolId)->where('status', 'admitted')->count();
         $totalPapers = Paper::where('school_id', $schoolId)->count();
-
-        // Calculate performance metrics
-        $averagePerformance = ExamResult::where('school_id', $schoolId)->avg('percentage') ?? 0;
-        $averagePerformance = round($averagePerformance, 1);
 
         // Calculate monthly changes
         $currentMonth = now()->month;
@@ -248,11 +282,11 @@ class DashboardController extends Controller
                 'change' => $totalTeachers > 0 ? 'Active teachers' : 'No teachers yet'
             ],
             [
-                'label' => 'Average Performance',
-                'value' => $averagePerformance . '%',
-                'icon' => 'chart-line',
-                'color' => 'purple',
-                'change' => $averagePerformance > 0 ? 'Based on all results' : 'No results yet'
+                'label' => 'Pending Applicants',
+                'value' => $totalApplicants,
+                'icon' => 'user-plus',
+                'color' => 'yellow',
+                'change' => $totalApplicants > 0 ? 'Awaiting admission decision' : 'No pending applications'
             ],
             [
                 'label' => 'Total Papers',
@@ -265,8 +299,8 @@ class DashboardController extends Controller
 
         // Add recent data for this school
         $dashboardData['recentData'] = [
-            'recentResults' => ExamResult::where('school_id', $schoolId)->with(['student', 'school'])->latest()->take(5)->get(),
-            'topPerformers' => ExamResult::where('school_id', $schoolId)->orderBy('percentage', 'desc')->with(['student', 'school'])->take(5)->get(),
+            'recentApplicants' => Student::where('school_id', $schoolId)->where('status', 'applicant')->with('school')->latest()->take(5)->get(),
+            'recentStudents' => Student::where('school_id', $schoolId)->where('status', 'admitted')->with('school')->latest()->take(5)->get(),
             'recentPapers' => Paper::where('school_id', $schoolId)->latest()->take(5)->get(),
         ];
 
@@ -289,7 +323,7 @@ class DashboardController extends Controller
         $myStudents = Student::where('school_id', $schoolId)->where('class_teacher_id', $teacher->id)->count();
         $myClasses = ClassModel::where('school_id', $schoolId)->where('teacher_id', $teacher->id)->count();
         $papersCreated = Paper::where('school_id', $schoolId)->where('created_by', $user->id)->count();
-        $resultsPublished = ExamResult::where('school_id', $schoolId)->where('teacher_id', $teacher->id)->count();
+        $admissionsHandled = Student::where('school_id', $schoolId)->where('admitted_by', $user->id)->count();
 
         // Calculate monthly changes
         $currentMonth = now()->month;
@@ -322,11 +356,11 @@ class DashboardController extends Controller
                 'change' => $paperChange > 0 ? "+{$paperChange}% this month" : "{$paperChange}% this month"
             ],
             [
-                'label' => 'Results Published',
-                'value' => $resultsPublished,
-                'icon' => 'chart-bar',
+                'label' => 'Admissions Handled',
+                'value' => $admissionsHandled,
+                'icon' => 'user-plus',
                 'color' => 'orange',
-                'change' => $resultsPublished > 0 ? 'Published results' : 'No results yet'
+                'change' => $admissionsHandled > 0 ? 'Students admitted' : 'No admissions yet'
             ]
         ];
 
@@ -334,7 +368,7 @@ class DashboardController extends Controller
         $dashboardData['recentData'] = [
             'myStudents' => Student::where('school_id', $schoolId)->where('class_teacher_id', $teacher->id)->take(5)->get(),
             'myPapers' => Paper::where('school_id', $schoolId)->where('created_by', $user->id)->latest()->take(5)->get(),
-            'myResults' => ExamResult::where('school_id', $schoolId)->where('teacher_id', $teacher->id)->latest()->take(5)->get(),
+            'myAdmissions' => Student::where('school_id', $schoolId)->where('admitted_by', $user->id)->latest()->take(5)->get(),
         ];
 
         return $dashboardData;

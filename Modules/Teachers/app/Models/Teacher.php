@@ -2,13 +2,13 @@
 
 namespace Modules\Teachers\Models;
 
-use App\Models\ClassSubjectTeacher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\App\Models\Subject;
 use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\ClassSubjectTeacher;
 
 class Teacher extends Model
 {

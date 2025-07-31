@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 import StatCard from '@/components/StatCard.vue';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface School {
   id: string | number;
@@ -57,6 +57,22 @@ const getWelcomeMessage = (roles: string[]) => {
   if (roles.includes('teacher')) return 'My Classes';
   return 'Dashboard';
 };
+
+// Check if there's any recent data to display
+const hasRecentData = computed(() => {
+  if (!props.recentData) return false;
+
+  const dataKeys = [
+    'recentSchools', 'recentTeachers', 'recentStudents', 'recentFees', 'recentApplicants',
+    'myStudents', 'myPapers', 'myAdmissions', 'recentPapers'
+  ];
+
+  return dataKeys.some(key =>
+    props.recentData[key] &&
+    Array.isArray(props.recentData[key]) &&
+    props.recentData[key].length > 0
+  );
+});
 </script>
 
 <template>
@@ -176,16 +192,47 @@ const getWelcomeMessage = (roles: string[]) => {
         <!-- Recent Activity -->
         <div class="bg-white rounded-xl shadow-lg p-6 border">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+
+
+
           <div class="space-y-3">
+            <!-- Recent Schools (for Super Admin) -->
+            <div v-if="props.recentData?.recentSchools && props.recentData.recentSchools.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Schools</h4>
+              <div v-for="school in props.recentData.recentSchools.slice(0, 3)" :key="school.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ school.name || 'Unknown School' }}</p>
+                  <p class="text-xs text-gray-500">Created: {{ school.created_at ? new
+                    Date(school.created_at).toLocaleDateString() : 'Recently' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Teachers (for Super Admin) -->
+            <div v-if="props.recentData?.recentTeachers && props.recentData.recentTeachers.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Teachers</h4>
+              <div v-for="teacher in props.recentData.recentTeachers.slice(0, 3)" :key="teacher.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ teacher.name || 'Unknown Teacher' }}</p>
+                  <p class="text-xs text-gray-500">{{ teacher.school?.name || 'School not assigned' }}</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Recent Students -->
             <div v-if="props.recentData?.recentStudents && props.recentData.recentStudents.length > 0">
               <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Students</h4>
               <div v-for="student in props.recentData.recentStudents.slice(0, 3)" :key="student.id"
                 class="flex items-center p-3 bg-gray-50 rounded-lg">
-                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <div class="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                 <div>
-                  <p class="text-sm font-medium">{{ student.name }}</p>
-                  <p class="text-xs text-gray-500">{{ student.school?.name || 'School not assigned' }}</p>
+                  <p class="text-sm font-medium">{{ student.name || 'Unknown Student' }}</p>
+                  <p class="text-xs text-gray-500">Admitted: {{ student.created_at ? new
+                    Date(student.created_at).toLocaleDateString() : 'Recently' }}</p>
                 </div>
               </div>
             </div>
@@ -203,15 +250,16 @@ const getWelcomeMessage = (roles: string[]) => {
               </div>
             </div>
 
-            <!-- Recent Results -->
-            <div v-if="props.recentData?.recentResults && props.recentData.recentResults.length > 0">
-              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Results</h4>
-              <div v-for="result in props.recentData.recentResults.slice(0, 3)" :key="result.id"
+            <!-- Recent Applicants -->
+            <div v-if="props.recentData?.recentApplicants && props.recentData.recentApplicants.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Applicants</h4>
+              <div v-for="applicant in props.recentData.recentApplicants.slice(0, 3)" :key="applicant.id"
                 class="flex items-center p-3 bg-gray-50 rounded-lg">
-                <div class="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
                 <div>
-                  <p class="text-sm font-medium">{{ result.student?.name || 'Unknown Student' }}</p>
-                  <p class="text-xs text-gray-500">Score: {{ result.percentage }}%</p>
+                  <p class="text-sm font-medium">{{ applicant.name || 'Unknown Student' }}</p>
+                  <p class="text-xs text-gray-500">Applied: {{ applicant.created_at ? new
+                    Date(applicant.created_at).toLocaleDateString() : 'Recently' }}</p>
                 </div>
               </div>
             </div>
@@ -242,9 +290,65 @@ const getWelcomeMessage = (roles: string[]) => {
               </div>
             </div>
 
+            <!-- My Admissions (for teachers) -->
+            <div v-if="props.recentData?.myAdmissions && props.recentData.myAdmissions.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">My Admissions</h4>
+              <div v-for="admission in props.recentData.myAdmissions.slice(0, 3)" :key="admission.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ admission.name || 'Unknown Student' }}</p>
+                  <p class="text-xs text-gray-500">Admitted: {{ admission.created_at ? new
+                    Date(admission.created_at).toLocaleDateString() : 'Recently' }}</p>
+                </div>
+              </div>
+            </div>
+
             <!-- No recent activity -->
-            <div v-if="!props.recentData || Object.keys(props.recentData).length === 0" class="text-center py-4">
-              <p class="text-sm text-gray-500">No recent activity to display</p>
+            <div v-if="!hasRecentData" class="text-center py-8">
+              <div class="text-gray-400 mb-3">
+                <i class="fas fa-clock text-4xl"></i>
+              </div>
+              <p class="text-sm font-medium text-gray-600 mb-2">No Recent Activity</p>
+              <p class="text-xs text-gray-500 mb-4">Recent students, fees, and applications will appear here once data
+                is added</p>
+
+              <!-- Role-specific suggestions -->
+              <div v-if="props.userRoles.includes('superadmin')" class="text-xs text-gray-400">
+                <p>• Add schools to see school management activity</p>
+                <p>• Create teachers and students to see recent activity</p>
+              </div>
+              <div v-else-if="props.userRoles.includes('admin')" class="text-xs text-gray-400">
+                <p>• Add students to see recent admissions</p>
+                <p>• Create fees to see payment activity</p>
+              </div>
+              <div v-else-if="props.userRoles.includes('principal')" class="text-xs text-gray-400">
+                <p>• Review pending applications</p>
+                <p>• Monitor student admissions and papers</p>
+              </div>
+              <div v-else-if="props.userRoles.includes('teacher')" class="text-xs text-gray-400">
+                <p>• Create papers to see your recent work</p>
+                <p>• Handle admissions to see your activity</p>
+              </div>
+
+              <!-- Quick Action Buttons -->
+              <div class="mt-4 space-y-2">
+                <button v-if="props.userRoles.includes('superadmin')" @click="router.visit('/admin/schools')"
+                  class="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                  <i class="fas fa-plus mr-1"></i>
+                  Add School
+                </button>
+                <button v-if="props.userRoles.includes('admin')" @click="router.visit('/admin/admissions')"
+                  class="inline-flex items-center px-3 py-2 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                  <i class="fas fa-user-plus mr-1"></i>
+                  Add Student
+                </button>
+                <button v-if="props.userRoles.includes('teacher')" @click="router.visit('/teacher/papers')"
+                  class="inline-flex items-center px-3 py-2 text-xs font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                  <i class="fas fa-file-alt mr-1"></i>
+                  Create Paper
+                </button>
+              </div>
             </div>
           </div>
         </div>
