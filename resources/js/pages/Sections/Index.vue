@@ -29,10 +29,11 @@
                 <DialogTitle>{{ isEdit ? 'Edit Section' : 'Add Section' }}</DialogTitle>
             </DialogHeader>
             <form @submit.prevent="handleSubmit">
-                <div class="mb-4">
+                <div class="mb-4 flex flex-col gap-2">
                     <Label for="name">Section Name</Label>
-                    <Input id="name" v-model="form.name" type="text" required placeholder="Section name" />
+                    <Input id="name" v-model="form.name" type="text" maxlength="1" required placeholder="A" />
                     <InputError :message="form.errors.name" />
+                    <p class="text-xs text-gray-500">Enter a single letter (A-Z)</p>
                 </div>
                 <DialogFooter>
                     <Button type="button" variant="outline" @click="closeModal">Cancel</Button>
@@ -58,7 +59,7 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
@@ -82,9 +83,7 @@ const showDeleteDialog = ref(false);
 const sectionToDelete = ref<{ id: number; name: string } | null>(null);
 const form = ref({ name: '', errors: { name: '' } });
 
-function getCsrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-}
+
 
 const breadcrumbItems = [
     { title: 'Sections', href: '/sections' },
@@ -121,48 +120,60 @@ function closeModal() {
 async function handleSubmit() {
     loading.value = true;
     form.value.errors.name = '';
+
     try {
         if (isEdit.value && editingSection.value) {
-            const response = await fetch(`/sections/${editingSection.value.id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': getCsrfToken(),
+            // Update existing section
+            router.put(`/sections/${editingSection.value.id}`, {
+                name: form.value.name
+            }, {
+                onSuccess: () => {
+                    toast.success('Section updated!');
+                    closeModal();
+                    router.reload({ only: ['sections'] });
                 },
-                body: JSON.stringify({ name: form.value.name }),
+                onError: (errors) => {
+                    if (errors.name) {
+                        form.value.errors.name = errors.name;
+                    } else if (typeof errors === 'string') {
+                        form.value.errors.name = errors;
+                    } else {
+                        form.value.errors.name = 'Update failed.';
+                    }
+                    console.error('Update errors:', errors);
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
             });
-            const data = await response.json();
-            const idx = sections.value.findIndex(s => s.id === editingSection.value!.id);
-            if (data && data.section && idx !== -1) {
-                sections.value[idx] = data.section;
-                toast.success('Section updated!');
-                closeModal();
-            } else if (data.errors) {
-                form.value.errors.name = data.errors.name?.[0] || 'Update failed.';
-            }
         } else {
-            const response = await fetch('/sections', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': getCsrfToken(),
+            // Create new section
+            router.post('/sections', {
+                name: form.value.name
+            }, {
+                onSuccess: () => {
+                    toast.success('Section created!');
+                    closeModal();
+                    router.reload({ only: ['sections'] });
                 },
-                body: JSON.stringify({ name: form.value.name }),
+                onError: (errors) => {
+                    if (errors.name) {
+                        form.value.errors.name = errors.name;
+                    } else if (typeof errors === 'string') {
+                        form.value.errors.name = errors;
+                    } else {
+                        form.value.errors.name = 'Creation failed.';
+                    }
+                    console.error('Creation errors:', errors);
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
             });
-            const data = await response.json();
-            if (data && data.section) {
-                sections.value.push(data.section);
-                toast.success('Section created!');
-                closeModal();
-            } else if (data.errors) {
-                form.value.errors.name = data.errors.name?.[0] || 'Creation failed.';
-            }
         }
     } catch (e) {
+        console.error('Error in handleSubmit:', e);
         toast.error('An error occurred.');
-    } finally {
         loading.value = false;
     }
 }
@@ -175,29 +186,21 @@ function handleDelete(section: { id: number; name: string }) {
 async function confirmDelete() {
     if (!sectionToDelete.value) return;
     loading.value = true;
-    try {
-        const response = await fetch(`/sections/${sectionToDelete.value.id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': getCsrfToken(),
-            },
-        });
-        const data = await response.json();
-        if (data && data.success) {
-            sections.value = sections.value.filter(s => s.id !== sectionToDelete.value!.id);
+
+    router.delete(`/sections/${sectionToDelete.value.id}`, {
+        onSuccess: () => {
             toast.success('Section deleted!');
             showDeleteDialog.value = false;
             sectionToDelete.value = null;
-        } else {
+            router.reload({ only: ['sections'] });
+        },
+        onError: () => {
             toast.error('Failed to delete section.');
+        },
+        onFinish: () => {
+            loading.value = false;
         }
-    } catch (e) {
-        toast.error('An error occurred.');
-    } finally {
-        loading.value = false;
-    }
+    });
 }
 
 function cancelDelete() {

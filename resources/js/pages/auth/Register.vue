@@ -36,7 +36,7 @@ const submit = () => {
                     <span class="text-white text-xl md:text-2xl font-bold tracking-wide">Multi School System</span>
                 </div>
                 <div class="flex-1 flex items-center justify-center">
-                    <img src="/register.png" alt="School Logo" class="w-full h-full max-w-md object-contain">
+                    <img src="/reset.png" alt="School Logo" class="w-full h-full max-w-md object-contain">
                 </div>
                 <div
                     class="flex flex-col md:flex-row justify-between text-xs text-purple-200 mt-4 md:mt-6 space-y-2 md:space-y-0">

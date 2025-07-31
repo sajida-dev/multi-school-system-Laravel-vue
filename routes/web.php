@@ -15,9 +15,9 @@ Route::get('/', function () {
 
 
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified', 'set.active.school'])->name('dashboard');
+Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified', 'set.active.school'])
+    ->name('dashboard');
 
 Route::middleware(['auth', 'set.active.school'])->prefix('admin')->group(function () {
 

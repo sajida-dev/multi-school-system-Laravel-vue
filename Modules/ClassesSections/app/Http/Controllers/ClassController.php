@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Modules\ClassesSections\app\Models\ClassModel;
 use Inertia\Inertia;
 use Modules\ClassesSections\app\Models\Section;
+use Modules\ClassesSections\app\Models\ClassSchool;
+use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\StoreClassRequest;
+use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\UpdateClassRequest;
+use Illuminate\Support\Facades\DB;
 
 class ClassController extends Controller
 {
@@ -25,43 +29,33 @@ class ClassController extends Controller
         return Inertia::render('Classes/Create');
     }
 
-    public function store(Request $request)
+    public function store(StoreClassRequest $request)
     {
-        Log::info('Class creation request received', [
-            'data' => $request->all(),
-            'user_id' => Auth::id(),
-            'headers' => $request->headers->all()
-        ]);
-
-        $request->validate(['name' => 'required|string|max:255']);
-
         try {
-            $class = ClassModel::create($request->only('name'));
+            return DB::transaction(function () use ($request) {
+                $validated = $request->validated();
+                $class = ClassModel::create(['name' => $validated['name']]);
 
-            // Auto-assign Section A or multiple sections if requested
-            if ($request->boolean('auto_assign_sections')) {
-                $sectionNames = $request->input('section_names', ['A']);
-                $sectionIds = [];
-                foreach ($sectionNames as $sectionName) {
-                    $section = Section::firstOrCreate([
-                        'name' => $sectionName
+                $activeSchoolId = session('active_school_id');
+                if ($activeSchoolId) {
+                    ClassSchool::create([
+                        'class_id' => $class->id,
+                        'school_id' => $activeSchoolId
                     ]);
-                    $sectionIds[] = $section->id;
+                    Log::info('Class created and assigned to school', ['class_id' => $class->id, 'class_name' => $class->name, 'school_id' => $activeSchoolId]);
+                } else {
+                    Log::info('Class created without school assignment', ['class_id' => $class->id, 'class_name' => $class->name]);
                 }
-                $class->sections()->syncWithoutDetaching($sectionIds);
-            }
 
-            Log::info('Class created successfully', ['class_id' => $class->id, 'class_name' => $class->name]);
-
-            // Return redirect for Inertia instead of JSON
-            return redirect()->back()->with('success', 'Class created successfully!');
+                return redirect()->back()->with('success', 'Class created successfully!');
+            }, 5); // 5 retries for deadlock handling
         } catch (\Exception $e) {
             Log::error('Error creating class', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->back()->withErrors(['error' => 'Failed to create class: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['name' => 'Failed to create class: ' . $e->getMessage()]);
         }
     }
 
@@ -72,20 +66,38 @@ class ClassController extends Controller
         ]);
     }
 
-    public function update(Request $request, ClassModel $class)
+    public function update(UpdateClassRequest $request, ClassModel $class)
     {
-        $request->validate(['name' => 'required|string|max:255']);
-        $class->update($request->only('name'));
+        try {
+            return DB::transaction(function () use ($request, $class) {
+                $validated = $request->validated();
+                $class->update(['name' => $validated['name']]);
 
-        // Return redirect for Inertia instead of JSON
-        return redirect()->back()->with('success', 'Class updated successfully!');
+                return redirect()->back()->with('success', 'Class updated successfully!');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Error updating class', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()->withErrors(['name' => 'Failed to update class: ' . $e->getMessage()]);
+        }
     }
 
     public function destroy(ClassModel $class)
     {
-        $class->delete();
-
-        // Return redirect for Inertia instead of JSON
-        return redirect()->back()->with('success', 'Class deleted successfully!');
+        try {
+            return DB::transaction(function () use ($class) {
+                $class->delete();
+                return redirect()->back()->with('success', 'Class deleted successfully!');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to delete class', [
+                'error' => $e->getMessage(),
+                'class_id' => $class->id
+            ]);
+            return redirect()->back()->withErrors(['error' => 'Failed to delete class. Please try again.']);
+        }
     }
 }

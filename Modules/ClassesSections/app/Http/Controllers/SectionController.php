@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\ClassesSections\app\Models\Section;
 use Inertia\Inertia;
+use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\StoreSectionRequest;
+use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\UpdateSectionRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SectionController extends Controller
 {
@@ -22,25 +26,18 @@ class SectionController extends Controller
         return Inertia::render('Sections/Create');
     }
 
-    public function store(Request $request)
+    public function store(StoreSectionRequest $request)
     {
-        $request->validate(['name' => 'required|string|max:255']);
-        $section = Section::create($request->only('name'));
-        if ($request->hasHeader('X-Inertia')) {
-            return redirect()->route('classes-sections.manage')
-                ->with([
-                    'success' => 'Section created!',
-                    'initialTab' => 'sections'
-                ]);
+        try {
+            return DB::transaction(function () use ($request) {
+                $validated = $request->validated();
+                $section = Section::create(['name' => strtoupper($validated['name'])]);
+
+                return redirect()->back()->with('success', 'Section created successfully!');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['name' => 'Failed to create section: ' . $e->getMessage()]);
         }
-        if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'section' => $section], 201);
-        }
-        return redirect()->route('classes-sections.manage')
-            ->with([
-                'success' => 'Section created!',
-                'initialTab' => 'sections'
-            ]);
     }
 
     public function edit(Section $section)
@@ -50,44 +47,37 @@ class SectionController extends Controller
         ]);
     }
 
-    public function update(Request $request, Section $section)
+    public function update(UpdateSectionRequest $request, Section $section)
     {
-        $request->validate(['name' => 'required|string|max:255']);
-        $section->update($request->only('name'));
-        if ($request->hasHeader('X-Inertia')) {
-            return redirect()->route('classes-sections.manage')
-                ->with([
-                    'success' => 'Section updated!',
-                    'initialTab' => 'sections'
-                ]);
+        try {
+            return DB::transaction(function () use ($request, $section) {
+                $validated = $request->validated();
+                $section->update(['name' => strtoupper($validated['name'])]);
+
+                return redirect()->back()->with('success', 'Section updated successfully!');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['name' => 'Failed to update section: ' . $e->getMessage()]);
         }
-        if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'section' => $section]);
-        }
-        return redirect()->route('classes-sections.manage')
-            ->with([
-                'success' => 'Section updated!',
-                'initialTab' => 'sections'
-            ]);
     }
 
     public function destroy(Section $section)
     {
-        $section->delete();
-        if (request()->hasHeader('X-Inertia')) {
-            return redirect()->route('classes-sections.manage')
-                ->with([
-                    'success' => 'Section deleted!',
-                    'initialTab' => 'sections'
-                ]);
-        }
-        if (request()->expectsJson()) {
-            return response()->json(['success' => true]);
-        }
-        return redirect()->route('classes-sections.manage')
-            ->with([
-                'success' => 'Section deleted!',
-                'initialTab' => 'sections'
+        try {
+            return DB::transaction(function () use ($section) {
+                $section->delete();
+                return redirect()->route('classes-sections.manage')
+                    ->with([
+                        'success' => 'Section deleted!',
+                        'initialTab' => 'sections'
+                    ]);
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to delete section', [
+                'error' => $e->getMessage(),
+                'section_id' => $section->id
             ]);
+            return redirect()->back()->withErrors(['error' => 'Failed to delete section. Please try again.']);
+        }
     }
 }

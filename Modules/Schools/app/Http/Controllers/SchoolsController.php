@@ -14,6 +14,10 @@ use Modules\Schools\App\Imports\SchoolsImport;
 use Illuminate\Support\Facades\Auth;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\app\Models\Section;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Modules\Schools\App\Http\Requests\StoreSchoolRequest;
+use Modules\Schools\App\Http\Requests\UpdateSchoolRequest;
 
 class SchoolsController extends Controller
 {
@@ -55,29 +59,59 @@ class SchoolsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreSchoolRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'contact' => 'nullable|string|max:255',
-        ]);
-        $school = new School($validated);
-        // Handle logo upload
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('school_logos', 'public');
-            $school->logo = $logoPath;
+        try {
+            return DB::transaction(function () use ($request) {
+                $validated = $request->validated();
+                $school = new School($validated);
+
+                // Handle logo upload with error handling
+                try {
+                    if ($request->hasFile('logo')) {
+                        $logoPath = $request->file('logo')->store('school_logos', 'public');
+                        $school->logo = $logoPath;
+                    }
+                } catch (\Exception $logoException) {
+                    Log::error('Failed to upload school logo', [
+                        'error' => $logoException->getMessage(),
+                        'school_name' => $validated['name']
+                    ]);
+                    // Continue without logo
+                }
+
+                // Handle main image upload with error handling
+                try {
+                    if ($request->hasFile('main_image')) {
+                        $mainImagePath = $request->file('main_image')->store('school_main_images', 'public');
+                        $school->main_image = $mainImagePath;
+                    }
+                } catch (\Exception $imageException) {
+                    Log::error('Failed to upload school main image', [
+                        'error' => $imageException->getMessage(),
+                        'school_name' => $validated['name']
+                    ]);
+                    // Continue without main image
+                }
+
+                $school->save();
+
+                return redirect()->route('schools.index')->with([
+                    'success' => 'School created successfully.',
+                    'school' => $school,
+                ]);
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to create school', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['logo', 'main_image'])
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to create school. Please try again.'])
+                ->withInput();
         }
-        // Handle main image upload
-        if ($request->hasFile('main_image')) {
-            $mainImagePath = $request->file('main_image')->store('school_main_images', 'public');
-            $school->main_image = $mainImagePath;
-        }
-        $school->save();
-        return redirect()->route('schools.index')->with([
-            'success' => 'School created successfully.',
-            'school' => $school,
-        ]);
     }
 
     /**
@@ -105,39 +139,63 @@ class SchoolsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateSchoolRequest $request, $id)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'contact' => 'nullable|string|max:255',
-        ]);
-        $school = School::findOrFail($id);
-        $school->update($validated);
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $validated = $request->validated();
+                $school = School::findOrFail($id);
+                $school->update($validated);
 
-        // Handle logo upload
-        if ($request->hasFile('logo')) {
-            $logoPath = $request->file('logo')->store('school_logos', 'public');
-            $school->logo = $logoPath;
-            $school->save();
+                // Handle logo upload with error handling
+                try {
+                    if ($request->hasFile('logo')) {
+                        $logoPath = $request->file('logo')->store('school_logos', 'public');
+                        $school->logo = $logoPath;
+                        $school->save();
+                    }
+                } catch (\Exception $logoException) {
+                    Log::error('Failed to upload school logo', [
+                        'error' => $logoException->getMessage(),
+                        'school_id' => $id,
+                        'school_name' => $validated['name']
+                    ]);
+                    // Continue without logo update
+                }
+
+                // Handle main image upload with error handling
+                try {
+                    if ($request->hasFile('main_image')) {
+                        $mainImagePath = $request->file('main_image')->store('school_main_images', 'public');
+                        $school->main_image = $mainImagePath;
+                        $school->save();
+                    }
+                } catch (\Exception $imageException) {
+                    Log::error('Failed to upload school main image', [
+                        'error' => $imageException->getMessage(),
+                        'school_id' => $id,
+                        'school_name' => $validated['name']
+                    ]);
+                    // Continue without main image update
+                }
+
+                return redirect()->back()->with([
+                    'success' => 'School updated successfully.',
+                    'school' => $school,
+                ]);
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to update school', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'school_id' => $id,
+                'request_data' => $request->except(['logo', 'main_image'])
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to update school. Please try again.'])
+                ->withInput();
         }
-        // Handle main image upload
-        if ($request->hasFile('main_image')) {
-            $mainImagePath = $request->file('main_image')->store('school_main_images', 'public');
-            $school->main_image = $mainImagePath;
-            $school->save();
-        }
-
-
-        // If AJAX or expects JSON, return updated school
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['school' => $school, 'success' => 'School updated successfully.']);
-        }
-
-        return redirect()->route('schools.index')->with(
-            'success',
-            'School updated successfully.'
-        );
     }
 
     /**
@@ -145,9 +203,19 @@ class SchoolsController extends Controller
      */
     public function destroy($id)
     {
-        $school = School::findOrFail($id);
-        $school->delete();
-        return redirect()->route('schools.index')->with('success', 'School deleted successfully.');
+        try {
+            return DB::transaction(function () use ($id) {
+                $school = School::findOrFail($id);
+                $school->delete();
+                return redirect()->route('schools.index')->with('success', 'School deleted successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to delete school', [
+                'error' => $e->getMessage(),
+                'school_id' => $id
+            ]);
+            return redirect()->back()->withErrors(['error' => 'Failed to delete school. Please try again.']);
+        }
     }
 
     /**

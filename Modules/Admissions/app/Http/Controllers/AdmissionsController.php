@@ -17,6 +17,10 @@ use Modules\Fees\App\Models\FeeItem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Modules\Admissions\App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
+use Illuminate\Support\Facades\DB;
 
 class AdmissionsController extends Controller
 {
@@ -80,71 +84,68 @@ class AdmissionsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreStudentRequest $request)
     {
-        $validated = $request->validate([
-            'school_id' => 'required|exists:schools,id',
-            'class_id' => 'required|exists:classes,id',
-            'nationality' => 'required|string',
-            'registration_number' => 'required|string|unique:students',
-            'name' => 'required|string',
-            'b_form_number' => 'required|string|unique:students',
-            'admission_date' => 'required|date',
-            'date_of_birth' => 'required|date',
-            'gender' => 'required|string',
-            'class_shift' => 'required|string',
-            'previous_school' => 'nullable|string',
-            'inclusive' => 'required|string',
-            'other_inclusive_type' => 'nullable|string',
-            'religion' => 'required|string',
-            'is_bricklin' => 'boolean',
-            'is_orphan' => 'boolean',
-            'is_qsc' => 'boolean',
-            'profile_photo_path' => 'nullable|file|image|max:2048',
-            'father_name' => 'required|string',
-            'guardian_name' => 'nullable|string',
-            'father_cnic' => 'required|string',
-            'mother_cnic' => 'nullable|string',
-            'father_profession' => 'required|string',
-            'no_of_children' => 'nullable|integer',
-            'job_type' => 'nullable|string',
-            'father_education' => 'required|string',
-            'mother_education' => 'required|string',
-            'mother_profession' => 'required|string',
-            'father_income' => 'required|string',
-            'mother_income' => 'nullable|string',
-            'household_income' => 'required|string',
-            'permanent_address' => 'required|string',
-            'phone_no' => 'nullable|string',
-            'mobile_no' => 'required|string',
-        ]);
+        try {
+            return DB::transaction(function () use ($request) {
+                $validated = $request->validated();
 
-        // Handle file upload
-        if ($request->hasFile('profile_photo_path')) {
-            $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
-            $validated['profile_photo_path'] = $path;
-        } else {
-            $validated['profile_photo_path'] = null;
+                // Handle file upload
+                if ($request->hasFile('profile_photo_path')) {
+                    $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
+                    $validated['profile_photo_path'] = $path;
+                } else {
+                    $validated['profile_photo_path'] = null;
+                }
+
+                $student = Student::create($validated);
+
+                // Create fee for admission (with error handling)
+                try {
+                    $fee = Fee::create([
+                        'student_id' => $student->id,
+                        'type' => 'admission',
+                        'amount' => 500,
+                        'status' => 'unpaid',
+                        'due_date' => now()->addDays(7),
+                    ]);
+
+                    FeeItem::create([
+                        'fee_id' => $fee->id,
+                        'description' => 'Admission Fee',
+                        'amount' => 500,
+                    ]);
+                } catch (\Exception $feeException) {
+                    // Log the fee creation error but don't fail the student creation
+                    Log::error('Failed to create fee for student: ' . $student->id, [
+                        'error' => $feeException->getMessage(),
+                        'student_id' => $student->id
+                    ]);
+                }
+
+                // Try to broadcast event (with error handling)
+                try {
+                    Broadcast::event('student.created', $student);
+                } catch (\Exception $broadcastException) {
+                    Log::error('Failed to broadcast student.created event', [
+                        'error' => $broadcastException->getMessage(),
+                        'student_id' => $student->id
+                    ]);
+                }
+
+                return redirect()->route('admissions.index')->with('success', 'Student admitted successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to create student admission', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['profile_photo_path'])
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to create student admission: ' . $e->getMessage()]);
         }
-
-        $student = Student::create($validated);
-
-        // Always create a fee for admission
-        $fee = Fee::create([
-            'student_id' => $student->id,
-            'type' => 'admission',
-            'amount' => 500, // Example, replace with your logic
-            'status' => 'unpaid',
-            'due_date' => now()->addDays(7),
-        ]);
-        FeeItem::create([
-            'fee_id' => $fee->id,
-            'description' => 'Admission Fee',
-            'amount' => 500,
-        ]);
-
-        Broadcast::event('student.created', $student);
-        return redirect()->route('admissions.index')->with('success', 'Student admitted successfully.');
     }
 
     /**
@@ -174,62 +175,42 @@ class AdmissionsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateStudentRequest $request, $id)
     {
-        $student = Student::findOrFail($id);
-        $validated = $request->validate([
-            'school_id' => 'required|exists:schools,id',
-            'class_id' => 'required|exists:classes,id',
-            'nationality' => 'required|string',
-            'registration_number' => 'required|string|unique:students,registration_number,' . $id,
-            'name' => 'required|string',
-            'b_form_number' => 'required|string|unique:students,b_form_number,' . $id,
-            'admission_date' => 'required|date',
-            'date_of_birth' => 'required|date',
-            'gender' => 'required|string',
-            'class_shift' => 'required|string',
-            'previous_school' => 'nullable|string',
-            'inclusive' => 'required|string',
-            'other_inclusive_type' => 'nullable|string',
-            'religion' => 'required|string',
-            'is_bricklin' => 'required|boolean',
-            'is_orphan' => 'required|boolean',
-            'is_qsc' => 'required|boolean',
-            'profile_photo_path' => 'nullable|file|image|max:2048',
-            'father_name' => 'required|string',
-            'guardian_name' => 'nullable|string',
-            'father_cnic' => 'required|string',
-            'mother_cnic' => 'nullable|string',
-            'father_profession' => 'required|string',
-            'no_of_children' => 'nullable|integer',
-            'job_type' => 'nullable|string',
-            'father_education' => 'required|string',
-            'mother_education' => 'required|string',
-            'mother_profession' => 'required|string',
-            'father_income' => 'required|string',
-            'mother_income' => 'nullable|string',
-            'household_income' => 'required|string',
-            'permanent_address' => 'required|string',
-            'phone_no' => 'nullable|string',
-            'mobile_no' => 'required|string',
-        ]);
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $student = Student::findOrFail($id);
+                $validated = $request->validated();
 
-        // Handle file upload
-        if ($request->hasFile('profile_photo_path')) {
-            // Remove old image if it exists
-            if ($student->profile_photo_path && Storage::disk('public')->exists($student->profile_photo_path)) {
-                Storage::disk('public')->delete($student->profile_photo_path);
-            }
-            $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
-            $validated['profile_photo_path'] = $path;
-        } else {
-            // If not uploading a new file, keep the old path
-            $validated['profile_photo_path'] = $student->profile_photo_path;
+                // Handle file upload
+                if ($request->hasFile('profile_photo_path')) {
+                    // Remove old image if it exists
+                    if ($student->profile_photo_path && Storage::disk('public')->exists($student->profile_photo_path)) {
+                        Storage::disk('public')->delete($student->profile_photo_path);
+                    }
+                    $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
+                    $validated['profile_photo_path'] = $path;
+                } else {
+                    // If not uploading a new file, keep the old path
+                    $validated['profile_photo_path'] = $student->profile_photo_path;
+                }
+
+                $student->update($validated);
+                Broadcast::event('student.updated', $student);
+                return redirect()->route('admissions.index')->with('success', 'Student updated successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to update student admission', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'student_id' => $id,
+                'request_data' => $request->except(['profile_photo_path'])
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to update student. Please try again.'])
+                ->withInput();
         }
-
-        $student->update($validated);
-        Broadcast::event('student.updated', $student);
-        return redirect()->route('admissions.index')->with('success', 'Student updated successfully.');
     }
 
     /**
@@ -237,10 +218,20 @@ class AdmissionsController extends Controller
      */
     public function destroy($id)
     {
-        $student = Student::findOrFail($id);
-        $student->delete();
-        Broadcast::event('student.deleted', ['id' => $id]);
-        return redirect()->route('admissions.index')->with('success', 'Student deleted successfully.');
+        try {
+            return DB::transaction(function () use ($id) {
+                $student = Student::findOrFail($id);
+                $student->delete();
+                Broadcast::event('student.deleted', ['id' => $id]);
+                return redirect()->route('admissions.index')->with('success', 'Student deleted successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to delete student', [
+                'error' => $e->getMessage(),
+                'student_id' => $id
+            ]);
+            return redirect()->back()->withErrors(['error' => 'Failed to delete student. Please try again.']);
+        }
     }
 
     /**
@@ -248,27 +239,41 @@ class AdmissionsController extends Controller
      */
     public function approve(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
-        $fee = Fee::where('student_id', $student->id)->where('type', 'admission')->first();
-        if (!$fee) {
-            return redirect()->back()->with('error', 'Fee record not found.');
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $student = Student::findOrFail($id);
+                $fee = Fee::where('student_id', $student->id)->where('type', 'admission')->first();
+                if (!$fee) {
+                    return redirect()->back()->with('error', 'Fee record not found.');
+                }
+
+                $validated = $request->validate([
+                    'paid_voucher_image' => 'required|file|image|max:2048',
+                ]);
+
+                // Save paid voucher image
+                if ($request->hasFile('paid_voucher_image')) {
+                    $voucherPath = $request->file('paid_voucher_image')->store('vouchers', 'public');
+                    $fee->paid_voucher_image = $voucherPath;
+                    $fee->status = 'paid';
+                    $fee->save();
+                }
+
+                if ($fee->status !== 'paid' || !$fee->paid_voucher_image) {
+                    return redirect()->back()->with('error', 'Fee must be paid and voucher uploaded before approval.');
+                }
+
+                $student->status = 'admitted';
+                $student->save();
+                Broadcast::event('student.updated', $student);
+                return redirect()->back()->with('success', 'Student approved successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to approve student', [
+                'error' => $e->getMessage(),
+                'student_id' => $id
+            ]);
+            return redirect()->back()->withErrors(['error' => 'Failed to approve student. Please try again.']);
         }
-        $validated = $request->validate([
-            'paid_voucher_image' => 'required|file|image|max:2048',
-        ]);
-        // Save paid voucher image
-        if ($request->hasFile('paid_voucher_image')) {
-            $voucherPath = $request->file('paid_voucher_image')->store('vouchers', 'public');
-            $fee->paid_voucher_image = $voucherPath;
-            $fee->status = 'paid';
-            $fee->save();
-        }
-        if ($fee->status !== 'paid' || !$fee->paid_voucher_image) {
-            return redirect()->back()->with('error', 'Fee must be paid and voucher uploaded before approval.');
-        }
-        $student->status = 'admitted';
-        $student->save();
-        Broadcast::event('student.updated', $student);
-        return redirect()->back()->with('success', 'Student approved successfully.');
     }
 }

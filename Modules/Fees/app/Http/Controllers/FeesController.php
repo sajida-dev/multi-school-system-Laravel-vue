@@ -11,7 +11,8 @@ use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Modules\Fees\App\Http\Requests\StoreFeeRequest;
+use App\Http\Requests\Modules\Fees\App\Http\Requests\UpdateFeeRequest;
 
 class FeesController extends Controller
 {
@@ -120,67 +121,56 @@ class FeesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreFeeRequest $request)
     {
-
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:admission,tuition,papers',
-            'amount' => 'required|numeric|min:0',
-            'due_date' => 'required|date|after_or_equal:' . now()->format('Y-m-d'),
-            'school_id' => 'required|exists:schools,id',
-            'class_id' => 'required|exists:classes,id',
-            'description' => 'nullable|string|max:255',
-        ]);
-
-
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
-        }
-
         try {
-            DB::beginTransaction();
+            return DB::transaction(function () use ($request) {
+                $validated = $request->validated();
 
-            // Get all students in the selected class and school
-            $students = Student::where('school_id', $request->school_id)
-                ->where('class_id', $request->class_id)
-                ->where('status', 'admitted')
-                ->get();
+                // Get all students in the selected class and school
+                $students = Student::where('school_id', $validated['school_id'])
+                    ->where('class_id', $validated['class_id'])
+                    ->where('status', 'admitted')
+                    ->get();
 
-            if ($students->isEmpty()) {
-                // Return validation error that will be caught by Inertia's onError
-                return back()->withErrors([
-                    'class_id' => 'No admitted students found in the selected class. Please ensure there are admitted students before creating fees.'
-                ])->withInput();
-            }
+                if ($students->isEmpty()) {
+                    return back()->withErrors([
+                        'class_id' => 'No admitted students found in the selected class. Please ensure there are admitted students before creating fees.'
+                    ])->withInput();
+                }
 
-            $createdFees = [];
-            foreach ($students as $student) {
-                $feeData = [
-                    'student_id' => $student->id,
-                    'class_id' => $request->class_id,
-                    'type' => $request->type,
-                    'amount' => $request->amount,
-                    'status' => 'unpaid',
-                    'due_date' => $request->due_date,
-                ];
+                $createdFees = [];
+                foreach ($students as $student) {
+                    $feeData = [
+                        'student_id' => $student->id,
+                        'class_id' => $validated['class_id'],
+                        'type' => $validated['type'],
+                        'amount' => $validated['amount'],
+                        'status' => 'unpaid',
+                        'due_date' => $validated['due_date'],
+                        'description' => $validated['description'] ?? null,
+                    ];
 
-                Log::info('Creating fee with data:', $feeData);
+                    Log::info('Creating fee with data:', $feeData);
 
-                $fee = Fee::create($feeData);
+                    $fee = Fee::create($feeData);
 
-                Log::info('Fee created successfully:', ['fee_id' => $fee->id, 'student_id' => $fee->student_id]);
+                    Log::info('Fee created successfully:', ['fee_id' => $fee->id, 'student_id' => $fee->student_id]);
 
-                $createdFees[] = $fee;
-            }
+                    $createdFees[] = $fee;
+                }
 
-            DB::commit();
+                Log::info('All fees created successfully. Total created:', ['count' => count($createdFees)]);
 
-            Log::info('All fees created successfully. Total created:', ['count' => count($createdFees)]);
-
-            return redirect()->route('fees.index')
-                ->with('success', "Fee created successfully for {$students->count()} students in the selected class.");
+                return redirect()->route('fees.index')
+                    ->with('success', "Fee created successfully for {$students->count()} students in the selected class.");
+            }, 5); // 5 retries for deadlock handling
         } catch (\Exception $e) {
-            DB::rollBack();
+            Log::error('Error creating fees:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return back()->withErrors(['error' => 'Failed to create fees. Please try again.'])->withInput();
         }
     }
@@ -212,36 +202,50 @@ class FeesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateFeeRequest $request, $id)
     {
-        $fee = Fee::findOrFail($id);
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $fee = Fee::findOrFail($id);
+                $validated = $request->validated();
 
-        $validator = Validator::make($request->all(), [
-            'type' => 'required|in:admission,tuition,papers',
-            'amount' => 'required|numeric|min:0',
-            'status' => 'required|in:unpaid,paid,cancelled',
-            'due_date' => 'required|date',
-            'paid_at' => 'nullable|date',
-            'voucher_number' => 'nullable|string|max:255',
-        ]);
+                $data = [
+                    'type' => $validated['type'],
+                    'amount' => $validated['amount'],
+                    'status' => $validated['status'],
+                    'due_date' => $validated['due_date'],
+                    'description' => $validated['description'] ?? null,
+                ];
 
-        if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+                // Set paid_at if status is paid and it's not already set
+                if ($validated['status'] === 'paid' && !$fee->paid_at) {
+                    $data['paid_at'] = now();
+                } elseif ($validated['status'] !== 'paid') {
+                    $data['paid_at'] = null;
+                }
+
+                // Set paid_amount and paid_date if provided
+                if (isset($validated['paid_amount'])) {
+                    $data['paid_amount'] = $validated['paid_amount'];
+                }
+                if (isset($validated['paid_date'])) {
+                    $data['paid_date'] = $validated['paid_date'];
+                }
+
+                $fee->update($data);
+
+                return redirect()->route('fees.index')
+                    ->with('success', 'Fee updated successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Error updating fee:', [
+                'error' => $e->getMessage(),
+                'fee_id' => $id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withErrors(['error' => 'Failed to update fee. Please try again.'])->withInput();
         }
-
-        $data = $request->only(['type', 'amount', 'status', 'due_date', 'voucher_number']);
-
-        // Set paid_at if status is paid and it's not already set
-        if ($request->status === 'paid' && !$fee->paid_at) {
-            $data['paid_at'] = now();
-        } elseif ($request->status !== 'paid') {
-            $data['paid_at'] = null;
-        }
-
-        $fee->update($data);
-
-        return redirect()->route('fees.index')
-            ->with('success', 'Fee updated successfully.');
     }
 
     /**

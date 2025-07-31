@@ -15,22 +15,28 @@
                             <div class="flex flex-col gap-4">
                                 <div>
                                     <Label class="mb-1 ml-1" for="name">Name<span class="text-red-500">*</span></Label>
-                                    <Input id="name" v-model="form.name" required placeholder="School name"
-                                        autocomplete="off" />
+                                    <Input id="name" v-model="form.name" required
+                                        placeholder="School name (letters, numbers, spaces, hyphens, periods only)"
+                                        autocomplete="off" pattern="[a-zA-Z0-9\s\-\.]+"
+                                        title="Letters, numbers, spaces, hyphens, and periods only" />
                                     <InputError class="mt-2" :message="form.errors.name" />
                                 </div>
                                 <div>
                                     <Label class="mb-1 ml-1" for="address">Address<span
                                             class="text-red-500">*</span></Label>
-                                    <Input id="address" v-model="form.address" required placeholder="School address"
-                                        autocomplete="off" />
+                                    <Input id="address" v-model="form.address" required
+                                        placeholder="School address (minimum 10 characters)" autocomplete="off"
+                                        minlength="10" maxlength="500"
+                                        title="Address must be at least 10 characters long" />
                                     <InputError class="mt-2" :message="form.errors.address" />
                                 </div>
                                 <div>
                                     <Label class="mb-1 ml-1" for="contact">Contact<span
                                             class="text-red-500">*</span></Label>
-                                    <Input id="contact" v-model="form.contact" required placeholder="Contact info"
-                                        autocomplete="off" />
+                                    <Input id="contact" v-model="form.contact" required
+                                        placeholder="Contact number (7-20 digits, may include spaces, dashes, plus signs, parentheses)"
+                                        autocomplete="off" pattern="[\d\s\-\+\(\)]{7,20}"
+                                        title="7-20 digits, may include spaces, dashes, plus signs, and parentheses" />
                                     <InputError class="mt-2" :message="form.errors.contact" />
                                 </div>
                             </div>

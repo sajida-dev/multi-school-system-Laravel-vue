@@ -5,6 +5,7 @@ namespace Modules\ClassesSections\App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\Section;
 use Modules\ClassesSections\App\Models\Subject;
+use Modules\ClassesSections\App\Models\ClassSchool;
 use Modules\Schools\App\Models\School;
 use Modules\Teachers\Models\Teacher;
 
@@ -13,6 +14,11 @@ class ClassModel extends Model
     protected $table = 'classes';
     protected $fillable = ['name'];
 
+    public function classSchools()
+    {
+        return $this->hasMany(ClassSchool::class, 'class_id');
+    }
+
     public function sections()
     {
         return $this->belongsToMany(
@@ -20,7 +26,11 @@ class ClassModel extends Model
             'class_school_sections',
             'class_school_id',
             'section_id'
-        );
+        )->wherePivotIn('class_school_id', function ($query) {
+            $query->select('id')
+                ->from('class_schools')
+                ->where('class_id', $this->id);
+        });
     }
 
     public function schools()

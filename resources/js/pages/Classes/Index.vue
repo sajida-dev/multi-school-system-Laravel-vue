@@ -29,22 +29,11 @@
                 <DialogTitle>{{ isEdit ? 'Edit Class' : 'Add Class' }}</DialogTitle>
             </DialogHeader>
             <form @submit.prevent="handleSubmit">
-                <div class="mb-4">
+                <div class="mb-4 flex flex-col gap-2">
                     <Label for="name">Class Name</Label>
                     <Input id="name" v-model="form.name" type="text" required placeholder="Class name" />
                     <InputError :message="form.errors.name" />
                 </div>
-                <template v-if="!isEdit">
-                    <div class="mb-4 flex items-center gap-2">
-                        <input id="autoAssignSections" type="checkbox" v-model="form.autoAssignSections" />
-                        <label for="autoAssignSections" class="text-sm">Auto-assign section(s) to this class</label>
-                    </div>
-                    <div class="mb-4" v-if="form.autoAssignSections">
-                        <Label for="sectionNames">Section Names <span class="text-xs text-gray-500">(comma separated,
-                                e.g. A, B, C)</span></Label>
-                        <Input id="sectionNames" v-model="form.sectionNames" type="text" placeholder="A, B, C" />
-                    </div>
-                </template>
                 <DialogFooter>
                     <Button type="button" variant="outline" @click="closeModal">Cancel</Button>
                     <Button :disabled="loading">{{ isEdit ? 'Update' : 'Create' }}</Button>
@@ -89,7 +78,7 @@ const isEdit = ref(false);
 const editingClass = ref<{ id: number; name: string } | null>(null);
 const showDeleteDialog = ref(false);
 const classToDelete = ref<{ id: number; name: string } | null>(null);
-const form = ref({ name: '', errors: { name: '' }, autoAssignSections: true, sectionNames: 'A' });
+const form = ref({ name: '', errors: { name: '' } });
 
 const breadcrumbItems = [
     { title: 'Classes', href: '/classes' },
@@ -103,31 +92,36 @@ const headers = [
 
 function openCreateModal() {
     isEdit.value = false;
-    form.value.name = '';
-    form.value.errors.name = '';
-    form.value.autoAssignSections = true;
-    form.value.sectionNames = 'A';
+    form.value = {
+        name: '',
+        errors: { name: '' }
+    };
     modalOpen.value = true;
 }
 
 function openEditModal(cls: { id: number; name: string }) {
     isEdit.value = true;
     editingClass.value = cls;
-    form.value.name = cls.name;
-    form.value.errors.name = '';
+    form.value = {
+        name: cls.name,
+        errors: { name: '' }
+    };
     modalOpen.value = true;
 }
 
 function closeModal() {
     modalOpen.value = false;
-    form.value.name = '';
-    form.value.errors.name = '';
+    form.value = {
+        name: '',
+        errors: { name: '' }
+    };
     editingClass.value = null;
 }
 
 async function handleSubmit() {
     loading.value = true;
-    form.value.errors.name = '';
+    // Clear previous errors
+    form.value.errors = { name: '' };
 
     try {
         if (isEdit.value && editingClass.value) {
@@ -141,7 +135,13 @@ async function handleSubmit() {
                     router.reload({ only: ['classes'] });
                 },
                 onError: (errors) => {
-                    form.value.errors.name = errors.name || 'Update failed.';
+                    if (errors.name) {
+                        form.value.errors.name = errors.name;
+                    } else if (typeof errors === 'string') {
+                        form.value.errors.name = errors;
+                    } else {
+                        form.value.errors.name = 'Update failed.';
+                    }
                     console.error('Update errors:', errors);
                 },
                 onFinish: () => {
@@ -151,10 +151,6 @@ async function handleSubmit() {
         } else {
             // Create new class
             const payload: any = { name: form.value.name };
-            if (form.value.autoAssignSections) {
-                payload.auto_assign_sections = true;
-                payload.section_names = form.value.sectionNames.split(',').map((s: string) => s.trim()).filter(Boolean);
-            }
 
             console.log('Creating class with payload:', payload);
 
@@ -165,7 +161,13 @@ async function handleSubmit() {
                     router.reload({ only: ['classes'] });
                 },
                 onError: (errors) => {
-                    form.value.errors.name = errors.name || 'Creation failed.';
+                    if (errors.name) {
+                        form.value.errors.name = errors.name;
+                    } else if (typeof errors === 'string') {
+                        form.value.errors.name = errors;
+                    } else {
+                        form.value.errors.name = 'Creation failed.';
+                    }
                     console.error('Creation errors:', errors);
                 },
                 onFinish: () => {

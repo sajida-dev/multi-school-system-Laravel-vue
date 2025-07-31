@@ -1,0 +1,166 @@
+<?php
+
+namespace Modules\Admissions\App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreStudentRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
+    public function rules(): array
+    {
+        return [
+            'school_id' => 'required|exists:schools,id',
+            'class_id' => 'required|exists:classes,id',
+            'nationality' => 'required|string',
+            'registration_number' => 'required|string|unique:students|regex:/^[A-Z0-9]{6,12}$/',
+            'name' => 'required|string|min:2|max:100|regex:/^[a-zA-Z\s]+$/',
+            'b_form_number' => 'required|string|unique:students|regex:/^\d{5}-\d{7}-\d{1}$/',
+            'admission_date' => 'required|date|before_or_equal:today',
+            'date_of_birth' => 'required|date|before:today|before:admission_date',
+            'gender' => 'required|string|in:Male,Female,Other',
+            'class_shift' => 'required|string|in:Morning,Evening,Other',
+            'previous_school' => 'nullable|string|max:200',
+            'inclusive' => 'required|string|in:No Disability,Physical,Visual,Hearing,Intellectual,Other',
+            'other_inclusive_type' => 'nullable|string|max:100',
+            'religion' => 'required|string|in:Islam,Christianity,Hinduism,Other',
+            'is_bricklin' => 'boolean',
+            'is_orphan' => 'boolean',
+            'is_qsc' => 'boolean',
+            'profile_photo_path' => 'nullable|file|image|max:2048',
+            'father_name' => 'required|string|min:2|max:100|regex:/^[a-zA-Z\s]+$/',
+            'guardian_name' => 'nullable|string|max:100|regex:/^[a-zA-Z\s]*$/',
+            'father_cnic' => 'required|string|regex:/^\d{5}-\d{7}-\d{1}$/',
+            'mother_cnic' => 'nullable|string|regex:/^\d{5}-\d{7}-\d{1}$/',
+            'father_profession' => 'required|string|in:Unemployed,Private/Self Employed,Government,Other',
+            'no_of_children' => 'nullable|integer|min:0|max:20',
+            'job_type' => 'nullable|string|in:Private/Self Employed,Government,Other',
+            'father_education' => 'required|string|in:None,Primary,Middle,Matric,Intermediate,Graduate,Post Graduate',
+            'mother_education' => 'required|string|in:None,Primary,Middle,Matric,Intermediate,Graduate,Post Graduate',
+            'mother_profession' => 'required|string|in:House Wife,Private/Self Employed,Government,Other',
+            'father_income' => 'required|string|in:INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
+            'mother_income' => 'nullable|string|in:NOT APPLICABLE,INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
+            'household_income' => 'required|string|in:INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
+            'permanent_address' => 'required|string|min:10|max:500',
+            'phone_no' => 'nullable|string|regex:/^[\d\s\-\+\(\)]{7,15}$/',
+            'mobile_no' => 'required|string|regex:/^03\d{9}$/',
+        ];
+    }
+
+    /**
+     * Get custom error messages for validation rules.
+     */
+    public function messages(): array
+    {
+        return [
+            'school_id.required' => 'School selection is required.',
+            'school_id.exists' => 'Selected school does not exist.',
+            'class_id.required' => 'Class selection is required.',
+            'class_id.exists' => 'Selected class does not exist.',
+            'nationality.required' => 'Nationality is required.',
+            'registration_number.required' => 'Registration number is required.',
+            'registration_number.unique' => 'This registration number is already taken.',
+            'registration_number.regex' => 'Registration number must be 6-12 characters long and contain only letters and numbers.',
+            'name.required' => 'Student name is required.',
+            'name.min' => 'Student name must be at least 2 characters long.',
+            'name.max' => 'Student name cannot exceed 100 characters.',
+            'name.regex' => 'Name must contain only letters and spaces.',
+            'b_form_number.required' => 'B-Form number is required.',
+            'b_form_number.unique' => 'This B-Form number is already taken.',
+            'b_form_number.regex' => 'B-Form number must be in format: 12345-6789012-3',
+            'admission_date.required' => 'Admission date is required.',
+            'admission_date.before_or_equal' => 'Admission date cannot be in the future.',
+            'date_of_birth.required' => 'Date of birth is required.',
+            'date_of_birth.before' => 'Date of birth must be before today.',
+            'date_of_birth.before:admission_date' => 'Date of birth must be before admission date.',
+            'gender.required' => 'Gender is required.',
+            'gender.in' => 'Please select a valid gender.',
+            'class_shift.required' => 'Class shift is required.',
+            'class_shift.in' => 'Please select a valid class shift.',
+            'previous_school.max' => 'Previous school name cannot exceed 200 characters.',
+            'inclusive.required' => 'Inclusive status is required.',
+            'inclusive.in' => 'Please select a valid inclusive status.',
+            'other_inclusive_type.max' => 'Other inclusive type cannot exceed 100 characters.',
+            'religion.required' => 'Religion is required.',
+            'religion.in' => 'Please select a valid religion.',
+            'profile_photo_path.image' => 'Profile photo must be an image file.',
+            'profile_photo_path.max' => 'Profile photo size must not exceed 2MB.',
+            'father_name.required' => 'Father name is required.',
+            'father_name.min' => 'Father name must be at least 2 characters long.',
+            'father_name.max' => 'Father name cannot exceed 100 characters.',
+            'father_name.regex' => 'Father name must contain only letters and spaces.',
+            'guardian_name.max' => 'Guardian name cannot exceed 100 characters.',
+            'guardian_name.regex' => 'Guardian name must contain only letters and spaces.',
+            'father_cnic.required' => 'Father CNIC is required.',
+            'father_cnic.regex' => 'Father CNIC must be in format: 12345-6789012-3',
+            'mother_cnic.regex' => 'Mother CNIC must be in format: 12345-6789012-3',
+            'father_profession.required' => 'Father profession is required.',
+            'father_profession.in' => 'Please select a valid father profession.',
+            'no_of_children.min' => 'Number of children cannot be negative.',
+            'no_of_children.max' => 'Number of children cannot exceed 20.',
+            'job_type.in' => 'Please select a valid job type.',
+            'father_education.required' => 'Father education is required.',
+            'father_education.in' => 'Please select a valid father education level.',
+            'mother_education.required' => 'Mother education is required.',
+            'mother_education.in' => 'Please select a valid mother education level.',
+            'mother_profession.required' => 'Mother profession is required.',
+            'mother_profession.in' => 'Please select a valid mother profession.',
+            'father_income.required' => 'Father income is required.',
+            'father_income.in' => 'Please select a valid father income level.',
+            'mother_income.in' => 'Please select a valid mother income level.',
+            'household_income.required' => 'Household income is required.',
+            'household_income.in' => 'Please select a valid household income level.',
+            'permanent_address.required' => 'Permanent address is required.',
+            'permanent_address.min' => 'Permanent address must be at least 10 characters long.',
+            'permanent_address.max' => 'Permanent address cannot exceed 500 characters.',
+            'phone_no.regex' => 'Phone number must be 7-15 digits and may contain spaces, dashes, plus signs, and parentheses.',
+            'mobile_no.required' => 'Mobile number is required.',
+            'mobile_no.regex' => 'Mobile number must start with 03 and be 11 digits long (e.g., 03001234567).',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validation error messages.
+     */
+    public function attributes(): array
+    {
+        return [
+            'school_id' => 'school',
+            'class_id' => 'class',
+            'registration_number' => 'registration number',
+            'b_form_number' => 'B-Form number',
+            'admission_date' => 'admission date',
+            'date_of_birth' => 'date of birth',
+            'class_shift' => 'class shift',
+            'previous_school' => 'previous school',
+            'other_inclusive_type' => 'other inclusive type',
+            'profile_photo_path' => 'profile photo',
+            'father_name' => 'father name',
+            'guardian_name' => 'guardian name',
+            'father_cnic' => 'father CNIC',
+            'mother_cnic' => 'mother CNIC',
+            'father_profession' => 'father profession',
+            'no_of_children' => 'number of children',
+            'job_type' => 'job type',
+            'father_education' => 'father education',
+            'mother_education' => 'mother education',
+            'mother_profession' => 'mother profession',
+            'father_income' => 'father income',
+            'mother_income' => 'mother income',
+            'household_income' => 'household income',
+            'permanent_address' => 'permanent address',
+            'phone_no' => 'phone number',
+            'mobile_no' => 'mobile number',
+        ];
+    }
+} 

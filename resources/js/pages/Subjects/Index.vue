@@ -592,7 +592,7 @@
                             <Loader2 class="w-4 h-4 mr-2 animate-spin" />
                             Deleting...
                         </span>
-                        <span v-else>
+                        <span v-else class="flex flex-row items-center gap-2">
                             <Trash2 class="w-4 h-4 mr-2" />
                             Delete Subject
                         </span>

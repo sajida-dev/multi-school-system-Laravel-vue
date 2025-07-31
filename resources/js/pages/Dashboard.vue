@@ -1,22 +1,32 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import VueApexCharts from 'vue3-apexcharts';
-import FullCalendar from '@fullcalendar/vue3';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import { ref } from 'vue';
-// import axios from 'axios';
 import { router } from '@inertiajs/vue3';
 import StatCard from '@/components/StatCard.vue';
+import { ref } from 'vue';
 
 interface School {
   id: string | number;
   name: string;
 }
 
+interface Stat {
+  label: string;
+  value: string | number;
+  icon: string;
+  color: string;
+  change: string;
+}
+
 const props = defineProps<{
-  schools: School[];
+  user: any;
+  userRoles: string[];
   activeSchoolId: string | number;
+  schools: School[];
+  stats: Stat[];
+  recentData: any;
+  errors: string[];
+  activeSchool?: any;
 }>();
 
 const selectedSchool = ref<string | number>(props.activeSchoolId);
@@ -30,66 +40,22 @@ function switchSchool() {
   });
 }
 
-// Dummy student data
-const student = {
-  name: 'Jason Black',
-  roll: '1406',
-  email: 'jasonblack@gmail.com',
-  phone: '+88 9856418',
-  gender: 'Male',
-  father: 'Alex Black',
-  mother: 'Jesica Black',
-  dob: '14, June 2006',
-  religion: 'Christian',
-  occupation: 'Banker',
-  admission: '05, June 2012',
-  address: 'House 10, Road 6, Australia.',
-  class: '11th',
-  section: 'Pink',
-  about: 'Hi there! My name is Jason, and I am a 11th standard student. I love going to school and learning new things every day. My favourite subject is maths, and I enjoy playing with my friends.'
+// Get role display name
+const getRoleDisplayName = (roles: string[]) => {
+  if (roles.includes('superadmin')) return 'Super Admin';
+  if (roles.includes('admin')) return 'Admin';
+  if (roles.includes('principal')) return 'Principal';
+  if (roles.includes('teacher')) return 'Teacher';
+  return 'User';
 };
 
-// Stats cards with icons
-const stats = [
-  { label: 'Events', value: 6 },
-  { label: 'Growth', value: '72%' },
-];
-
-// Attendance chart data
-const attendanceSeries = [60, 10, 20, 10];
-const attendanceOptions = {
-  chart: { type: 'donut' },
-  labels: ['Present', 'Half Day Present', 'Late Coming', 'Absent'],
-  colors: ['#4f46e5', '#fbbf24', '#34d399', '#f87171'],
-  legend: { position: 'bottom' },
-  dataLabels: { enabled: false },
-};
-
-// Calendar events
-const calendarEvents = ref([
-  { title: 'Maths Exam', date: '2023-02-16' },
-  { title: 'Sports Day', date: '2023-02-10' },
-]);
-
-// Exam results
-const examResults = [
-  { id: '#mat21', type: 'Class Test', subject: 'Maths', grade: 'A', percent: 89, date: '21 Jul 2022' },
-  { id: '#mat21', type: 'Quarterly Test', subject: 'English', grade: 'A+', percent: 93, date: '14 Jun 2022' },
-  { id: '#mat21', type: 'Oral Test', subject: 'Physics', grade: 'B', percent: 78, date: '10 Mar 2022' },
-  { id: '#mat21', type: 'Class Test', subject: 'Chemistry', grade: 'A', percent: 88, date: '06 Jan 2022' },
-];
-
-// Calendar config
-const calendarOptions = {
-  plugins: [dayGridPlugin],
-  initialView: 'dayGridMonth',
-  events: calendarEvents.value,
-  height: 350,
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: ''
-  },
+// Get role-specific welcome message
+const getWelcomeMessage = (roles: string[]) => {
+  if (roles.includes('superadmin')) return 'System Overview';
+  if (roles.includes('admin')) return 'School Management';
+  if (roles.includes('principal')) return 'Academic Overview';
+  if (roles.includes('teacher')) return 'My Classes';
+  return 'Dashboard';
 };
 </script>
 
@@ -98,115 +64,211 @@ const calendarOptions = {
   <Head title="Dashboard" />
   <AppLayout>
     <div class="p-4 md:p-8 bg-gradient-to-br from-indigo-50 via-white to-pink-50 min-h-screen">
-      <!-- School Switcher -->
-      <div v-if="props.schools && props.schools.length" class="mb-6 flex justify-end">
-        <select v-model="selectedSchool" @change="switchSchool" class="border rounded px-3 py-2">
-          <option v-for="school in props.schools" :key="(school as School).id" :value="(school as School).id">
-            {{ (school as School).name }}
-          </option>
-        </select>
+      <!-- Error Messages -->
+      <div v-if="props.errors && props.errors.length > 0" class="mb-6">
+        <div v-for="error in props.errors" :key="error"
+          class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-2">
+          {{ error }}
+        </div>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-        <!-- Profile Card -->
-        <div
-          class="col-span-1 bg-white/90 rounded-2xl shadow-xl p-6 flex flex-col items-center relative overflow-hidden border border-indigo-100">
-          <div class="absolute -top-8 -left-8 w-32 h-32 bg-indigo-100 rounded-full opacity-30 z-0"></div>
-          <div class="relative mb-4 z-10 flex items-center justify-center">
-            <svg width="130" height="130" viewBox="0 0 130 130" class="absolute">
-              <defs>
-                <linearGradient id="profileRingGradient" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stop-color="#6366f1" />
-                  <stop offset="100%" stop-color="#06b6d4" />
-                </linearGradient>
-              </defs>
-              <circle cx="65" cy="65" r="58" fill="none" stroke="url(#profileRingGradient)" stroke-width="6"
-                stroke-dasharray="32 8 32 8 32 8 32 8" stroke-linecap="round" />
-            </svg>
-            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile"
-              class="w-28 h-28 rounded-full border-4 border-white shadow-lg relative z-10" />
+
+      <!-- Header Section -->
+      <div class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{ getWelcomeMessage(props.userRoles) }}</h1>
+            <p class="text-gray-600">Welcome back, {{ props.user.name }} ({{ getRoleDisplayName(props.userRoles) }})</p>
           </div>
-          <h2 class="text-xl font-bold z-10">{{ student.name }} <span class="text-indigo-500">({{ student.roll
-          }})</span></h2>
-          <p class="text-sm text-gray-500 z-10">{{ student.email }}</p>
-          <p class="text-sm text-gray-500 mb-2 z-10">{{ student.phone }}</p>
-          <div class="w-full mt-4 z-10">
-            <div class="bg-indigo-50 rounded p-2 mb-2 text-xs font-semibold">Personal Details</div>
-            <div class="text-xs text-gray-700 space-y-1">
-              <div><b>Gender:</b> {{ student.gender }}</div>
-              <div><b>Father's Name:</b> {{ student.father }}</div>
-              <div><b>Mother's Name:</b> {{ student.mother }}</div>
-              <div><b>Date Of Birth:</b> {{ student.dob }}</div>
-              <div><b>Religion:</b> {{ student.religion }}</div>
-              <div><b>Father Occupation:</b> {{ student.occupation }}</div>
-              <div><b>Admission Date:</b> {{ student.admission }}</div>
-              <div><b>Address:</b> {{ student.address }}</div>
-              <div><b>Class:</b> {{ student.class }}</div>
-              <div><b>Section:</b> {{ student.section }}</div>
-            </div>
+
+          <!-- School Switcher -->
+          <div v-if="props.schools && props.schools.length > 0" class="flex items-center gap-4">
+            <span class="text-sm text-gray-600">Active School:</span>
+            <select v-model="selectedSchool" @change="switchSchool"
+              class="border rounded-lg px-3 py-2 bg-white shadow-sm">
+              <option v-for="school in props.schools" :key="school.id" :value="school.id">
+                {{ school.name }}
+              </option>
+            </select>
           </div>
-          <div class="flex gap-3 mt-4 z-10">
-            <a href="#" class="text-blue-500 hover:text-blue-700 transition"><i class="fab fa-facebook fa-lg"></i></a>
-            <a href="#" class="text-sky-400 hover:text-sky-600 transition"><i class="fab fa-twitter fa-lg"></i></a>
-            <a href="#" class="text-pink-500 hover:text-pink-700 transition"><i class="fab fa-instagram fa-lg"></i></a>
-          </div>
-          <div class="mt-4 text-xs text-gray-600 z-10 text-center">{{ student.about }}</div>
         </div>
 
-        <!-- Main Content -->
-        <div class="col-span-1 md:col-span-3 flex flex-col gap-8">
-          <!-- Top Stats Cards -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard v-for="stat in stats" :key="stat.label" :label="stat.label" :value="stat.value" />
-          </div>
+        <!-- Active School Info -->
+        <div v-if="props.activeSchool" class="bg-white rounded-lg p-4 shadow-sm border">
+          <h3 class="font-semibold text-gray-800 mb-2">Current School: {{ props.activeSchool.name }}</h3>
+          <p class="text-sm text-gray-600">{{ props.activeSchool.address || 'No address available' }}</p>
+        </div>
+      </div>
 
-          <!-- Middle Section: Attendance Chart & Calendar -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Attendance Chart -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center border border-yellow-100">
-              <div class="font-bold text-yellow-600 text-lg mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-chart-pie"></i> Attendance
-              </div>
-              <VueApexCharts type="donut" width="250" :options="attendanceOptions" :series="attendanceSeries" />
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard v-for="stat in props.stats" :key="stat.label" :label="stat.label" :value="stat.value"
+          :icon="stat.icon" :color="stat.color" :change="stat.change" />
+      </div>
+
+      <!-- Role-specific content -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+          <div class="space-y-3">
+            <div v-if="props.userRoles.includes('superadmin')" class="space-y-2">
+              <button class="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <i class="fas fa-school mr-2 text-blue-600"></i>
+                Manage Schools
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                <i class="fas fa-users mr-2 text-green-600"></i>
+                System Users
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                <i class="fas fa-cog mr-2 text-purple-600"></i>
+                System Settings
+              </button>
             </div>
-            <!-- Spacer -->
-            <div></div>
-            <!-- Event Calendar -->
-            <div class="bg-white rounded-2xl shadow-lg p-6 border border-pink-100">
-              <div class="font-bold text-pink-600 text-lg mb-2 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days"></i> Event Calendar
-              </div>
-              <FullCalendar :options="calendarOptions" />
+
+            <div v-if="props.userRoles.includes('admin')" class="space-y-2">
+              <button class="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <i class="fas fa-user-plus mr-2 text-blue-600"></i>
+                New Admission
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                <i class="fas fa-chalkboard-teacher mr-2 text-green-600"></i>
+                Manage Teachers
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                <i class="fas fa-money-bill mr-2 text-purple-600"></i>
+                Fee Management
+              </button>
+            </div>
+
+            <div v-if="props.userRoles.includes('principal')" class="space-y-2">
+              <button class="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <i class="fas fa-chart-line mr-2 text-blue-600"></i>
+                Academic Reports
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                <i class="fas fa-calendar-check mr-2 text-green-600"></i>
+                Attendance Overview
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                <i class="fas fa-trophy mr-2 text-purple-600"></i>
+                Performance Analysis
+              </button>
+            </div>
+
+            <div v-if="props.userRoles.includes('teacher')" class="space-y-2">
+              <button class="w-full text-left p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <i class="fas fa-file-alt mr-2 text-blue-600"></i>
+                Create Paper
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors">
+                <i class="fas fa-chart-bar mr-2 text-green-600"></i>
+                Publish Results
+              </button>
+              <button class="w-full text-left p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors">
+                <i class="fas fa-users mr-2 text-purple-600"></i>
+                My Students
+              </button>
             </div>
           </div>
+        </div>
 
-          <!-- Exam Results Table -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 overflow-x-auto border border-indigo-100">
-            <div class="font-bold text-indigo-600 text-lg mb-2 flex items-center gap-2">
-              <i class="fa-solid fa-table"></i> All Exam Results
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
+          <div class="space-y-3">
+            <!-- Recent Students -->
+            <div v-if="props.recentData?.recentStudents && props.recentData.recentStudents.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Students</h4>
+              <div v-for="student in props.recentData.recentStudents.slice(0, 3)" :key="student.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ student.name }}</p>
+                  <p class="text-xs text-gray-500">{{ student.school?.name || 'School not assigned' }}</p>
+                </div>
+              </div>
             </div>
-            <table class="min-w-full text-xs rounded-xl overflow-hidden">
-              <thead>
-                <tr class="text-left text-gray-700 border-b font-bold bg-indigo-50">
-                  <th class="py-2 px-2">Exam Id</th>
-                  <th class="py-2 px-2">Type</th>
-                  <th class="py-2 px-2">Subject</th>
-                  <th class="py-2 px-2">Grade</th>
-                  <th class="py-2 px-2">%</th>
-                  <th class="py-2 px-2">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(result, idx) in examResults" :key="result.subject"
-                  :class="idx % 2 === 0 ? 'bg-white' : 'bg-indigo-50' + ' hover:bg-indigo-100'">
-                  <td class="py-2 px-2 font-mono">{{ result.id }}</td>
-                  <td class="py-2 px-2">{{ result.type }}</td>
-                  <td class="py-2 px-2">{{ result.subject }}</td>
-                  <td class="py-2 px-2 font-bold">{{ result.grade }}</td>
-                  <td class="py-2 px-2">{{ result.percent }}</td>
-                  <td class="py-2 px-2">{{ result.date }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+            <!-- Recent Fees -->
+            <div v-if="props.recentData?.recentFees && props.recentData.recentFees.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Fees</h4>
+              <div v-for="fee in props.recentData.recentFees.slice(0, 3)" :key="fee.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ fee.student?.name || 'Unknown Student' }}</p>
+                  <p class="text-xs text-gray-500">Amount: ${{ fee.amount }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Results -->
+            <div v-if="props.recentData?.recentResults && props.recentData.recentResults.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Results</h4>
+              <div v-for="result in props.recentData.recentResults.slice(0, 3)" :key="result.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ result.student?.name || 'Unknown Student' }}</p>
+                  <p class="text-xs text-gray-500">Score: {{ result.percentage }}%</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- My Students (for teachers) -->
+            <div v-if="props.recentData?.myStudents && props.recentData.myStudents.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">My Students</h4>
+              <div v-for="student in props.recentData.myStudents.slice(0, 3)" :key="student.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ student.name }}</p>
+                  <p class="text-xs text-gray-500">Class: {{ student.class?.name || 'Not assigned' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- My Papers (for teachers) -->
+            <div v-if="props.recentData?.myPapers && props.recentData.myPapers.length > 0">
+              <h4 class="text-sm font-medium text-gray-700 mb-2">My Papers</h4>
+              <div v-for="paper in props.recentData.myPapers.slice(0, 3)" :key="paper.id"
+                class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                <div>
+                  <p class="text-sm font-medium">{{ paper.title || 'Untitled Paper' }}</p>
+                  <p class="text-xs text-gray-500">Subject: {{ paper.subject || 'Not specified' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- No recent activity -->
+            <div v-if="!props.recentData || Object.keys(props.recentData).length === 0" class="text-center py-4">
+              <p class="text-sm text-gray-500">No recent activity to display</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">System Status</h3>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">Database</span>
+              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Online</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">Storage</span>
+              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">75% Used</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">Last Backup</span>
+              <span class="text-xs text-gray-500">2 hours ago</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-sm text-gray-600">Active Users</span>
+              <span class="text-xs text-gray-500">24 online</span>
+            </div>
           </div>
         </div>
       </div>

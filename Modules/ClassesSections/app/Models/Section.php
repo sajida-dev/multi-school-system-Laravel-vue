@@ -12,7 +12,6 @@ class Section extends Model
 
     protected $fillable = [
         'name',
-        'class_id',
     ];
 
     protected $dates = ['deleted_at'];
