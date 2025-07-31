@@ -229,7 +229,7 @@
 import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
 import "@webzlodimir/vue-bottom-sheet/dist/style.css";
 import { ref, watch, computed } from "vue";
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
