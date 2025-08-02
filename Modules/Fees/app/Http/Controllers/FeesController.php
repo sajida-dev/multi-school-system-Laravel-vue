@@ -11,8 +11,8 @@ use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Requests\Modules\Fees\App\Http\Requests\StoreFeeRequest;
-use App\Http\Requests\Modules\Fees\App\Http\Requests\UpdateFeeRequest;
+use Modules\Fees\App\Http\Requests\StoreFeeRequest;
+use Modules\Fees\App\Http\Requests\UpdateFeeRequest;
 
 class FeesController extends Controller
 {

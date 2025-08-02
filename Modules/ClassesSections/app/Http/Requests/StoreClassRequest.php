@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Modules\ClassesSections\App\Http\Requests;
+namespace Modules\ClassesSections\App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateClassRequest extends FormRequest
+class StoreClassRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -19,9 +19,8 @@ class UpdateClassRequest extends FormRequest
      */
     public function rules(): array
     {
-        $classId = $this->route('class');
         return [
-            'name' => 'required|string|max:255|unique:classes,name,' . $classId
+            'name' => 'required|string|max:255|unique:classes,name'
         ];
     }
 

@@ -957,4 +957,78 @@ class SubjectsController extends Controller
             ], 500);
         }
     }
+
+    public function removeSubjectFromClass(Request $request)
+    {
+        Log::info('removeSubjectFromClass called', [
+            'request_data' => $request->all(),
+            'active_school_id' => session('active_school_id')
+        ]);
+
+        $request->validate([
+            'class_id' => 'required|exists:classes,id',
+            'subject_id' => 'required|exists:subjects,id'
+        ]);
+
+        try {
+            // Get active school ID for additional validation
+            $activeSchoolId = session('active_school_id');
+            if (!$activeSchoolId) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'No active school selected'
+                ], 400);
+            }
+
+            // Check if the assignment exists before deleting
+            $existingAssignment = ClassSubject::where('class_id', $request->class_id)
+                ->where('subject_id', $request->subject_id)
+                ->where('school_id', $activeSchoolId)
+                ->first();
+
+            Log::info('Subject-class assignment lookup result', [
+                'class_id' => $request->class_id,
+                'subject_id' => $request->subject_id,
+                'school_id' => $activeSchoolId,
+                'assignment_found' => $existingAssignment ? true : false,
+                'assignment_id' => $existingAssignment ? $existingAssignment->id : null
+            ]);
+
+            if (!$existingAssignment) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Subject-class assignment not found'
+                ], 404);
+            }
+
+            // Delete the subject-class assignment
+            $deleted = ClassSubject::where('class_id', $request->class_id)
+                ->where('subject_id', $request->subject_id)
+                ->where('school_id', $activeSchoolId)
+                ->delete();
+
+            Log::info('Subject-class assignment removed', [
+                'class_id' => $request->class_id,
+                'subject_id' => $request->subject_id,
+                'school_id' => $activeSchoolId,
+                'deleted_count' => $deleted
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Subject removed from class successfully!'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error removing subject from class', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'data' => $request->all()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to remove subject from class: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

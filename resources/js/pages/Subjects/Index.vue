@@ -198,12 +198,12 @@
                         </Label>
                         <div class="space-y-4">
                             <select id="classSelect" v-model="selectedClass"
-                                class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                 <option value="">Choose a class...</option>
                                 <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                             </select>
                             <Button @click="loadClassAssignments" :disabled="!selectedClass"
-                                class="w-full px-6 py-4 text-base font-medium">
+                                class="w-full px-4 py-3 text-sm font-medium">
                                 <RefreshCw class="w-5 h-5 mr-3" />
                                 Load Assignments
                             </Button>
@@ -250,7 +250,7 @@
                         <!-- Save Button -->
                         <div class="pt-4">
                             <Button @click="saveSubjectAssignments" :disabled="!selectedClass || loading"
-                                class="w-full px-8 py-4 text-base font-medium">
+                                class="w-full px-6 py-3 text-sm font-medium">
                                 <Loader2 v-if="loading" class="w-5 h-5 mr-3 animate-spin" />
                                 <CheckCircle v-else class="w-5 h-5 mr-3" />
                                 {{ loading ? 'Saving...' : `Save ${assignedSubjectsIds.length}
@@ -307,7 +307,7 @@
                                     Select Class <span class="text-red-500">*</span>
                                 </Label>
                                 <select id="teacherClassSelect" v-model="selectedClass"
-                                    class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                     <option value="">Choose a class...</option>
                                     <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                                 </select>
@@ -321,7 +321,7 @@
                                     Select Subject <span class="text-red-500">*</span>
                                 </Label>
                                 <select id="teacherSubjectSelect" v-model="selectedSubject"
-                                    class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                     <option value="">Choose a subject...</option>
                                     <option v-for="subject in availableSubjectsForClass" :key="subject.id"
                                         :value="subject.id">
@@ -338,7 +338,7 @@
                                     Select Teacher <span class="text-red-500">*</span>
                                 </Label>
                                 <select id="teacherSelect" v-model="selectedTeacher"
-                                    class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                    class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                     <option value="">Choose a teacher...</option>
                                     <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                                         {{ teacher.name }}
@@ -350,7 +350,7 @@
                             <div class="pt-2">
                                 <Button @click="assignTeacherToSubject"
                                     :disabled="!selectedClass || !selectedSubject || !selectedTeacher || loading"
-                                    class="w-full px-6 py-4 text-base font-medium bg-blue-600 hover:bg-blue-700">
+                                    class="w-full px-4 py-3 text-sm font-medium bg-blue-600 hover:bg-blue-700">
                                     <Plus v-if="!loading" class="w-5 h-5 mr-3" />
                                     <Loader2 v-else class="w-5 h-5 mr-3 animate-spin" />
                                     {{ loading ? 'Assigning...' : 'Assign Teacher to Subject' }}
@@ -388,7 +388,7 @@
                                 Filter by Teacher
                             </Label>
                             <select id="teacherFilter" v-model="selectedTeacherFilter"
-                                class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                 <option value="">All Teachers</option>
                                 <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                                     {{ teacher.name }}
@@ -513,7 +513,7 @@
                         </Label>
                         <Input id="name" v-model="form.name" type="text" required
                             placeholder="e.g., Mathematics, English, Science"
-                            class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                         <InputError :message="form.errors.name" />
                     </div>
                     <div>
@@ -522,7 +522,7 @@
                             Subject Code
                         </Label>
                         <Input id="code" v-model="form.code" type="text" placeholder="e.g., MATH101, ENG201"
-                            class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                         <InputError :message="form.errors.code" />
                         <p class="text-xs text-gray-500 mt-2">Optional: A short code to identify the subject</p>
                     </div>
@@ -533,7 +533,7 @@
                             Description
                         </Label>
                         <textarea id="description" v-model="form.description"
-                            class="w-full p-4 text-base border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                             rows="4" placeholder="Brief description of the subject (optional)"></textarea>
                         <InputError :message="form.errors.description" />
                         <p class="text-xs text-gray-500 mt-2">Optional: Provide additional details about the subject</p>
@@ -842,7 +842,7 @@ function saveSubjectAssignments() {
                         : `${subjectCount} subject${subjectCount !== 1 ? 's' : ''} assigned to ${selectedClassObj.name} successfully!`;
                     toast.success(successMessage);
                     // Refresh assignments data using Inertia
-                    router.visit('/subjects', {
+                    router.visit(route('subjects.index'), {
                         only: ['assignments'],
                         preserveState: true,
                         preserveScroll: true,
@@ -916,14 +916,14 @@ async function handleSubmit() {
 
     try {
         if (isEdit.value && editingSubject.value) {
-            router.put(`/subjects/${editingSubject.value.id}`, {
+            router.put(route('subjects.update', editingSubject.value.id), {
                 name: form.value.name,
                 code: form.value.code,
                 description: form.value.description
             }, {
                 onSuccess: () => {
                     closeModal();
-                    router.visit('/subjects', {
+                    router.visit(route('subjects.index'), {
                         only: ['subjects'],
                         preserveState: true,
                         preserveScroll: true,
@@ -945,7 +945,7 @@ async function handleSubmit() {
                 }
             });
         } else {
-            router.post('/subjects', {
+            router.post(route('subjects.store'), {
                 name: form.value.name,
                 code: form.value.code,
                 description: form.value.description
@@ -953,7 +953,7 @@ async function handleSubmit() {
                 onSuccess: () => {
                     toast.success('Subject created successfully!');
                     closeModal();
-                    router.visit('/subjects', {
+                    router.visit(route('subjects.index'), {
                         only: ['subjects'],
                         preserveState: true,
                         preserveScroll: true,
@@ -990,12 +990,12 @@ async function confirmDelete() {
     if (!subjectToDelete.value) return;
     loading.value = true;
 
-    router.delete(`/subjects/${subjectToDelete.value.id}`, {
+    router.delete(route('subjects.destroy', subjectToDelete.value.id), {
         onSuccess: () => {
             toast.success('Subject deleted!');
             showDeleteDialog.value = false;
             subjectToDelete.value = null;
-            router.visit('/subjects', {
+            router.visit(route('subjects.index'), {
                 only: ['subjects'],
                 preserveState: true,
                 preserveScroll: true,
@@ -1018,7 +1018,7 @@ function cancelDelete() {
 
 async function loadAssignments() {
     // Refresh assignments data using Inertia
-    router.visit('/subjects', {
+    router.visit(route('subjects.index'), {
         only: ['assignments'],
         preserveState: true,
         preserveScroll: true,
@@ -1026,34 +1026,7 @@ async function loadAssignments() {
     });
 }
 
-async function removeAssignment(assignment: any) {
-    if (!confirm('Are you sure you want to remove this assignment?')) return;
 
-    loading.value = true;
-
-    router.delete('/subjects/remove-assignment', {
-        data: {
-            class_id: assignment.class_id,
-            subject_id: assignment.subject_id,
-            teacher_id: assignment.teacher_id
-        },
-        onSuccess: () => {
-            toast.success('Assignment removed successfully!');
-            router.visit('/subjects', {
-                only: ['assignments'],
-                preserveState: true,
-                preserveScroll: true,
-                replace: true
-            });
-        },
-        onError: () => {
-            toast.error('Failed to remove assignment.');
-        },
-        onFinish: () => {
-            loading.value = false;
-        }
-    });
-}
 
 async function loadClassAssignments() {
     if (!selectedClass.value) {
@@ -1094,23 +1067,28 @@ async function loadClassAssignments() {
     }
 }
 
+
 async function unassignSubject(subjectId: number) {
-    if (!confirm('Are you sure you want to unassign this subject?')) return;
+    showConfirmation('Are you sure you want to unassign this subject?', () => {
+        loading.value = true;
 
-    loading.value = true;
-
-    router.delete(`/api/classes/${selectedClass.value}/subjects/${subjectId}`, {
-        onSuccess: () => {
-            toast.success('Subject unassigned successfully!');
-            // Remove from assigned subjects
-            assignedSubjects.value = assignedSubjects.value.filter(s => s.id !== subjectId);
-        },
-        onError: () => {
-            toast.error('Failed to unassign subject');
-        },
-        onFinish: () => {
-            loading.value = false;
-        }
+        router.delete(route('subjects.remove-subject-from-class'), {
+            data: {
+                class_id: selectedClass.value,
+                subject_id: subjectId
+            },
+            onSuccess: () => {
+                toast.success('Subject unassigned successfully!');
+                // Remove from assigned subjects
+                assignedSubjects.value = assignedSubjects.value.filter(s => s.id !== subjectId);
+            },
+            onError: () => {
+                toast.error('Failed to unassign subject');
+            },
+            onFinish: () => {
+                loading.value = false;
+            }
+        });
     });
 }
 
@@ -1153,7 +1131,7 @@ function removeTeacher(teacherId: string | number) {
 
 // Function to refresh teacher assignments data using Inertia
 function refreshTeacherAssignments() {
-    router.visit('/subjects', {
+    router.visit(route('subjects.index'), {
         only: ['teacherAssignments'],
         preserveState: true,
         preserveScroll: true,
@@ -1232,7 +1210,7 @@ function removeTeacherAssignment(teacherId: number) {
     showConfirmation(`Are you sure you want to remove all assignments for ${teacherName}?`, () => {
         loading.value = true;
 
-        router.delete('/subjects/remove-teacher-assignment', {
+        router.delete(route('subjects.remove-teacher-assignment'), {
             data: { teacher_id: teacherId },
             onSuccess: () => {
                 toast.success(`All assignments removed for ${teacherName} successfully!`);
@@ -1259,7 +1237,7 @@ function removeSpecificAssignment(teacherId: number, classId: number, subjectId:
     showConfirmation(`Are you sure you want to remove ${teacherName} from ${subjectName} in ${className}?`, () => {
         loading.value = true;
 
-        router.delete('/subjects/remove-specific-assignment', {
+        router.delete(route('subjects.remove-specific-assignment'), {
             data: {
                 teacher_id: teacherId,
                 class_id: classId,

@@ -10,8 +10,8 @@ use Modules\ClassesSections\app\Models\ClassModel;
 use Inertia\Inertia;
 use Modules\ClassesSections\app\Models\Section;
 use Modules\ClassesSections\app\Models\ClassSchool;
-use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\StoreClassRequest;
-use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\UpdateClassRequest;
+use Modules\ClassesSections\App\Http\Requests\StoreClassRequest;
+use Modules\ClassesSections\App\Http\Requests\UpdateClassRequest;
 use Illuminate\Support\Facades\DB;
 
 class ClassController extends Controller

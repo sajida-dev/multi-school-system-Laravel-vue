@@ -26,6 +26,7 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
     Route::delete('subjects/remove-assignment', [SubjectsController::class, 'removeAssignment'])->name('subjects.remove-assignment');
     Route::delete('subjects/remove-specific-assignment', [SubjectsController::class, 'removeSpecificAssignment'])->name('subjects.remove-specific-assignment');
     Route::delete('subjects/remove-teacher-assignment', [SubjectsController::class, 'removeTeacherAssignment'])->name('subjects.remove-teacher-assignment');
+    Route::delete('subjects/remove-subject-from-class', [SubjectsController::class, 'removeSubjectFromClass'])->name('subjects.remove-subject-from-class');
     Route::get('subjects/debug/teacher-assignments', [SubjectsController::class, 'debugTeacherAssignments'])->name('subjects.debug.teacher-assignments');
 
     Route::get('/manage/classes-sections', [Modules\ClassesSections\Http\Controllers\ClassesSectionsController::class, 'index'])->name('classes-sections.manage');

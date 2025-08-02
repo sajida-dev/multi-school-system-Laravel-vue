@@ -15,6 +15,7 @@ use Inertia\Inertia;
 use Modules\Teachers\Models\Teacher;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class TeachersController extends Controller
 {
@@ -99,8 +100,43 @@ class TeachersController extends Controller
         // Use the global selected school from session
         $schoolId = session('active_school_id');
 
+        // If no school in session, try to get from user's last_school_id
         if (!$schoolId) {
-            return redirect()->back()->withErrors(['error' => 'No school is currently selected. Please select a school first.']);
+            /** @var User $user */
+            $user = Auth::user();
+            if ($user && $user->last_school_id) {
+                $schoolId = $user->last_school_id;
+                // Set it in session for future use
+                session(['active_school_id' => $schoolId]);
+            }
+        }
+
+        // If still no school, try to get the first available school for the user
+        if (!$schoolId) {
+            /** @var User $user */
+            $user = Auth::user();
+            if ($user) {
+                // Check if user has superadmin role
+                if ($user->roles()->where('name', 'superadmin')->exists()) {
+                    $firstSchool = \Modules\Schools\App\Models\School::first();
+                    if ($firstSchool) {
+                        $schoolId = $firstSchool->id;
+                        session(['active_school_id' => $schoolId]);
+                    }
+                } elseif ($user->roles()->where('name', 'admin')->exists()) {
+                    // For admin users, get their associated schools
+                    $firstSchool = $user->schools()->first();
+                    if ($firstSchool) {
+                        $schoolId = $firstSchool->id;
+                        session(['active_school_id' => $schoolId]);
+                    }
+                }
+            }
+        }
+
+        // If still no school found, show a proper error message
+        if (!$schoolId) {
+            return redirect()->back()->withErrors(['error' => 'No school is available. Please contact an administrator to set up schools.']);
         }
 
         // Get roles for the selected school (including global roles)

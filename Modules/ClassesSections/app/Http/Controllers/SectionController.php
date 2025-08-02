@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\ClassesSections\app\Models\Section;
 use Inertia\Inertia;
-use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\StoreSectionRequest;
-use App\Http\Requests\Modules\ClassesSections\App\Http\Requests\UpdateSectionRequest;
+use Modules\ClassesSections\App\Http\Requests\StoreSectionRequest;
+use Modules\ClassesSections\App\Http\Requests\UpdateSectionRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 

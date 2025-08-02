@@ -18,8 +18,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
-use App\Http\Requests\Modules\Admissions\App\Http\Requests\StoreStudentRequest;
-use App\Http\Requests\Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
+use Modules\Admissions\App\Http\Requests\StoreStudentRequest;
+use Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
 use Illuminate\Support\Facades\DB;
 
 class AdmissionsController extends Controller

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Modules\ClassesSections\App\Http\Requests;
+namespace Modules\ClassesSections\App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Modules\ClassesSections\App\Models\Section;

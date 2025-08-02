@@ -5,11 +5,43 @@
 
         <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
             <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-md p-4 sm:p-6">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center justify-between my-6">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Create New Paper</h1>
                     <Button variant="outline" @click="goBack">Back to Papers</Button>
                 </div>
-
+                <!-- Help or Instruction section -->
+                <div
+                    class="my-3 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                    <h4 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
+                        <HelpCircle class="w-5 h-5" />
+                        Quick Tips
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-200">
+                        <div>
+                            <p class="font-medium mb-2 flex items-center gap-2">
+                                <FileText class="w-4 h-4" />
+                                Adding Questions:
+                            </p>
+                            <ul class="space-y-1 ml-6">
+                                <li>• Click "Add Question" to add new questions</li>
+                                <li>• Fill in all required fields (marked with *)</li>
+                                <li>• Use different sections to organize your paper</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="font-medium mb-2 flex items-center gap-2">
+                                <Target class="w-4 h-4" />
+                                Question Types:
+                            </p>
+                            <ul class="space-y-1 ml-6">
+                                <li>• Multiple Choice: Add 2-4 options</li>
+                                <li>• True/False: Simple yes/no questions</li>
+                                <li>• Short/Long Answer: Text-based responses</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- create form -->
                 <form @submit.prevent="submitForm" class="space-y-4 sm:space-y-6">
                     <!-- Paper Information -->
                     <div class="bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 sm:p-4">
@@ -24,7 +56,7 @@
                                     Paper Title <span class="text-red-500">*</span>
                                 </label>
                                 <input v-model="form.title" type="text" placeholder="Enter paper title"
-                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     :class="{ 'border-red-500 ring-red-500': errors.title }" />
                                 <InputError :message="errors.title" />
                             </div>
@@ -36,7 +68,7 @@
                                     Class <span class="text-red-500">*</span>
                                 </label>
                                 <select v-model="form.class_id"
-                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     :class="{ 'border-red-500 ring-red-500': errors.class_id }">
                                     <option value="">Select Class</option>
                                     <option v-for="classItem in props.classes" :key="classItem.id" :value="classItem.id"
@@ -54,7 +86,7 @@
                                     Section (Optional)
                                 </label>
                                 <select v-model="form.section_id"
-                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     :class="{ 'border-red-500 ring-red-500': errors.section_id }">
                                     <option value="">Select Section</option>
                                     <option v-for="section in props.sections" :key="section.id" :value="section.id"
@@ -75,7 +107,7 @@
                                     Teacher <span class="text-red-500">*</span>
                                 </label>
                                 <select v-model="form.teacher_id"
-                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     :class="{ 'border-red-500 ring-red-500': errors.teacher_id }">
                                     <option value="">Select Teacher</option>
                                     <option v-for="teacher in props.teachers" :key="teacher.id" :value="teacher.id"
@@ -93,11 +125,11 @@
                                     Status
                                 </label>
                                 <div
-                                    class="flex items-center space-x-4 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-neutral-900">
+                                    class="flex items-center space-x-4 p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-neutral-900">
                                     <label class="flex items-center cursor-pointer">
                                         <input v-model="form.published" type="checkbox" value="true"
-                                            class="w-5 h-5 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
-                                        <span class="ml-3 text-base text-gray-700 dark:text-gray-200">
+                                            class="w-4 h-4 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-200">
                                             Published
                                         </span>
                                     </label>
@@ -116,9 +148,9 @@
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">Subject Details
                         </h3>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <!-- Subject Selection (Admin/SuperAdmin) or Display (Teachers) -->
-                            <div class="md:col-span-2">
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                                     <BookOpen class="w-4 h-4 inline mr-2" />
                                     Subject <span class="text-red-500">*</span>
@@ -127,7 +159,7 @@
                                 <!-- For Admin/SuperAdmin: Show subject dropdown -->
                                 <div v-if="isAdmin">
                                     <select v-model="form.subject_id" @change="onSubjectChange"
-                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                         :class="{ 'border-red-500 ring-red-500': errors.subject_id }"
                                         :disabled="!form.class_id">
                                         <option :value="''">{{ subjectPlaceholderText }}</option>
@@ -137,48 +169,30 @@
                                         </option>
                                     </select>
 
-                                    <!-- Help text for admin -->
-                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                        <HelpCircle class="w-4 h-4 inline mr-1" />
-                                        Select the subject for which you want to create this exam paper
-                                    </p>
-
                                     <!-- Warning when no subjects are available -->
                                     <div v-if="form.class_id && getAvailableSubjects.length === 0"
-                                        class="mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg">
-                                        <div class="flex items-start gap-2">
-                                            <AlertCircle class="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                                        class="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded text-xs">
+                                        <div class="flex items-start gap-1">
+                                            <AlertCircle class="w-3 h-3 text-orange-600 mt-0.5 flex-shrink-0" />
                                             <div>
-                                                <p class="text-sm font-medium text-orange-800 dark:text-orange-200">
-                                                    No subjects assigned to this class
-                                                </p>
-                                                <p class="text-xs text-orange-700 dark:text-orange-300 mt-1">
-                                                    Please go to <strong>Subjects → Assign to Classes</strong> and
-                                                    assign subjects to this class first.
+                                                <p class="text-orange-800 dark:text-orange-200 font-medium">
+                                                    No subjects assigned
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- For Teachers: Show read-only subject display with better styling -->
+                                <!-- For Teachers: Show read-only subject display -->
                                 <div v-else
-                                    class="w-full border-2 border-green-200 dark:border-green-700 rounded-lg px-4 py-3 bg-green-50 dark:bg-green-900/20">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                            <BookOpen class="w-5 h-5 text-white" />
-                                        </div>
-                                        <div>
-                                            <span v-if="getAvailableSubjects.length > 0"
-                                                class="text-green-800 dark:text-green-200 font-medium">
-                                                {{ getAvailableSubjects[0].name }} ({{ getAvailableSubjects[0].code }})
-                                            </span>
-                                            <span v-else class="text-gray-500">No subjects assigned</span>
-                                            <p class="text-sm text-green-600 dark:text-green-300 mt-1">
-                                                <CheckCircle class="w-4 h-4 inline mr-1" />
-                                                This is your assigned subject for this class
-                                            </p>
-                                        </div>
+                                    class="w-full border border-green-200 dark:border-green-700 rounded-lg px-3 py-2 bg-green-50 dark:bg-green-900/20">
+                                    <div class="flex items-center gap-2">
+                                        <BookOpen class="w-4 h-4 text-green-600" />
+                                        <span v-if="getAvailableSubjects.length > 0"
+                                            class="text-green-800 dark:text-green-200 text-sm font-medium">
+                                            {{ getAvailableSubjects[0].name }}
+                                        </span>
+                                        <span v-else class="text-gray-500 text-sm">No subjects assigned</span>
                                     </div>
                                 </div>
 
@@ -192,7 +206,7 @@
                                     Total Marks
                                 </label>
                                 <input v-model="form.total_marks" type="number" min="1" placeholder="e.g., 35"
-                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     :class="{ 'border-red-500 ring-red-500': errors.total_marks }" />
                                 <InputError :message="errors.total_marks" />
                             </div>
@@ -204,7 +218,7 @@
                                     Time Duration (Minutes)
                                 </label>
                                 <input v-model="form.time_duration" type="number" min="1" placeholder="e.g., 90"
-                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                    class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                     :class="{ 'border-red-500 ring-red-500': errors.time_duration }" />
                                 <InputError :message="errors.time_duration" />
                             </div>
@@ -216,9 +230,9 @@
                                 <BookOpen class="w-4 h-4 inline mr-2" />
                                 Instructions for Students
                             </label>
-                            <textarea v-model="form.instructions" rows="4"
+                            <textarea v-model="form.instructions" rows="3"
                                 placeholder="Enter any special instructions for students (e.g., 'All questions are compulsory', 'Show your work for numerical questions')..."
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                 :class="{ 'border-red-500 ring-red-500': errors.instructions }"></textarea>
                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                 <Info class="w-4 h-4 inline mr-1" />
@@ -232,10 +246,7 @@
                     <div class="bg-gray-50 dark:bg-neutral-800 rounded-lg p-4 sm:p-6">
                         <div class="flex items-center justify-between mb-4 sm:mb-6">
                             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Questions</h3>
-                            <Button type="button" variant="outline" @click="addQuestion" class="px-6 py-3 text-base">
-                                <Plus class="w-4 h-4 inline mr-2" />
-                                Add Question
-                            </Button>
+
                         </div>
 
                         <div v-if="questions.length === 0" class="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -272,8 +283,8 @@
                                         <FileText class="w-4 h-4 inline mr-2" />
                                         Question Text <span class="text-red-500">*</span>
                                     </label>
-                                    <textarea v-model="question.text" rows="3" placeholder="Enter your question here..."
-                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                    <textarea v-model="question.text" rows="2" placeholder="Enter your question here..."
+                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                         :class="{ 'border-red-500 ring-red-500': getError(`questions.${index}.text`) }"></textarea>
                                     <InputError :message="getError(`questions.${index}.text`)" />
                                 </div>
@@ -286,7 +297,7 @@
                                             Question Type <span class="text-red-500">*</span>
                                         </label>
                                         <select v-model="question.type"
-                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             :class="{ 'border-red-500 ring-red-500': getError(`questions.${index}.type`) }">
                                             <option value="">Select Type</option>
                                             <option value="multiple_choice" class="py-2">Multiple Choice</option>
@@ -305,7 +316,7 @@
                                             Section <span class="text-red-500">*</span>
                                         </label>
                                         <select v-model="question.section"
-                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             :class="{ 'border-red-500 ring-red-500': getError(`questions.${index}.section`) }">
                                             <option value="">Select Section</option>
                                             <option value="objective" class="py-2">Objective</option>
@@ -325,7 +336,7 @@
                                             Marks <span class="text-red-500">*</span>
                                         </label>
                                         <input v-model="question.marks" type="number" min="1" placeholder="Enter marks"
-                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             :class="{ 'border-red-500 ring-red-500': getError(`questions.${index}.marks`) }" />
                                         <InputError :message="getError(`questions.${index}.marks`)" />
                                     </div>
@@ -337,7 +348,7 @@
                                         </label>
                                         <input v-model="question.question_number" type="number" min="1"
                                             placeholder="Question number"
-                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                             :class="{ 'border-red-500 ring-red-500': getError(`questions.${index}.question_number`) }" />
                                         <InputError :message="getError(`questions.${index}.question_number`)" />
                                     </div>
@@ -350,7 +361,7 @@
                                         Correct Answer (Optional)
                                     </label>
                                     <input v-model="question.answer" type="text" placeholder="Enter correct answer"
-                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 sm:px-4 sm:py-3 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+                                        class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                                         :class="{ 'border-red-500 ring-red-500': getError(`questions.${index}.answer`) }" />
                                     <InputError :message="getError(`questions.${index}.answer`)" />
                                 </div>
@@ -381,7 +392,7 @@
                                                 <div class="flex-1 min-w-0">
                                                     <input v-model="question.options[optionIndex]" type="text"
                                                         :placeholder="`Enter option ${optionIndex + 1}`"
-                                                        class="w-full border-0 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-0 text-base font-medium"
+                                                        class="w-full border-0 bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-0 text-sm font-medium"
                                                         :class="{ 'text-red-600 dark:text-red-400': !question.options[optionIndex].trim() }" />
                                                 </div>
 
@@ -407,7 +418,7 @@
                                     <!-- Add Option Button -->
                                     <div class="mt-4">
                                         <button type="button" @click="addOption(index)"
-                                            class="w-full sm:w-auto px-4 py-3 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium">
+                                            class="w-full sm:w-auto px-3 py-2 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg flex items-center justify-center gap-2 transition-colors font-medium">
                                             <Plus class="w-5 h-5" />
                                             <span>Add Another Option</span>
                                         </button>
@@ -433,16 +444,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="flex items-center justify-end my-4 sm:my-6">
+                            <Button type="button" variant="outline" @click="addQuestion" class="px-4 py-2 text-sm">
+                                <Plus class="w-4 h-4 inline mr-2" />
+                                Add Question
+                            </Button>
+                        </div>
                     </div>
 
                     <!-- Submit Button -->
                     <div class="flex flex-col sm:flex-row gap-4 mt-8">
-                        <Button type="button" variant="outline" @click="goBack" class="px-8 py-4 text-base">
+                        <Button type="button" variant="outline" @click="goBack" class="px-6 py-3 text-sm">
                             <ArrowLeft class="w-4 h-4 inline mr-2" />
                             Back to Papers
                         </Button>
                         <Button type="submit" :disabled="form.processing"
-                            class="px-8 py-4 text-base bg-green-600 hover:bg-green-700">
+                            class="px-6 py-3 text-sm bg-green-600 hover:bg-green-700">
                             <span v-if="form.processing">
                                 <Loader2 class="w-4 h-4 inline mr-2 animate-spin" />
                                 Creating Paper...
@@ -454,37 +471,7 @@
                         </Button>
                     </div>
                     <!-- Help Section -->
-                    <div
-                        class="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-                        <h4 class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
-                            <HelpCircle class="w-5 h-5" />
-                            Quick Tips
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800 dark:text-blue-200">
-                            <div>
-                                <p class="font-medium mb-2 flex items-center gap-2">
-                                    <FileText class="w-4 h-4" />
-                                    Adding Questions:
-                                </p>
-                                <ul class="space-y-1 ml-6">
-                                    <li>• Click "Add Question" to add new questions</li>
-                                    <li>• Fill in all required fields (marked with *)</li>
-                                    <li>• Use different sections to organize your paper</li>
-                                </ul>
-                            </div>
-                            <div>
-                                <p class="font-medium mb-2 flex items-center gap-2">
-                                    <Target class="w-4 h-4" />
-                                    Question Types:
-                                </p>
-                                <ul class="space-y-1 ml-6">
-                                    <li>• Multiple Choice: Add 2-4 options</li>
-                                    <li>• True/False: Simple yes/no questions</li>
-                                    <li>• Short/Long Answer: Text-based responses</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+
                 </form>
             </div>
         </div>
