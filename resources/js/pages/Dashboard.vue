@@ -192,9 +192,6 @@ const hasRecentData = computed(() => {
         <!-- Recent Activity -->
         <div class="bg-white rounded-xl shadow-lg p-6 border">
           <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h3>
-
-
-
           <div class="space-y-3">
             <!-- Recent Schools (for Super Admin) -->
             <div v-if="props.recentData?.recentSchools && props.recentData.recentSchools.length > 0">
@@ -349,29 +346,6 @@ const hasRecentData = computed(() => {
                   Create Paper
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- System Status -->
-        <div class="bg-white rounded-xl shadow-lg p-6 border">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">System Status</h3>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600">Database</span>
-              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Online</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600">Storage</span>
-              <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">75% Used</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600">Last Backup</span>
-              <span class="text-xs text-gray-500">2 hours ago</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-sm text-gray-600">Active Users</span>
-              <span class="text-xs text-gray-500">24 online</span>
             </div>
           </div>
         </div>
