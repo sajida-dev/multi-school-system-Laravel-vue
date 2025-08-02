@@ -8,5 +8,6 @@
     "Certificates": true,
     "Reports": true,
     "Students": true,
-    "Teachers": true
+    "Teachers": true,
+    "Attendance": true
 }

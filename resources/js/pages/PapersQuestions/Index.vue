@@ -163,11 +163,31 @@
             <template #item-title="row">
                 <div class="font-medium text-gray-900 dark:text-gray-100">{{ row.title }}</div>
                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ row.class?.name }}{{ row.section?.name ? ' - ' + row.section.name : '' }}
+                    {{ row.subject?.name || 'No Subject' }}
                 </div>
+            </template>
+            <template #item-class_section="row">
+                <div class="text-gray-900 dark:text-gray-100">
+                    <div class="font-medium">{{ row.class?.name || '-' }}</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ row.section?.name || 'No Section' }}
+                    </div>
+                </div>
+            </template>
+            <template #item-subject="row">
+                <span class="text-gray-900 dark:text-gray-100">{{ row.subject?.name || '-' }}</span>
             </template>
             <template #item-teacher="row">
                 <span class="text-gray-900 dark:text-gray-100">{{ row.teacher?.name || '-' }}</span>
+            </template>
+            <template #item-duration="row">
+                <span class="text-gray-900 dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
+            </template>
+            <template #item-total_marks="row">
+                <span class="text-gray-900 dark:text-gray-100">{{ row.total_marks || 0 }} marks</span>
+            </template>
+            <template #item-questions_count="row">
+                <span class="text-gray-900 dark:text-gray-100">{{ row.questions_count || 0 }} questions</span>
             </template>
             <template #item-published="row">
                 <span :class="{
@@ -178,14 +198,26 @@
                     {{ row.published ? 'Published' : 'Draft' }}
                 </span>
             </template>
-            <template #item-questions_count="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.questions_count || 0 }} questions</span>
-            </template>
             <template #item-actions="row">
                 <button
                     class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                     @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
                     <Icon name="eye" class="w-5 h-5" />
+                </button>
+                <button
+                    class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
+                    @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
+                    <Icon name="printer" class="w-5 h-5" />
+                </button>
+                <button :class="[
+                    'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
+                    row.published
+                        ? 'text-orange-500 focus:ring-orange-400'
+                        : 'text-green-500 focus:ring-green-400'
+                ]" @click="togglePublishStatus(row.id, row.published)"
+                    :aria-label="row.published ? 'Unpublish Paper' : 'Publish Paper'"
+                    :title="row.published ? 'Unpublish Paper' : 'Publish Paper'">
+                    <Icon :name="row.published ? 'eye-off' : 'eye'" class="w-5 h-5" />
                 </button>
                 <button
                     class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
@@ -211,6 +243,43 @@
                 </div>
             </template>
         </AlertDialog>
+
+        <!-- Custom Confirmation Dialog -->
+        <Dialog v-model:open="showConfirmDialog">
+            <DialogContent class="sm:max-w-md max-w-[95vw] mx-4">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <Info class="w-5 h-5 text-blue-600" />
+                        Confirm Action
+                    </DialogTitle>
+                </DialogHeader>
+                <div class="mb-6">
+                    <div
+                        class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p class="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                                {{ confirmMessage }}
+                            </p>
+                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                This action cannot be undone.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter class="flex flex-col sm:flex-row gap-3">
+                    <Button variant="outline" @click="cancelAction" class="w-full sm:w-auto px-6 py-3 text-base">
+                        <X class="w-4 h-4 mr-2" />
+                        Cancel
+                    </Button>
+                    <Button variant="default" @click="confirmActionHandler"
+                        class="w-full sm:w-auto px-6 py-3 text-base">
+                        <CheckCircle class="w-4 h-4 mr-2" />
+                        Confirm
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 
@@ -218,15 +287,16 @@
 import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
 import "@webzlodimir/vue-bottom-sheet/dist/style.css";
 import { ref, watch, computed } from "vue";
-import { useForm, router } from '@inertiajs/vue3';
+import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
-import { FilterIcon, Plus } from "lucide-vue-next";
+import { FilterIcon, Plus, Info, CheckCircle, X } from "lucide-vue-next";
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Icon from '@/components/Icon.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 // Define props interface for the data coming from backend
 interface Props {
@@ -241,10 +311,15 @@ interface Props {
             section?: {
                 name: string;
             };
+            subject?: {
+                name: string;
+            };
             teacher?: {
                 name: string;
             };
             questions_count?: number;
+            total_marks?: number;
+            time_duration?: number;
         }>;
         current_page: number;
         last_page: number;
@@ -307,9 +382,13 @@ const serverItemsLength = computed(() => props.papers.total);
 const headers = [
     { text: '#', value: 'id' },
     { text: 'Title', value: 'title' },
+    { text: 'Class/Section', value: 'class_section' },
+    { text: 'Subject', value: 'subject' },
     { text: 'Teacher', value: 'teacher' },
-    { text: 'Status', value: 'published' },
+    { text: 'Duration', value: 'duration' },
+    { text: 'Total Marks', value: 'total_marks' },
     { text: 'Questions', value: 'questions_count' },
+    { text: 'Status', value: 'published' },
     { text: 'Actions', value: 'actions', sortable: false },
 ];
 
@@ -319,15 +398,23 @@ const items = computed(() => {
         title: paper.title,
         class: paper.class,
         section: paper.section,
+        subject: paper.subject,
         teacher: paper.teacher,
         published: paper.published,
         questions_count: paper.questions_count,
+        total_marks: paper.total_marks,
+        time_duration: paper.time_duration,
     }));
 });
 
 // Delete dialog state
 const showDeleteDialog = ref(false);
 const paperToDelete = ref<number | null>(null);
+
+// Custom confirmation modal state
+const showConfirmDialog = ref(false);
+const confirmMessage = ref('');
+const confirmAction = ref<(() => void) | null>(null);
 
 // Function to apply filters
 function applyFilters() {
@@ -396,6 +483,55 @@ function deletePaper() {
             paperToDelete.value = null;
         },
     });
+}
+
+function printPaper(id: number) {
+    router.visit(route('papersquestions.show', id));
+}
+
+function togglePublishStatus(id: number, currentStatus: boolean) {
+    const action = currentStatus ? 'unpublish' : 'publish';
+    const message = `Are you sure you want to ${action} this paper?`;
+
+    showConfirmation(message, () => {
+        router.patch(route('papersquestions.toggle-publish', id), {}, {
+            onSuccess: () => {
+                toast.success(`Paper ${action}ed successfully`);
+                // Refresh the page to update the data
+                router.visit(route('papersquestions.index'), {
+                    only: ['papers'],
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true
+                });
+            },
+            onError: () => {
+                toast.error(`Failed to ${action} paper`);
+            },
+        });
+    });
+}
+
+// Custom confirmation functions
+function showConfirmation(message: string, action: () => void) {
+    confirmMessage.value = message;
+    confirmAction.value = action;
+    showConfirmDialog.value = true;
+}
+
+function confirmActionHandler() {
+    if (confirmAction.value) {
+        confirmAction.value();
+    }
+    showConfirmDialog.value = false;
+    confirmMessage.value = '';
+    confirmAction.value = null;
+}
+
+function cancelAction() {
+    showConfirmDialog.value = false;
+    confirmMessage.value = '';
+    confirmAction.value = null;
 }
 </script>
 

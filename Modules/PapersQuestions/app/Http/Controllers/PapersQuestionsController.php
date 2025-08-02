@@ -23,7 +23,8 @@ class PapersQuestionsController extends Controller
     public function index(Request $request)
     {
         $schoolId = session('active_school_id');
-        $query = Paper::query()->with(['class', 'section', 'teacher']);
+        $query = Paper::query()->with(['class', 'section', 'teacher', 'subject'])
+            ->withCount('questions');
 
         // Filter by selected school
         if ($schoolId) {
@@ -437,5 +438,23 @@ class PapersQuestionsController extends Controller
 
         return redirect()->route('papersquestions.index')
             ->with('success', 'Paper deleted successfully.');
+    }
+
+    /**
+     * Toggle the publish status of a paper
+     */
+    public function togglePublish($id)
+    {
+        $paper = Paper::findOrFail($id);
+        $paper->published = !$paper->published;
+        $paper->save();
+
+        $status = $paper->published ? 'published' : 'unpublished';
+
+        return response()->json([
+            'success' => true,
+            'message' => "Paper {$status} successfully",
+            'published' => $paper->published
+        ]);
     }
 }

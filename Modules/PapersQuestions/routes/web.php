@@ -9,4 +9,8 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
     // Route to get subjects by class
     Route::get('papersquestions/subjects-by-class/{classId}', [PapersQuestionsController::class, 'getSubjectsByClass'])
         ->name('papersquestions.subjects-by-class');
+
+    // Route to toggle publish status
+    Route::patch('papersquestions/{id}/toggle-publish', [PapersQuestionsController::class, 'togglePublish'])
+        ->name('papersquestions.toggle-publish');
 });
