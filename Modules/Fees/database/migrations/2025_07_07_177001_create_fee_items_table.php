@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('fee_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('fee_id');
-            $table->string('description');
+            $table->enum('type', ['tuition', 'library', 'security', 'admission', 'sports', 'transport']);
             $table->decimal('amount', 10, 2);
             $table->timestamps();
             $table->softDeletes();

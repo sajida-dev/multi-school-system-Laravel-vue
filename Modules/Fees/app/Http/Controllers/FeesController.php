@@ -106,6 +106,12 @@ class FeesController extends Controller
                     ->select('id', 'name', 'registration_number')
                     ->orderBy('name')
                     ->get();
+            } else {
+                $students = Student::where('school_id', $schoolId)
+                    ->where('status', 'admitted')
+                    ->select('id', 'name', 'registration_number')
+                    ->orderBy('name')
+                    ->get();
             }
         }
 
@@ -127,7 +133,19 @@ class FeesController extends Controller
             return DB::transaction(function () use ($request) {
                 $validated = $request->validated();
 
-                // Get all students in the selected class and school
+                // Ensure fee_items is an array and has valid entries
+                $feeItems = $validated['fee_items'] ?? [];
+
+                if (empty($feeItems)) {
+                    return back()->withErrors(['fee_items' => 'At least one fee item is required.'])->withInput();
+                }
+
+                // Calculate total amount from fee items
+                $totalAmount = collect($feeItems)->sum(function ($item) {
+                    return floatval($item['amount']);
+                });
+
+                // Get all admitted students in the selected school and class
                 $students = Student::where('school_id', $validated['school_id'])
                     ->where('class_id', $validated['class_id'])
                     ->where('status', 'admitted')
@@ -140,40 +158,44 @@ class FeesController extends Controller
                 }
 
                 $createdFees = [];
+
                 foreach ($students as $student) {
-                    $feeData = [
+                    // Create the main fee entry per student
+                    $fee = Fee::create([
                         'student_id' => $student->id,
                         'class_id' => $validated['class_id'],
-                        'type' => $validated['type'],
-                        'amount' => $validated['amount'],
+                        'type' => $validated['type'], // e.g., admission/monthly/etc
+                        'amount' => $totalAmount,
                         'status' => 'unpaid',
                         'due_date' => $validated['due_date'],
                         'description' => $validated['description'] ?? null,
-                    ];
+                    ]);
 
-                    Log::info('Creating fee with data:', $feeData);
-
-                    $fee = Fee::create($feeData);
-
-                    Log::info('Fee created successfully:', ['fee_id' => $fee->id, 'student_id' => $fee->student_id]);
+                    // Create associated fee items for each student
+                    foreach ($feeItems as $item) {
+                        $fee->feeItems()->create([
+                            'type' => $item['type'],
+                            'description' => $item['description'] ?? '',
+                            'amount' => $item['amount'],
+                        ]);
+                    }
 
                     $createdFees[] = $fee;
                 }
 
-                Log::info('All fees created successfully. Total created:', ['count' => count($createdFees)]);
-
                 return redirect()->route('fees.index')
-                    ->with('success', "Fee created successfully for {$students->count()} students in the selected class.");
-            }, 5); // 5 retries for deadlock handling
+                    ->with('success', "Fees created successfully for {$students->count()} students.");
+            }, 5); // Retry transaction up to 5 times in case of deadlock
         } catch (\Exception $e) {
             Log::error('Error creating fees:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return back()->withErrors(['error' => 'Failed to create fees. Please try again.'])->withInput();
         }
     }
+
 
     /**
      * Show the specified resource.

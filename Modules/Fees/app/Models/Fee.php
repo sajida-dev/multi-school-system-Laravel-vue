@@ -34,7 +34,7 @@ class Fee extends Model
         return $this->belongsTo(\Modules\ClassesSections\App\Models\ClassModel::class, 'class_id');
     }
 
-    public function items(): HasMany
+    public function feeItems(): HasMany
     {
         return $this->hasMany(FeeItem::class);
     }

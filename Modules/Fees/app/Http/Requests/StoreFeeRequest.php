@@ -14,37 +14,19 @@ class StoreFeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => [
-                'required',
-                'string',
-                'in:admission,tuition,papers'
-            ],
-            'amount' => [
-                'required',
-                'numeric',
-                'min:0',
-                'max:999999.99'
-            ],
-            'due_date' => [
-                'required',
-                'date',
-                'after_or_equal:' . now()->format('Y-m-d')
-            ],
-            'school_id' => [
-                'required',
-                'exists:schools,id'
-            ],
-            'class_id' => [
-                'required',
-                'exists:classes,id'
-            ],
-            'description' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
+            'school_id' => ['required', 'exists:schools,id'],
+            'class_id' => ['required', 'exists:classes,id'],
+            'due_date' => ['required', 'date', 'after_or_equal:today'],
+            'type' => ['required', 'in:admission,monthly,papers'],
+            'description' => ['nullable', 'string'],
+
+            'fee_items' => ['required', 'array', 'min:1'],
+            'fee_items.*.type' => ['required', 'in:tuition,library,security,admission,sports,transport'],
+            'fee_items.*.description' => ['nullable', 'string'],
+            'fee_items.*.amount' => ['required', 'numeric', 'min:0.01'],
         ];
     }
+
 
     public function messages(): array
     {
