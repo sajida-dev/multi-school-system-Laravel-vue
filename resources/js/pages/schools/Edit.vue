@@ -91,10 +91,11 @@ const form = useForm({
     contact: school.contact || '',
 });
 
+
 const logoFile = ref<File | undefined>();
-const logoPreview = ref<string>(school.logo_url || '/favicon.svg');
+const logoPreview = ref<string>(school.logo_url || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s');
 const mainImageFile = ref<File | undefined>();
-const mainImagePreview = ref<string>(school.main_image || '/favicon.svg');
+const mainImagePreview = ref<string>(school.main_image || 'https://www.shutterstock.com/image-vector/school-building-front-view-entrance-260nw-2494026401.jpg');
 const schoolStore = useSchoolStore();
 const { schools: schoolsRaw } = storeToRefs(schoolStore);
 const schools = computed(() => Array.isArray(schoolsRaw.value) ? schoolsRaw.value : []);

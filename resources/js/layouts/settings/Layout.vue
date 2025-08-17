@@ -64,8 +64,8 @@ if (userRoles.some((r: any) => r.name === 'superadmin')) {
 
             <Separator class="my-6 md:hidden" />
 
-            <div class="flex-1 md:max-w-4xl">
-                <section class="max-w-4xl space-y-12">
+            <div class="flex-1 md:max-w-5xl">
+                <section class="max-w-4xl space-y-6">
                     <slot />
                 </section>
             </div>

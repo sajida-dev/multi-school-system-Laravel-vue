@@ -14,6 +14,8 @@ return new class extends Migration
             $table->unsignedBigInteger('class_school_id');
             $table->unsignedBigInteger('section_id');
             $table->timestamps();
+            $table->softDeletes();
+
             $table->unique(['class_school_id', 'section_id']);
 
             $table->foreign('class_school_id')->references('id')->on('class_schools')->onDelete('cascade');

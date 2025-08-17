@@ -70,7 +70,7 @@ const submit = () => {
                                 Username</Label>
                             <Input id="login" type="text" required autofocus :tabindex="1" v-model="form.login"
                                 placeholder="Enter email, phone, or username"
-                                class="w-full px-3 py-2 md:px-4 md:py-2 border  border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 @error('login') border-red-300 text-red-900 placeholder-red-300 @enderror" />
+                                class="w-full px-3 py-2 md:px-4 md:py-2 border  border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
                             <InputError :message="form.errors.login" />
                         </div>
 

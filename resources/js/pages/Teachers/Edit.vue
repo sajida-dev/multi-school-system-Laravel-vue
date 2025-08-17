@@ -25,13 +25,13 @@
                     <TextInput label="Date of Birth" v-model="form.dob" :error="form.errors.dob" required type="date"
                         placeholder="mm/dd/yyyy" />
                     <TextInput label="Salary" v-model="form.salary" :error="form.errors.salary" required type="number"
-                        min="0" placeholder="e.g. 50000" />
+                        min="0" placeholder="e.g. 50000 in pkr" />
                     <TextInput label="Teacher Contact No" v-model="form.phone_number" :error="form.errors.phone_number"
-                        required placeholder="e.g. 0300-1234567" />
+                        required placeholder="e.g. 03001234567 or +923001234567" />
                     <TextInput label="Date of Joining" v-model="form.date_of_joining"
                         :error="form.errors.date_of_joining" required type="date" placeholder="mm/dd/yyyy" />
                     <TextInput label="Current Experience in Years" v-model="form.experience_years"
-                        :error="form.errors.experience_years" type="number" min="0" placeholder="e.g. 5" />
+                        :error="form.errors.experience_years" type="number" min="0" max="99" placeholder="e.g. 5" />
                     <SelectInput v-if="schools.length" label="School" v-model="form.school_id"
                         :error="form.errors.school_id" required
                         :options="schools.map((s: any) => ({ label: s.name, value: s.id }))" />

@@ -12,6 +12,7 @@ class SetActiveSchool
     public function handle($request, Closure $next)
     {
         try {
+
             if (Auth::check()) {
                 /** @var \App\Models\User $user */
                 $user = Auth::user();
@@ -63,6 +64,17 @@ class SetActiveSchool
                             'user_id' => $user->id,
                             'roles' => $user->roles->pluck('name')
                         ]);
+                    }
+                    if ($request->has('school_id')) {
+                        $schoolIdFromRequest = $request->query('school_id');
+                        $schoolExists = School::where('id', $schoolIdFromRequest)->exists();
+
+                        if ($schoolExists) {
+                            session(['active_school_id' => $schoolIdFromRequest]);
+                            Log::info('Set active school from request parameter', ['school_id' => $schoolIdFromRequest]);
+                        } else {
+                            Log::warning('Invalid school_id from request', ['school_id' => $schoolIdFromRequest]);
+                        }
                     }
                 }
             } else {

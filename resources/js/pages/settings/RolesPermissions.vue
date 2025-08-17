@@ -73,20 +73,32 @@ const fetchRolesAndPermissions = async () => {
     permissions.value = await permsRes.json()
     loading.value = false
 }
-
 onMounted(() => {
-    fetchRolesAndPermissions()
+    fetchRolesAndPermissions();
+
     if (userIsSuperAdmin) {
         fetch('/admin/schools')
             .then(res => res.json())
-            .then(schoolsList => {
-                schools.value = schoolsList
-                const lastId = localStorage.getItem('selectedSchoolId')
-                const last = schoolsList.find((s: { id: number }) => s.id === Number(lastId))
-                schoolStore.setSchool(last || schoolsList[0])
+            .then(response => {
+                const schoolsArray = response.schools;
+                if (!Array.isArray(schoolsArray)) {
+                    console.error('Expected an array for schools, but got:', response);
+                    return;
+                }
+
+                schools.value = schoolsArray;
+
+                const lastId = localStorage.getItem('selectedSchoolId');
+                const last = schoolsArray.find((s: { id: number }) => s.id === Number(lastId));
+
+                schoolStore.setSchool(last || schoolsArray[0]);
             })
+            .catch(err => {
+                console.error('Error fetching schools:', err);
+            });
     }
-})
+});
+
 
 const hasPermission = (role: Role, permId: number) => {
     return Array.isArray(role.permissions) && role.permissions.some(p => p.id === permId)

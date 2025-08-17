@@ -110,8 +110,8 @@
                 <template #item-role="row">
                     <div class="flex flex-wrap gap-1">
                         <span v-for="role in row.roles" :key="role.id"
-                            class="inline-block bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-200 rounded-full px-2 py-0.5 text-xs font-semibold">
-                            {{ role.name }}
+                            class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 rounded-full px-2 py-0.5 text-xs font-semibold">
+                            {{ role.name.charAt(0).toUpperCase() + role.name.slice(1) }}
                         </span>
                     </div>
                 </template>
@@ -257,7 +257,7 @@
                                         </template>
                                     </span>
                                     <button class="text-gray-500 hover:text-primary-600 p-2"
-                                        @click="toggleShowPassword(row.id)">
+                                        @click="toggleShowPassword(row)">
                                         <Eye v-if="!showPassword[row.id] && !passwordLoading[row.id]" class="w-5 h-5" />
                                         <EyeOff v-else-if="showPassword[row.id] && !passwordLoading[row.id]"
                                             class="w-5 h-5" />
@@ -347,6 +347,9 @@
                 </div>
             </div>
         </vue-bottom-sheet>
+        <PasswordVerificationModal v-model="showPasswordModal" @success="onPasswordVerified"
+            @cancel="closePasswordModal" />
+
     </AppLayout>
 </template>
 
@@ -360,7 +363,7 @@ import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import Icon from '@/components/Icon.vue';
-import { BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, User } from '@/types';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 import SchoolSwitcher from '@/components/ui/SchoolSwitcher.vue';
@@ -370,6 +373,8 @@ import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
 import { Eye, EyeOff, Filter as FilterIcon, Plus } from 'lucide-vue-next';
 import { nextTick } from 'vue';
 import PasswordResetModal from '@/components/ui/PasswordResetModal.vue';
+import PasswordVerificationModal from "@/components/ui/PasswordVerificationModal.vue";
+import { toast } from "vue3-toastify";
 
 const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
 
@@ -389,7 +394,10 @@ type TeachersPageProps = any & {
     auth: any;
 };
 
-
+const closePasswordModal = () => {
+    showPasswordModal.value = false;
+    selectedUserForPassword.value = undefined;
+};
 
 const page = usePage<TeachersPageProps>();
 const teachers = computed(() => page.props.teachers);
@@ -449,6 +457,8 @@ const passwordErrorTitle = ref('Password Error');
 const passwordErrorMessage = ref('');
 const showPasswordResetModal = ref(false);
 const resetUserId = ref<number | undefined>(undefined);
+const selectedUserForPassword = ref<User | undefined>(undefined)
+const showPasswordModal = ref(false)
 
 
 const headers = [
@@ -483,6 +493,67 @@ onMounted(() => {
         filtersForm.school_id = selectedSchool.value.id;
     }
 });
+
+
+function toggleShowPassword(teacher: User) {
+    const id = teacher.id;
+
+    if (showPassword.value[id]) {
+        // Hide password and clear timeout
+        showPassword.value[id] = false;
+        decryptedPasswords.value[id] = '';
+        if (passwordHideTimeouts.value[id]) {
+            clearTimeout(passwordHideTimeouts.value[id]);
+            delete passwordHideTimeouts.value[id];
+        }
+        return;
+    }
+
+    // Save the selected teacher for verification
+    selectedUserForPassword.value = teacher;
+    showPasswordModal.value = true;
+}
+const onPasswordVerified = async () => {
+    const teacher = selectedUserForPassword.value;
+
+    if (!teacher) {
+        toast.error('No teacher selected.');
+        return;
+    }
+
+    const id = teacher.id;
+    passwordLoading.value[id] = true;
+
+    try {
+        const response = await fetch(`/teachers/get-password/${id}`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        });
+
+        const data = await response.json();
+
+        if (data && data.password) {
+            decryptedPasswords.value[id] = data.password;
+            showPassword.value[id] = true;
+
+            // Auto-hide after 5 minutes
+            passwordHideTimeouts.value[id] = setTimeout(() => {
+                showPassword.value[id] = false;
+                decryptedPasswords.value[id] = '';
+                delete passwordHideTimeouts.value[id];
+            }, 300000);
+        } else {
+            toast.error(data?.error || 'Failed to retrieve password.');
+        }
+    } catch (error) {
+        toast.error('Failed to retrieve password.');
+    } finally {
+        passwordLoading.value[id] = false;
+        closePasswordModal();
+    }
+};
 
 // Watch for filter changes with debounce
 let debounceTimer: number;
@@ -559,9 +630,14 @@ function deleteTeacher() {
     });
 }
 function goToCreate() {
-    router.visit(`/teachers/create?school_id=${selectedSchool.value?.id || ''}`);
+    router.visit(`/teachers/create?school_id=${selectedSchool.value?.id || ''}`, {
+        preserveScroll: true,
+        preserveState: true,
+        onFinish: () => {
+            console.log('finish')
+        },
+    });
 }
-
 function onSchoolSwitched(school: any) {
     fetchData(); // Refetch teachers list when school is switched
 }
@@ -584,46 +660,7 @@ function approveTeacher(id: number) {
     });
 }
 
-function toggleShowPassword(id: number) {
-    if (showPassword.value[id]) {
-        // Hide password and clear timeout
-        showPassword.value[id] = false;
-        decryptedPasswords.value[id] = '';
-        if (passwordHideTimeouts.value[id]) {
-            clearTimeout(passwordHideTimeouts.value[id]);
-            delete passwordHideTimeouts.value[id];
-        }
-        return;
-    }
-    // Show password: use Inertia router to get password
-    passwordLoading.value[id] = true;
-    router.get(`/teachers/get-password/${id}`, {}, {
-        preserveState: true,
-        onSuccess: (page) => {
-            const data = (page.props.passwordResponse || page.props) as any;
-            if (data && data.password) {
-                decryptedPasswords.value[id] = data.password;
-                showPassword.value[id] = true;
-                // Hide after 5 minutes
-                passwordHideTimeouts.value[id] = setTimeout(() => {
-                    showPassword.value[id] = false;
-                    decryptedPasswords.value[id] = '';
-                }, 300000);
-            } else {
-                passwordErrorMessage.value = data.error || 'Failed to retrieve password.';
-                showPasswordErrorDialog.value = true;
-            }
-        },
-        onError: () => {
-            passwordErrorMessage.value = 'Failed to retrieve password.';
-            showPasswordErrorDialog.value = true;
-        },
-        onFinish: () => {
-            passwordLoading.value[id] = false;
-        },
-        only: ['passwordResponse'],
-    });
-}
+
 
 function onSearchInput(event: Event) {
     clearTimeout(debounceTimer);

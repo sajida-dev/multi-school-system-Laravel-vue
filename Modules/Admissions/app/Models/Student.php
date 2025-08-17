@@ -95,6 +95,11 @@ class Student extends Model
         return $this->hasMany(Fee::class);
     }
 
+    public function fee()
+    {
+        return $this->hasOne(Fee::class)->where('type', 'admission');
+    }
+
     public function school()
     {
         return $this->belongsTo(School::class);

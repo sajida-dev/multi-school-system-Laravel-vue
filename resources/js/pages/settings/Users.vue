@@ -360,7 +360,6 @@ const onPasswordVerified = async () => {
                 if (data && data.password) {
                     user.decrypted_password = data.password;
                     user.show_password = true;
-                    toast.success('Password: ' + data.password);
                     passwordHideTimeouts.value[user.id] = setTimeout(() => {
                         hidePassword(user.id);
                     }, 300000);

@@ -39,11 +39,11 @@ const bgColor = colorMap[props.color as keyof typeof colorMap] || 'bg-blue-600';
 </script>
 
 <template>
-  <div class="bg-white rounded-xl shadow-lg p-6 border hover:shadow-xl transition-shadow">
+  <div class="bg-white dark:bg-neutral-700 rounded-lg p-4 shadow-sm border">
     <div class="flex items-center justify-between">
       <div class="flex-1">
-        <div class="text-sm text-gray-500 font-medium mb-1">{{ label }}</div>
-        <div class="text-3xl font-bold text-gray-800 mb-2">{{ value }}</div>
+        <div class="text-sm text-neutral-500 dark:text-white font-medium mb-1">{{ label }}</div>
+        <div class="text-3xl font-bold text-neutral-800 dark:text-white mb-2">{{ value }}</div>
         <div v-if="change" class="text-xs text-green-600 font-medium">{{ change }}</div>
       </div>
       <div class="flex items-center justify-center w-12 h-12 rounded-full" :class="bgColor">

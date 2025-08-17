@@ -202,11 +202,11 @@
                                 <option value="">Choose a class...</option>
                                 <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                             </select>
-                            <Button @click="loadClassAssignments" :disabled="!selectedClass"
+                            <!-- <Button @click="loadClassAssignments" :disabled="!selectedClass"
                                 class="w-full px-4 py-3 text-sm font-medium">
                                 <RefreshCw class="w-5 h-5 mr-3" />
                                 Load Assignments
-                            </Button>
+                            </Button> -->
                         </div>
                     </div>
 
@@ -223,7 +223,7 @@
                                 Tap subjects to assign or unassign them to {{ selectedClassName }}
                             </p>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div class="grid md:grid-cols-3 sm:grid-cols-1 lg:grid-cols-4 gap-3">
                                 <button v-for="subject in subjects" :key="subject.id" type="button"
                                     @click="toggleSubject(subject.id)" :class="[
                                         'flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 text-left min-h-[60px]',
@@ -299,51 +299,55 @@
                         </h4>
 
                         <div class="space-y-4">
-                            <!-- Class Selection -->
-                            <div>
-                                <Label for="teacherClassSelect"
-                                    class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <Building2 class="w-4 h-4 inline mr-2" />
-                                    Select Class <span class="text-red-500">*</span>
-                                </Label>
-                                <select id="teacherClassSelect" v-model="selectedClass"
-                                    class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                                    <option value="">Choose a class...</option>
-                                    <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
-                                </select>
-                            </div>
+                            <div class="flex flex-col md:flex-row gap-2">
 
-                            <!-- Subject Selection -->
-                            <div>
-                                <Label for="teacherSubjectSelect"
-                                    class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <BookOpen class="w-4 h-4 inline mr-2" />
-                                    Select Subject <span class="text-red-500">*</span>
-                                </Label>
-                                <select id="teacherSubjectSelect" v-model="selectedSubject"
-                                    class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                                    <option value="">Choose a subject...</option>
-                                    <option v-for="subject in availableSubjectsForClass" :key="subject.id"
-                                        :value="subject.id">
-                                        {{ subject.name }} {{ subject.code ? `(${subject.code})` : '' }}
-                                    </option>
-                                </select>
-                            </div>
+                                <!-- Class Selection -->
+                                <div class="flex-1 w-full">
+                                    <Label for="teacherClassSelect"
+                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <Building2 class="w-4 h-4 inline mr-2" />
+                                        Select Class <span class="text-red-500">*</span>
+                                    </Label>
+                                    <select id="teacherClassSelect" v-model="selectedClass"
+                                        class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                        <option value="">Choose a class...</option>
+                                        <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}
+                                        </option>
+                                    </select>
+                                </div>
 
-                            <!-- Teacher Selection -->
-                            <div>
-                                <Label for="teacherSelect"
-                                    class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    <Users class="w-4 h-4 inline mr-2" />
-                                    Select Teacher <span class="text-red-500">*</span>
-                                </Label>
-                                <select id="teacherSelect" v-model="selectedTeacher"
-                                    class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                                    <option value="">Choose a teacher...</option>
-                                    <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
-                                        {{ teacher.name }}
-                                    </option>
-                                </select>
+                                <!-- Subject Selection -->
+                                <div class="flex-1 w-full">
+                                    <Label for="teacherSubjectSelect"
+                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <BookOpen class="w-4 h-4 inline mr-2" />
+                                        Select Subject <span class="text-red-500">*</span>
+                                    </Label>
+                                    <select id="teacherSubjectSelect" v-model="selectedSubject"
+                                        class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                        <option value="">Choose a subject...</option>
+                                        <option v-for="subject in availableSubjectsForClass" :key="subject.id"
+                                            :value="subject.id">
+                                            {{ subject.name }} {{ subject.code ? `(${subject.code})` : '' }}
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <!-- Teacher Selection -->
+                                <div class="flex-1 w-full">
+                                    <Label for="teacherSelect"
+                                        class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <Users class="w-4 h-4 inline mr-2" />
+                                        Select Teacher <span class="text-red-500">*</span>
+                                    </Label>
+                                    <select id="teacherSelect" v-model="selectedTeacher"
+                                        class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                        <option value="">Choose a teacher...</option>
+                                        <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
+                                            {{ teacher.name }}
+                                        </option>
+                                    </select>
+                                </div>
                             </div>
 
                             <!-- Assign Button -->
@@ -381,14 +385,14 @@
                         </h4>
 
                         <!-- Teacher Filter -->
-                        <div class="mb-4">
+                        <div class="flex flex-col md:flex-row w-full">
                             <Label for="teacherFilter"
-                                class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                class="md:w-1/6 block my-2 justify-center items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                                 <Users class="w-4 h-4 inline mr-2" />
                                 Filter by Teacher
                             </Label>
                             <select id="teacherFilter" v-model="selectedTeacherFilter"
-                                class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                class="md:w-2/6 p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                 <option value="">All Teachers</option>
                                 <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                                     {{ teacher.name }}
@@ -439,7 +443,7 @@
                                     <h6 class="text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Assigned Subjects:
                                     </h6>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="grid sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
                                         <div v-for="assignment in teacher.assignments"
                                             :key="`${assignment.class_id}-${assignment.subject_id}`"
                                             class="flex items-center justify-between p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg border border-gray-200 dark:border-neutral-600">
@@ -521,10 +525,11 @@
                             <Hash class="w-4 h-4 inline mr-2" />
                             Subject Code
                         </Label>
-                        <Input id="code" v-model="form.code" type="text" placeholder="e.g., MATH101, ENG201"
+                        <Input id="code" v-model="form.code" type="text" required placeholder="e.g., MATH101, ENG201"
                             class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                         <InputError :message="form.errors.code" />
-                        <p class="text-xs text-gray-500 mt-2">Optional: A short code to identify the subject</p>
+                        <p class="text-xs text-gray-500 mt-2">A short code to identify the subject (e.g., MATH101,
+                            ENG201)</p>
                     </div>
                     <div>
                         <Label for="description"
@@ -588,7 +593,7 @@
                         Cancel
                     </Button>
                     <Button variant="destructive" @click="confirmDelete" class="w-full sm:w-auto px-6 py-3 text-base">
-                        <span v-if="loading">
+                        <span v-if="loading" class="flex flex-row items-center gap-2">
                             <Loader2 class="w-4 h-4 mr-2 animate-spin" />
                             Deleting...
                         </span>
@@ -1072,23 +1077,24 @@ async function unassignSubject(subjectId: number) {
     showConfirmation('Are you sure you want to unassign this subject?', () => {
         loading.value = true;
 
-        router.delete(route('subjects.remove-subject-from-class'), {
-            data: {
+        router.post(route('subjects.remove-subject-from-class'),
+            {
                 class_id: selectedClass.value,
                 subject_id: subjectId
             },
-            onSuccess: () => {
-                toast.success('Subject unassigned successfully!');
-                // Remove from assigned subjects
-                assignedSubjects.value = assignedSubjects.value.filter(s => s.id !== subjectId);
-            },
-            onError: () => {
-                toast.error('Failed to unassign subject');
-            },
-            onFinish: () => {
-                loading.value = false;
-            }
-        });
+            {
+                onSuccess: () => {
+                    toast.success('Subject unassigned successfully!');
+                    // Remove from assigned subjects
+                    assignedSubjects.value = assignedSubjects.value.filter(s => s.id !== subjectId);
+                },
+                onError: () => {
+                    toast.error('Failed to unassign subject');
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
+            });
     });
 }
 
@@ -1210,20 +1216,21 @@ function removeTeacherAssignment(teacherId: number) {
     showConfirmation(`Are you sure you want to remove all assignments for ${teacherName}?`, () => {
         loading.value = true;
 
-        router.delete(route('subjects.remove-teacher-assignment'), {
-            data: { teacher_id: teacherId },
-            onSuccess: () => {
-                toast.success(`All assignments removed for ${teacherName} successfully!`);
-                refreshTeacherAssignments();
-            },
-            onError: (errors) => {
-                const errorMessage = errors.message || errors.error || 'Failed to remove assignments';
-                toast.error(`Failed to remove assignments: ${errorMessage}`);
-            },
-            onFinish: () => {
-                loading.value = false;
-            }
-        });
+        router.post(route('subjects.remove-teacher-assignment'),
+            { teacher_id: teacherId },
+            {
+                onSuccess: () => {
+                    toast.success(`All assignments removed for ${teacherName} successfully!`);
+                    refreshTeacherAssignments();
+                },
+                onError: (errors) => {
+                    const errorMessage = errors.message || errors.error || 'Failed to remove assignments';
+                    toast.error(`Failed to remove assignments: ${errorMessage}`);
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
+            });
     });
 }
 
@@ -1237,24 +1244,28 @@ function removeSpecificAssignment(teacherId: number, classId: number, subjectId:
     showConfirmation(`Are you sure you want to remove ${teacherName} from ${subjectName} in ${className}?`, () => {
         loading.value = true;
 
-        router.delete(route('subjects.remove-specific-assignment'), {
-            data: {
+        router.post(
+            route('subjects.remove-specific-assignment'),
+            {
                 teacher_id: teacherId,
                 class_id: classId,
-                subject_id: subjectId
+                subject_id: subjectId,
             },
-            onSuccess: () => {
-                toast.success(`Assignment removed successfully!`);
-                refreshTeacherAssignments();
-            },
-            onError: (errors) => {
-                const errorMessage = errors.message || errors.error || 'Failed to remove assignment';
-                toast.error(`Failed to remove assignment: ${errorMessage}`);
-            },
-            onFinish: () => {
-                loading.value = false;
+            {
+                onSuccess: () => {
+                    toast.success('Assignment removed successfully!');
+                    refreshTeacherAssignments();
+                },
+                onError: (errors: any) => {
+                    const errorMessage = errors.message || errors.error || 'Failed to remove assignment';
+                    toast.error(`Failed to remove assignment: ${errorMessage}`);
+                },
+                onFinish: () => {
+                    loading.value = false;
+                }
             }
-        });
+        );
+
     });
 }
 

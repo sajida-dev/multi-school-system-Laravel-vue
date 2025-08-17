@@ -54,6 +54,7 @@ import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import Dialog from './dialog/Dialog.vue';
 import { Eye, EyeOff } from 'lucide-vue-next';
+import { toast } from 'vue3-toastify';
 
 const props = defineProps({
     userId: { type: [String, Number], required: true }
@@ -90,17 +91,22 @@ function onSubmit() {
         preserveScroll: true,
         onSuccess: (response) => {
             loading.value = false;
-            if (response.new_password) {
-                emit('success', response.new_password);
+            console.log('response', response)
+            if (response.success) {
+                emit('success', response.success);
+                toast.success('Password reset successfully');
             } else if (response.error) {
                 error.value = response.error;
+                toast.error(error.value);
             } else {
                 error.value = 'Password reset failed. Please try again.';
+                toast.error(error.value);
             }
         },
         onError: (errors) => {
             loading.value = false;
             error.value = Object.values(errors).flat().join(' ');
+            toast.error(error.value);
         }
     });
 }

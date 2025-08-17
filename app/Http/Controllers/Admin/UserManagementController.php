@@ -467,11 +467,12 @@ class UserManagementController extends Controller
 
         $admin = $request->user();
         if (!Hash::check($request->admin_password, $admin->password)) {
-            return response()->json(['error' => 'Invalid admin password'], 422);
+            return redirect()->back()->withErrors(['admin_password' => 'Invalid admin password']);
         }
 
         $result = PasswordService::resetUserPassword($request->user_id, $request->new_password);
-
-        return response()->json(['new_password' => $result['new_password']]);
+        dd($result);
+        return redirect()->back()->with('success', 'Password reset successfully');
+        // return response()->json(['new_password' => $result['new_password']]);
     }
 }

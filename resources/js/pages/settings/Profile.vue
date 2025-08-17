@@ -116,7 +116,7 @@ const submit = () => {
 
         <Head title="Profile settings" />
         <SettingsLayout>
-            <div class="flex flex-col space-y-8 max-w-2xl mx-auto w-full px-2 sm:px-4 md:px-0">
+            <div class="flex flex-col space-y-8 max-w-4xl mx-auto w-full px-2 sm:px-4 md:px-0">
                 <HeadingSmall title="Profile information" description="Update your name, email, and profile photo" />
                 <form @submit.prevent="submit" class="space-y-8">
                     <div class="flex flex-col md:flex-row gap-6 md:gap-6 items-stretch">
@@ -148,12 +148,12 @@ const submit = () => {
                             </div>
                         </div>
                         <div
-                            class="flex flex-col items-center justify-center gap-3 w-full max-w-xs md:max-w-[200px] mx-auto p-5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-md">
+                            class="flex flex-col items-center justify-center gap-3 w-full max-w-xl md:max-w-[300px] mx-auto p-5 rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-md">
                             <div class="mb-1 font-semibold text-center text-foreground dark:text-neutral-100 text-base">
                                 Profile Photo</div>
                             <img :src="photoPreview || profilePhotoUrl" alt="Profile Photo"
                                 class="w-24 h-24 rounded-full object-cover border border-gray-300 dark:border-neutral-700 shadow" />
-                            <label class="flex flex-col items-center mt-2 w-full">
+                            <label class="flex flex-col justify-center items-center mt-2 w-full ">
                                 <span class="block text-xs text-muted-foreground dark:text-neutral-400 mb-1">Upload a
                                     new photo</span>
                                 <input type="file" accept="image/jpeg,image/png"
@@ -163,8 +163,8 @@ const submit = () => {
                                 <span class="block text-xs text-muted-foreground dark:text-neutral-400 mt-1">Allowed:
                                     JPG, PNG. Max size: 2MB.</span>
                             </label>
-                            <Button v-if="user.profile_photo_path" type="button" variant="destructive" class="mt-2"
-                                @click="removePhoto">
+                            <Button v-if="user.profile_photo_path !== '/storage/default-profile.png'" type="button"
+                                variant="destructive" class="mt-2" @click="removePhoto">
                                 Remove Photo
                             </Button>
                         </div>

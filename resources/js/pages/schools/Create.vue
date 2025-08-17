@@ -34,7 +34,7 @@
                                     <Label class="mb-1 ml-1" for="contact">Contact<span
                                             class="text-red-500">*</span></Label>
                                     <Input id="contact" v-model="form.contact" required
-                                        placeholder="Contact number (7-20 digits, may include spaces, dashes, plus signs, parentheses)"
+                                        placeholder="Contact number e.g. 03001234567 or +923001234567"
                                         autocomplete="off" pattern="[\d\s\-\+\(\)]{7,20}"
                                         title="7-20 digits, may include spaces, dashes, plus signs, and parentheses" />
                                     <InputError class="mt-2" :message="form.errors.contact" />

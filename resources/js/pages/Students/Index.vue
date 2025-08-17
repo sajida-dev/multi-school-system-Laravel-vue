@@ -129,63 +129,164 @@
                         </svg>
                     </button>
                 </template>
+
+
                 <template #expand="row">
                     <div v-if="row && row.id !== undefined && expandedRow === row.id"
-                        class="p-6 bg-gray-50 dark:bg-neutral-800 rounded shadow-inner">
-                        <div class="flex flex-col md:flex-row gap-6 mb-6">
-                            <div class="flex flex-col items-center md:w-1/4">
+                        class="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow-md border border-gray-200 dark:border-neutral-700 transition-all duration-300">
+
+                        <!-- Header Section -->
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+                            <!-- Profile Photo and Info -->
+                            <div class="flex items-center gap-4">
                                 <img v-if="row.profile_photo_url" :src="row.profile_photo_url" alt="Profile Photo"
-                                    class="w-28 h-28 rounded-full object-cover border-2 border-purple-400 mb-2" />
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Profile Photo</div>
+                                    class="w-24 h-24 rounded-full object-cover border-4 border-purple-500 shadow-lg" />
+                                <div>
+                                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ row.name }}</h2>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <ClipboardList class="w-4 h-4" /> Reg #: {{ row.registration_number }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <GraduationCap class="w-4 h-4" /> Class: {{ row.class }} | Shift: {{
+                                            row.class_shift }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <School class="w-4 h-4" /> School: {{ row.school }}
+                                    </p>
+                                </div>
                             </div>
-                            <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <h3 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">Student Information
-                                    </h3>
-                                    <div><strong>Name:</strong> {{ row.name }}</div>
-                                    <div><strong>Registration #:</strong> {{ row.registration_number }}</div>
-                                    <div><strong>Class:</strong> {{ row.class }}</div>
-                                    <div><strong>School:</strong> {{ row.school }}</div>
-                                    <div><strong>Nationality:</strong> {{ row.nationality }}</div>
-                                    <div><strong>B-Form Number:</strong> {{ row.b_form_number }}</div>
-                                    <div><strong>Admission Date:</strong> {{ row.admission_date }}</div>
-                                    <div><strong>Date of Birth:</strong> {{ row.date_of_birth }}</div>
-                                    <div><strong>Gender:</strong> {{ row.gender }}</div>
-                                    <div><strong>Class Shift:</strong> {{ row.class_shift }}</div>
-                                    <div><strong>Status:</strong> {{ row.status }}</div>
-                                    <div><strong>Previous School:</strong> {{ row.previous_school || 'N/A' }}</div>
-                                    <div><strong>Religion:</strong> {{ row.religion }}</div>
-                                    <div><strong>Inclusive:</strong> {{ row.inclusive }}</div>
-                                    <div v-if="row.other_inclusive_type"><strong>Other Inclusive Type:</strong> {{
-                                        row.other_inclusive_type }}</div>
-                                    <div><strong>Orphan:</strong> {{ row.is_orphan ? 'Yes' : 'No' }}</div>
-                                    <div><strong>Bricklin:</strong> {{ row.is_bricklin ? 'Yes' : 'No' }}</div>
-                                    <div><strong>QSC:</strong> {{ row.is_qsc ? 'Yes' : 'No' }}</div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-2">
+                                <button @click="editStudent(row.id)" aria-label="Edit Student" title="Edit Student"
+                                    class="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
+                                    <Pencil class="w-4 h-4" /><span> Edit</span>
+                                </button>
+                                <button @click="askDeleteStudent(row.id)" aria-label="Delete Student"
+                                    title="Delete Student"
+                                    class="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded">
+                                    <Trash2 class="w-4 h-4" /><span> Delete</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <hr class="my-4 border-gray-300 dark:border-gray-600" />
+
+                        <!-- Personal Information -->
+                        <div class="mb-6">
+                            <h3 class="flex items-center text-lg font-semibold text-blue-700 dark:text-blue-300 mb-4">
+                                <UserPlus class="w-5 h-5 mr-2" /> Personal Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Nationality: {{ row.nationality }}
                                 </div>
-                                <div>
-                                    <h3 class="font-semibold text-green-700 dark:text-green-300 mb-2">Family Information
-                                    </h3>
-                                    <div><strong>Father Name:</strong> {{ row.father_name }}</div>
-                                    <div><strong>Guardian Name:</strong> {{ row.guardian_name || 'N/A' }}</div>
-                                    <div><strong>Father CNIC:</strong> {{ row.father_cnic }}</div>
-                                    <div><strong>Mother CNIC:</strong> {{ row.mother_cnic || 'N/A' }}</div>
-                                    <div><strong>Father Profession:</strong> {{ row.father_profession }}</div>
-                                    <div><strong>Mother Profession:</strong> {{ row.mother_profession }}</div>
-                                    <div><strong>No. of Children:</strong> {{ row.no_of_children || 'N/A' }}</div>
-                                    <div><strong>Job Type:</strong> {{ row.job_type || 'N/A' }}</div>
-                                    <div><strong>Father Education:</strong> {{ row.father_education }}</div>
-                                    <div><strong>Mother Education:</strong> {{ row.mother_education }}</div>
-                                    <div><strong>Father Income:</strong> {{ row.father_income }}</div>
-                                    <div><strong>Mother Income:</strong> {{ row.mother_income || 'N/A' }}</div>
-                                    <div><strong>Household Income:</strong> {{ row.household_income }}</div>
-                                    <div><strong>Permanent Address:</strong> {{ row.permanent_address }}</div>
-                                    <div><strong>Phone No:</strong> {{ row.phone_no || 'N/A' }}</div>
-                                    <div><strong>Mobile No:</strong> {{ row.mobile_no }}</div>
+                                <div class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> B-Form #: {{ row.b_form_number }}
                                 </div>
+                                <div class="flex items-center gap-2">
+                                    <CalendarCheck class="w-4 h-4" /> Admission Date: {{ row.admission_date }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CalendarCheck class="w-4 h-4" /> Date of Birth: {{ row.date_of_birth }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Gender: {{ row.gender }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Award class="w-4 h-4" /> Status: {{ row.status }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <School class="w-4 h-4" /> Previous School: {{ row.previous_school || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpenCheck class="w-4 h-4" /> Religion: {{ row.religion }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> Inclusive: {{ row.inclusive }}
+                                </div>
+                                <div v-if="row.other_inclusive_type" class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> Other Inclusive Type: {{ row.other_inclusive_type
+                                    }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Orphan: {{ row.is_orphan ? 'Yes' : 'No' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Bricklin: {{ row.is_bricklin ? 'Yes' : 'No' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> QSC: {{ row.is_qsc ? 'Yes' : 'No' }}
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Divider -->
+                        <hr class="my-4 border-gray-300 dark:border-gray-600" />
+
+
+                        <!-- Family Information -->
+                        <div>
+                            <h3 class="flex items-center text-lg font-semibold text-green-700 dark:text-green-300 mb-4">
+                                <Users class="w-5 h-5 mr-2" /> Family Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Father's Name: {{ row.father_name }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Guardian Name: {{ row.guardian_name || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Father CNIC: {{ row.father_cnic }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Mother CNIC: {{ row.mother_cnic || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> Phone #: {{ row.phone_no || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> Mobile #: {{ row.mobile_no }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <LayoutGrid class="w-4 h-4" /> Father Profession: {{ row.father_profession }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <LayoutGrid class="w-4 h-4" /> Mother Profession: {{ row.mother_profession }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> No. of Children: {{ row.no_of_children || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <LayoutGrid class="w-4 h-4" /> Job Type: {{ row.job_type || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpen class="w-4 h-4" /> Father Education: {{ row.father_education }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpen class="w-4 h-4" /> Mother Education: {{ row.mother_education }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CreditCard class="w-4 h-4" /> Father Income: {{ row.father_income }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CreditCard class="w-4 h-4" /> Mother Income: {{ row.mother_income || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CreditCard class="w-4 h-4" /> Household Income: {{ row.household_income }}
+                                </div>
+
+
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Building2 class="w-4 h-4" /> Address: {{ row.permanent_address }}
                             </div>
                         </div>
                     </div>
                 </template>
+
+
             </BaseDataTable>
         </div>
         <AlertDialog v-model="showDeleteDialog" title="Delete Student"
@@ -298,7 +399,23 @@ import Icon from '@/components/Icon.vue';
 import { storeToRefs } from 'pinia';
 import { useSchoolStore } from '@/stores/school';
 import { BreadcrumbItem } from '@/types';
-import { FilterIcon } from 'lucide-vue-next';
+import {
+    FilterIcon, BookOpen,
+    BookOpenCheck,
+    Building2,
+    CalendarCheck,
+    ClipboardList,
+    CreditCard,
+    FileText,
+    GraduationCap,
+    LayoutGrid,
+    School,
+    UserPlus,
+    Users,
+    Award,
+    Pencil,
+    Trash2
+} from 'lucide-vue-next';
 const defaultProfileImage = '/storage/default-avatar.png';
 
 const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();

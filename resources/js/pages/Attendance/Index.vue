@@ -21,7 +21,8 @@
             <!-- Filters Section -->
             <div
                 class="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-6 mb-6">
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- Desktop Filters -->
+                <div class="hidden md:grid grid-cols-1 md:grid-cols-5 gap-4">
                     <!-- Class Selection -->
                     <div>
                         <Label for="class_id" class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -29,7 +30,7 @@
                             Class <span class="text-red-500">*</span>
                         </Label>
                         <select id="class_id" v-model="selectedClass"
-                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                             <option value="">Select Class</option>
                             <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                         </select>
@@ -42,7 +43,7 @@
                             Section
                         </Label>
                         <select id="section_id" v-model="selectedSection"
-                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                             <option value="">All Sections</option>
                             <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}
                             </option>
@@ -56,7 +57,7 @@
                             Teacher
                         </Label>
                         <select id="teacher_id" v-model="selectedTeacher"
-                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                             <option value="">Select Teacher</option>
                             <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
                                 {{ teacher.user?.name || 'Unknown Teacher' }}
@@ -71,17 +72,25 @@
                             Date <span class="text-red-500">*</span>
                         </Label>
                         <input type="date" id="date" v-model="selectedDate"
-                            class="w-full p-3 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                     </div>
 
                     <!-- Load Students Button -->
                     <div class="flex items-end">
                         <Button @click="loadStudents" :disabled="!selectedClass || !selectedDate"
-                            class="w-full px-4 py-3 text-sm">
+                            class="w-full px-3 py-2 text-sm">
                             <RefreshCw class="w-4 h-4 mr-2" />
                             Load Students
                         </Button>
                     </div>
+                </div>
+
+                <!-- Mobile Filter Button -->
+                <div class="md:hidden">
+                    <Button @click="openFilterSheet" variant="outline" class="w-full px-3 py-2 text-sm">
+                        <Filter class="w-4 h-4 mr-2" />
+                        Filters
+                    </Button>
                 </div>
             </div>
 
@@ -147,7 +156,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <select v-model="attendanceData[student.id].status"
-                                        class="p-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                                        class="px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                                         <option v-for="(label, value) in statuses" :key="value" :value="value">
                                             {{ label }}
                                         </option>
@@ -156,7 +165,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <input type="text" v-model="attendanceData[student.id].remarks"
                                         placeholder="Optional remarks"
-                                        class="w-full p-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
+                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" />
                                 </td>
                             </tr>
                         </tbody>
@@ -165,7 +174,7 @@
 
                 <!-- Save Button -->
                 <div class="p-6 border-t border-gray-200 dark:border-neutral-700">
-                    <Button @click="saveAttendance" :disabled="loading" class="w-full sm:w-auto px-6 py-3 text-sm">
+                    <Button @click="saveAttendance" :disabled="loading" class="w-full sm:w-auto px-4 py-2 text-sm">
                         <Loader2 v-if="loading" class="w-4 h-4 mr-2 animate-spin" />
                         <Save v-else class="w-4 h-4 mr-2" />
                         {{ loading ? 'Saving...' : 'Save Attendance' }}
@@ -197,17 +206,89 @@
                 </p>
             </div>
         </div>
+
+        <!-- Touch-friendly Bottom Sheet for Mobile Filters -->
+        <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
+            ref="filterSheet" class="dark:bg-neutral-900">
+            <div class="sheet-content dark:bg-neutral-900">
+                <h2 class="text-lg font-semibold mb-4">Attendance Filters</h2>
+                <div class="flex flex-col gap-4">
+                    <!-- Class Selection -->
+                    <div class="flex flex-col">
+                        <label for="class_id_mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Class <span class="text-red-500">*</span>
+                        </label>
+                        <select id="class_id_mobile" v-model="selectedClass"
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-neutral-900">
+                            <option value="">Select Class</option>
+                            <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
+                        </select>
+                    </div>
+
+                    <!-- Section Selection -->
+                    <div class="flex flex-col">
+                        <label for="section_id_mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Section
+                        </label>
+                        <select id="section_id_mobile" v-model="selectedSection"
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-neutral-900">
+                            <option value="">All Sections</option>
+                            <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Teacher Selection -->
+                    <div class="flex flex-col">
+                        <label for="teacher_id_mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Teacher
+                        </label>
+                        <select id="teacher_id_mobile" v-model="selectedTeacher"
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-neutral-900">
+                            <option value="">Select Teacher</option>
+                            <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">
+                                {{ teacher.user?.name || 'Unknown Teacher' }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="flex flex-col">
+                        <label for="date_mobile"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                            Date <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="date_mobile" v-model="selectedDate"
+                            class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-neutral-900" />
+                    </div>
+
+                    <!-- Load Students Button -->
+                    <div class="pt-2">
+                        <Button @click="loadStudentsAndClose" :disabled="!selectedClass || !selectedDate"
+                            class="w-full px-3 py-2 text-sm">
+                            <RefreshCw class="w-4 h-4 mr-2" />
+                            Load Students
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </vue-bottom-sheet>
     </AppLayout>
 </template>
 
 <script setup lang="ts">
+import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
+import "@webzlodimir/vue-bottom-sheet/dist/style.css";
 import { ref, computed, watch } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Calendar, Building2, Users, RefreshCw, Save, Loader2 } from 'lucide-vue-next';
+import { Calendar, Building2, Users, RefreshCw, Save, Loader2, Filter } from 'lucide-vue-next';
 
 interface Student {
     id: number;
@@ -255,6 +336,16 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
+
+function openFilterSheet() {
+    filterSheet.value?.open();
+}
+
+function closeFilterSheet() {
+    filterSheet.value?.close();
+}
 
 const breadcrumbItems = [
     { title: 'Dashboard', href: '/' },
@@ -340,6 +431,11 @@ function loadStudents() {
         preserveScroll: true,
         replace: true
     });
+}
+
+function loadStudentsAndClose() {
+    loadStudents();
+    closeFilterSheet();
 }
 
 function saveAttendance() {

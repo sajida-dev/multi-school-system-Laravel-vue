@@ -16,6 +16,7 @@ use Modules\Teachers\Models\Teacher;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class TeachersController extends Controller
 {
@@ -100,46 +101,6 @@ class TeachersController extends Controller
         // Use the global selected school from session
         $schoolId = session('active_school_id');
 
-        // If no school in session, try to get from user's last_school_id
-        if (!$schoolId) {
-            /** @var User $user */
-            $user = Auth::user();
-            if ($user && $user->last_school_id) {
-                $schoolId = $user->last_school_id;
-                // Set it in session for future use
-                session(['active_school_id' => $schoolId]);
-            }
-        }
-
-        // If still no school, try to get the first available school for the user
-        if (!$schoolId) {
-            /** @var User $user */
-            $user = Auth::user();
-            if ($user) {
-                // Check if user has superadmin role
-                if ($user->roles()->where('name', 'superadmin')->exists()) {
-                    $firstSchool = \Modules\Schools\App\Models\School::first();
-                    if ($firstSchool) {
-                        $schoolId = $firstSchool->id;
-                        session(['active_school_id' => $schoolId]);
-                    }
-                } elseif ($user->roles()->where('name', 'admin')->exists()) {
-                    // For admin users, get their associated schools
-                    $firstSchool = $user->schools()->first();
-                    if ($firstSchool) {
-                        $schoolId = $firstSchool->id;
-                        session(['active_school_id' => $schoolId]);
-                    }
-                }
-            }
-        }
-
-        // If still no school found, show a proper error message
-        if (!$schoolId) {
-            return redirect()->back()->withErrors(['error' => 'No school is available. Please contact an administrator to set up schools.']);
-        }
-
-        // Get roles for the selected school (including global roles)
         $roles = Role::whereIn('name', ['teacher', 'principal'])
             ->where(function ($q) use ($schoolId) {
                 $q->whereNull('school_id'); // Global roles
@@ -149,10 +110,6 @@ class TeachersController extends Controller
 
         // Check if any roles are available
         $hasRoles = $roles->count() > 0;
-
-        if (!$hasRoles) {
-            return redirect()->back()->withErrors(['error' => 'No teacher or principal roles are available for the selected school. Please contact an administrator to create the necessary roles.']);
-        }
 
         return Inertia::render('Teachers/Create', [
             'roles' => $roles,
@@ -166,26 +123,33 @@ class TeachersController extends Controller
      */
     public function store(Request $request)
     {
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'username' => 'required|alpha_dash|unique:users,username',
-            'password' => 'required|string|min:8',
-            'cnic' => 'required|string|unique:teachers,cnic',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&^_-])[A-Za-z\d@$!%*#?&^_-]{8,}$/'
+            ],
+            'cnic' => ['required', 'string', 'unique:teachers,cnic', 'regex:/^\d{5}-\d{7}-\d{1}$/'], // Format: 12345-1234567-1
             'gender' => 'required|in:Male,Female',
             'marital_status' => 'required|in:Single,Married',
             'role_id' => ['required', 'exists:roles,id'],
             'dob' => 'required|date',
             'salary' => 'required|numeric',
-            'phone_number' => 'required|string',
+            'phone_number' => ['required', 'string', 'unique:users,phone_number', 'regex:/^(03\d{9}|\+92\d{10})$/'], // Supports local (03xx...) and international (+923xx...) formats
             'date_of_joining' => 'required|date',
             'experience_years' => 'nullable|integer',
             'school_id' => 'required|exists:schools,id',
             'class_id' => 'nullable|exists:classes,id',
             'profile_photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
         ]);
-
         try {
+
+
             DB::transaction(function () use ($validated, $request) {
                 $userData = [
                     'name' => $validated['name'],
@@ -301,30 +265,53 @@ class TeachersController extends Controller
     /**
      * Update the specified resource in storage.
      */
+
     public function update(Request $request, $id)
     {
+        // Get user and linked teacher
+        $user = User::findOrFail($id);
+        $teacher = Teacher::where('user_id', $user->id)->firstOrFail();
+
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'username' => 'required|alpha_dash|unique:users,username,' . $id,
-            'gender' => 'required|in:Male,Female',
-            'cnic' => 'required|string|unique:teachers,cnic,' . $id,
-            'marital_status' => 'required|in:Single,Married',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users', 'email')->ignore($user->id),
+            ],
+            'username' => [
+                'required',
+                'alpha_dash',
+                Rule::unique('users', 'username')->ignore($user->id),
+            ],
+            'gender' => ['required', Rule::in(['Male', 'Female'])],
+            'cnic' => [
+                'required',
+                'string',
+                Rule::unique('teachers', 'cnic')->ignore($teacher->id),
+                'regex:/^\d{5}-\d{7}-\d{1}$/', // CNIC format: 12345-1234567-1
+            ],
+            'marital_status' => ['required', Rule::in(['Single', 'Married'])],
             'role_id' => ['required', 'exists:roles,id'],
             'dob' => 'required|date',
-            'salary' => 'required|numeric',
-            'phone_number' => 'required|string',
+            'salary' => 'required|numeric|min:0',
+            'phone_number' => [
+                'required',
+                'string',
+                Rule::unique('users', 'phone_number')->ignore($user->id),
+                'regex:/^(03\d{9}|\+92\d{10})$/', // Supports local (03xx...) and international (+923xx...) formats
+            ],
             'date_of_joining' => 'required|date',
-            'experience_years' => 'nullable|integer',
-            'school_id' => 'required|exists:schools,id',
+            'experience_years' => 'nullable|integer|min:0',
+            'school_id' => ['required', 'exists:schools,id'],
             'class_id' => 'nullable|exists:classes,id',
-            'profile_photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048', // 2MB max
+            'profile_photo' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
         try {
-            DB::transaction(function () use ($validated, $id, $request) {
-                $user = User::findOrFail($id);
-
+            // Begin DB Transaction
+            DB::transaction(function () use ($validated, $request, $user, $teacher) {
+                // Update User
                 $userUpdateData = [
                     'name' => $validated['name'],
                     'email' => $validated['email'],
@@ -332,59 +319,35 @@ class TeachersController extends Controller
                     'phone_number' => $validated['phone_number'],
                 ];
 
-                // Handle profile photo upload
+                // Handle Profile Photo
                 if ($request->hasFile('profile_photo')) {
-                    // Delete old profile photo if it exists and is not the default
                     if ($user->profile_photo_path && $user->profile_photo_path !== 'default-profile.png') {
                         Storage::disk('public')->delete($user->profile_photo_path);
                     }
 
-                    // Store new profile photo
-                    $photoPath = $request->file('profile_photo')->store('profile-photos', 'public');
-                    $userUpdateData['profile_photo_path'] = $photoPath;
+                    $userUpdateData['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
                 }
 
                 $user->update($userUpdateData);
 
-                // Get the role and validate it exists
+                // Role & School Context Validation
                 $role = Role::findOrFail($validated['role_id']);
-
-                // Validate that the role exists for the specific school
                 $this->setSchoolContextForRoles($validated['school_id']);
 
-                // Check if the role exists in the current school context
                 if (!Role::where('name', $role->name)->where('school_id', $validated['school_id'])->exists()) {
                     $this->clearSchoolContext();
                     throw new \Exception("Role '{$role->name}' does not exist for the selected school.");
                 }
 
-                try {
-                    // Remove all existing roles first
-                    $user->syncRoles([]);
+                // Sync Roles
+                $user->syncRoles([]);
+                $user->assignRole($role->name);
 
-                    // Assign the new role
-                    $user->assignRole($role->name);
-                } catch (\Exception $e) {
-                    // Log the error for debugging
-                    Log::error('Role assignment failed', [
-                        'user_id' => $user->id,
-                        'role_id' => $validated['role_id'],
-                        'role_name' => $role->name,
-                        'school_id' => $validated['school_id'],
-                        'error' => $e->getMessage()
-                    ]);
-
-                    // Clear the team context
-                    $this->clearSchoolContext();
-
-                    throw new \Exception('Failed to assign role. Please try again or contact support.');
-                }
-
-                // Clear the team context
+                // Clear context
                 $this->clearSchoolContext();
 
-                $teacher = $user->teacher;
-                $updateData = [
+                // Update Teacher
+                $teacher->update([
                     'school_id' => $validated['school_id'],
                     'cnic' => $validated['cnic'],
                     'gender' => $validated['gender'],
@@ -395,11 +358,8 @@ class TeachersController extends Controller
                     'date_of_joining' => $validated['date_of_joining'],
                     'experience_years' => $validated['experience_years'],
                     'class_id' => $validated['class_id'] ?? null,
-                ];
-                if (isset($validated['status'])) {
-                    $updateData['status'] = $validated['status'];
-                }
-                $teacher->update($updateData);
+                    'status' => $validated['status'] ?? $teacher->status,
+                ]);
             });
 
             return redirect()->route('teachers.index')->with('success', 'Teacher updated successfully.');
@@ -434,30 +394,34 @@ class TeachersController extends Controller
      */
     public function getTeacherPassword(Request $request, $id = null)
     {
-        $userId = $id ?? $request->input('user_id');
-        $admin = $request->user();
-        if (!$admin) {
-            return redirect()->back()->with('error', 'Unauthorized');
-        }
-        // Only allow superadmin or admin
-        if (!$admin->hasRole('superadmin') && !$admin->hasRole('admin')) {
-            return redirect()->back()->with('error', 'Forbidden');
-        }
+        try {
+            $userId = $id ?? $request->input('user_id');
+            $admin = $request->user();
 
-        $result = PasswordService::getUserPassword($userId);
-
-        if (!$result['success']) {
-            // Return an Inertia partial response for SPA fetch
-            if ($request->hasHeader('X-Inertia')) {
-                return redirect()->back()->with('passwordResponse', ['error' => $result['error']]);
+            // Only allow superadmin or admin
+            if (!$admin->hasRole('superadmin') && !$admin->hasRole('admin')) {
+                return redirect()->back()->with('error', 'Forbidden');
             }
-            return redirect()->back()->with('error', $result['error']);
-        }
+            // dd("superadmin or admin");
+            $result = PasswordService::getUserPassword($userId);
 
-        if ($request->hasHeader('X-Inertia')) {
-            return redirect()->back()->with('passwordResponse', ['password' => $result['password']]);
+            if (!$result['success']) {
+
+                // Return an Inertia partial response for SPA fetch
+                if ($request->hasHeader('X-Inertia')) {
+                    return redirect()->back()->with(['error' => 'Failed to get password']);
+                }
+                return response()->json(['error' => 'Failed to get password']);
+            }
+            return response()->json(['password' => $result['password']]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get teacher password', [
+                'user_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Failed to get password']);
         }
-        return redirect()->back();
     }
 
     /**

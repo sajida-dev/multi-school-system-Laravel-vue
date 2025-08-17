@@ -25,7 +25,8 @@
                                 form.errors.password
                                     ? 'border-red-500 dark:border-red-500'
                                     : 'border-gray-300 dark:border-neutral-600'
-                            ]" placeholder="At least 8 characters" required />
+                            ]"
+                                placeholder="At least 8 characters, including uppercase, lowercase, number, and special character (@$!%*#?&^_-)">
                             <button type="button" @click="showPassword = !showPassword"
                                 class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                                 <Eye v-if="!showPassword" class="w-4 h-4" />
@@ -77,11 +78,11 @@
                     <TextInput label="Salary" v-model="form.salary" :error="form.errors.salary" required type="number"
                         min="0" placeholder="e.g. 50000" />
                     <TextInput label="Teacher Contact No" v-model="form.phone_number" :error="form.errors.phone_number"
-                        required placeholder="e.g. 0300-1234567" />
+                        required placeholder="e.g. 03001234567 or +923001234567" />
                     <TextInput label="Date of Joining" v-model="form.date_of_joining"
                         :error="form.errors.date_of_joining" required type="date" placeholder="mm/dd/yyyy" />
                     <TextInput label="Current Experience in Years" v-model="form.experience_years"
-                        :error="form.errors.experience_years" type="number" min="0" placeholder="e.g. 5" />
+                        :error="form.errors.experience_years" type="number" min="0" max="99" placeholder="e.g. 5" />
 
                     <SelectInput v-if="filteredClasses.length" label="Assign Class" v-model="form.class_id"
                         :error="form.errors.class_id" required
@@ -114,6 +115,7 @@ import { BreadcrumbItem } from '@/types';
 import { useSchoolStore } from '@/stores/school';
 import { storeToRefs } from 'pinia';
 import { Eye, EyeOff } from 'lucide-vue-next';
+import { toast } from 'vue3-toastify';
 
 const schoolStore = useSchoolStore();
 const { schools: schoolsRaw, selectedSchool: selectedSchoolRaw, classes: classesRaw, sections: sectionsRaw } = storeToRefs(schoolStore);
@@ -169,6 +171,13 @@ function submit() {
         forceFormData: true,
         onSuccess: () => {
             router.visit('/teachers');
+            toast.success('Teacher added successfully');
+        },
+        onError: () => {
+            toast.error('Failed to add teacher. Please check the form for errors.');
+        },
+        onFinish: () => {
+            form.reset('password', 'profile_photo');
         },
     });
 }

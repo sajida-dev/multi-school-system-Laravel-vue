@@ -22,8 +22,9 @@
                 <template #item-id="row">
                     <div class="flex items-center justify-center h-full">
                         <Avatar class="w-8 h-8">
-                            <AvatarImage v-if="row.logo" :src="row.logo" :alt="row.name" />
-                            <AvatarFallback v-else>{{ getInitials(row.name) }}</AvatarFallback>
+                            <AvatarImage
+                                :src="row.logo ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s'"
+                                :alt="row.name" />
                         </Avatar>
                     </div>
                 </template>
@@ -180,15 +181,6 @@ const deleteSchool = () => {
     });
     showDeleteDialog.value = false;
 };
-
-function getInitials(name: string) {
-    return name
-        .split(' ')
-        .map(word => word.charAt(0))
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
-}
 
 
 onMounted(() => {

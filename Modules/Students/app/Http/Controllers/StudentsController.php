@@ -9,6 +9,7 @@ use Modules\Admissions\App\Models\Student;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\DB;
+use Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
 
 class StudentsController extends Controller
 {
@@ -131,46 +132,10 @@ class StudentsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateStudentRequest $request, $id)
     {
         $student = Student::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'registration_number' => 'required|string|unique:students,registration_number,' . $id,
-            'b_form_number' => 'required|string|unique:students,b_form_number,' . $id,
-            'class_id' => 'required|exists:classes,id',
-            'school_id' => 'required|exists:schools,id',
-            'nationality' => 'required|string',
-            'admission_date' => 'required|date',
-            'date_of_birth' => 'required|date',
-            'gender' => 'required|in:Male,Female,Other',
-            'class_shift' => 'required|in:Morning,Evening,Other',
-            'previous_school' => 'nullable|string',
-            'inclusive' => 'required|string',
-            'other_inclusive_type' => 'nullable|string',
-            'religion' => 'required|string',
-            'is_bricklin' => 'boolean',
-            'is_orphan' => 'boolean',
-            'is_qsc' => 'boolean',
-            'father_name' => 'required|string',
-            'guardian_name' => 'nullable|string',
-            'father_cnic' => 'required|string',
-            'mother_cnic' => 'nullable|string',
-            'father_profession' => 'required|string',
-            'no_of_children' => 'nullable|integer',
-            'job_type' => 'nullable|string',
-            'father_education' => 'required|string',
-            'mother_education' => 'required|string',
-            'mother_profession' => 'required|string',
-            'father_income' => 'required|string',
-            'mother_income' => 'nullable|string',
-            'household_income' => 'required|string',
-            'permanent_address' => 'required|string',
-            'phone_no' => 'nullable|string',
-            'mobile_no' => 'required|string',
-        ]);
-
+        $validated = $request->validated();
         $student->update($validated);
 
         return redirect()->route('students.index')

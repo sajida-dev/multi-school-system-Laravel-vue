@@ -57,7 +57,8 @@ function submit() {
     formData.append('paid_voucher_image', file.value);
     router.post(route('admissions.approve', props.studentId), formData, {
         forceFormData: true,
-        onSuccess: () => {
+        onSuccess: (page) => {
+            console.log('Upload success response:', page);
             toast.success('Paid voucher uploaded and student approved.');
             emit('uploaded');
         },

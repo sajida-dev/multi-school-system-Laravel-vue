@@ -29,7 +29,7 @@ class AdmissionsController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Student::with('class'); // Eager load class relationship
+        $query = Student::with(['class', 'fee']); // Eager load class and fee relationships
         // Always filter by selected school from session
         $selectedSchoolId = session('active_school_id');
         if ($selectedSchoolId) {
@@ -104,6 +104,7 @@ class AdmissionsController extends Controller
                 try {
                     $fee = Fee::create([
                         'student_id' => $student->id,
+                        'class_id' => $student->class_id,
                         'type' => 'admission',
                         'amount' => 500,
                         'status' => 'unpaid',
@@ -256,16 +257,50 @@ class AdmissionsController extends Controller
                     $voucherPath = $request->file('paid_voucher_image')->store('vouchers', 'public');
                     $fee->paid_voucher_image = $voucherPath;
                     $fee->status = 'paid';
+                    $fee->paid_at = now();
                     $fee->save();
+
+                    Log::info('Fee updated with voucher', [
+                        'fee_id' => $fee->id,
+                        'student_id' => $student->id,
+                        'status' => $fee->status,
+                        'voucher_path' => $voucherPath,
+                        'paid_at' => $fee->paid_at
+                    ]);
                 }
 
+                // Double-check that the fee was saved correctly
+                $fee->refresh();
                 if ($fee->status !== 'paid' || !$fee->paid_voucher_image) {
+                    Log::error('Fee validation failed after save', [
+                        'fee_id' => $fee->id,
+                        'status' => $fee->status,
+                        'paid_voucher_image' => $fee->paid_voucher_image,
+                        'student_id' => $student->id
+                    ]);
                     return redirect()->back()->with('error', 'Fee must be paid and voucher uploaded before approval.');
                 }
 
                 $student->status = 'admitted';
                 $student->save();
-                Broadcast::event('student.updated', $student);
+
+                Log::info('Student approved successfully', [
+                    'student_id' => $student->id,
+                    'status' => $student->status,
+                    'fee_id' => $fee->id,
+                    'fee_status' => $fee->status
+                ]);
+
+                // Try to broadcast event (with error handling)
+                try {
+                    Broadcast::event('student.updated', $student);
+                } catch (\Exception $broadcastException) {
+                    Log::warning('Failed to broadcast student update event', [
+                        'error' => $broadcastException->getMessage(),
+                        'student_id' => $student->id
+                    ]);
+                }
+
                 return redirect()->back()->with('success', 'Student approved successfully.');
             }, 5); // 5 retries for deadlock handling
         } catch (\Exception $e) {

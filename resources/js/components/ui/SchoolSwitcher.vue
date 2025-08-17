@@ -16,14 +16,11 @@ const emit = defineEmits(['switched']);
 
 // RULE: Always use Inertia router methods for navigation and form submissions in Inertia-powered Vue apps.
 function switchSchool(school: any) {
-    console.log('switchSchool called with:', school); // Debug log
     if (school.id !== selectedSchool.value?.id) {
-        console.log('Switching from school ID:', selectedSchool.value?.id, 'to:', school.id); // Debug log
         schoolStore.setSchool(school);
         router.post('/admin/set-active-school', { school_id: school.id }, {
             preserveScroll: true,
             onSuccess: () => {
-                console.log('School switch successful'); // Debug log
                 router.reload({ only: ['schools', 'activeSchoolId'] });
                 emit('switched', school);
             },
@@ -45,7 +42,6 @@ function getInitials(name: string) {
         .slice(0, 2);
 }
 
-// Listen for a custom event to add a new school to the store without refetching
 function handleSchoolAdded(event: CustomEvent) {
     const newSchool = event.detail;
     // Only add if not already present
@@ -58,26 +54,20 @@ function handleSchoolAdded(event: CustomEvent) {
     }
 }
 
-// Watch for changes in schools to update selectedSchool reactively
 watch(schools, (newSchools) => {
     if (newSchools.length === 0) {
         schoolStore.setSchool(null);
     } else if (newSchools.length === 1) {
         schoolStore.setSchool(newSchools[0]);
     } else if (selectedSchool.value && !newSchools.some(s => s.id === selectedSchool.value?.id)) {
-        // If selected school is not in the list, select the first
         schoolStore.setSchool(newSchools[0]);
     }
 });
 
-// Optionally, poll for school updates every 10 seconds if websockets are not available
 let pollInterval: number | undefined;
-// Add websocket support for real-time school updates
 onMounted(() => {
     window.addEventListener('school-added', handleSchoolAdded as EventListener);
-    // Listen for school events via Echo if available
-    // The original code had Echo listeners commented out, so we'll remove them.
-    // If polling is needed, it should be implemented here or in a separate function.
+
 });
 onUnmounted(() => {
     window.removeEventListener('school-added', handleSchoolAdded as EventListener);
@@ -91,9 +81,9 @@ onUnmounted(() => {
                 <div
                     class="flex items-center gap-3 bg-white dark:bg-neutral-900 shadow-lg rounded-xl px-4 py-2 cursor-pointer min-w-[220px] border border-gray-200 dark:border-neutral-700">
                     <Avatar class="h-10 w-10">
-                        <AvatarImage v-if="selectedSchool?.logo_url" :src="selectedSchool.logo_url"
-                            :alt="selectedSchool.name" />
-                        <AvatarFallback>{{ getInitials(selectedSchool?.name || '') }}</AvatarFallback>
+                        <AvatarImage
+                            :src="selectedSchool?.logo_url ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s'"
+                            :alt="selectedSchool?.name ?? 'No School Selected'" />
                     </Avatar>
                     <div class="flex flex-col min-w-0">
                         <span class="font-semibold text-base truncate">
@@ -114,13 +104,15 @@ onUnmounted(() => {
                     <DropdownMenuItem v-for="school in schools" :key="school.id" @click="switchSchool(school)"
                         :class="[school.id === selectedSchool?.id ? 'bg-primary/10 dark:bg-primary/20' : '', 'flex items-center gap-3 px-4 py-2 cursor-pointer']">
                         <Avatar class="h-8 w-8">
-                            <AvatarImage v-if="school.logo_url" :src="school.logo_url" :alt="school.name" />
-                            <AvatarFallback>{{ getInitials(school.name) }}</AvatarFallback>
+                            <AvatarImage
+                                :src="school.logo_url ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s'"
+                                :alt="school.name" />
+                            <!-- <AvatarFallback>{{ getInitials(school.name) }}</AvatarFallback> -->
                         </Avatar>
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ school.phone || ''
-                            }}</span>
+                                }}</span>
                         </div>
                         <Check v-if="school.id === selectedSchool?.id" class="ml-auto text-primary" />
                     </DropdownMenuItem>

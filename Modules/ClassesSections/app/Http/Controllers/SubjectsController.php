@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\ClassesSections\App\Models\Subject;
 use Modules\ClassesSections\App\Models\ClassModel;
 use App\Models\User;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Modules\ClassesSections\app\Models\ClassSubject;
 use Modules\Teachers\Models\ClassSubjectTeacher;
@@ -150,39 +151,6 @@ class SubjectsController extends Controller
             'assignments' => $teacherAssignments->toArray()
         ]);
 
-        // Get assignments data - Simplified: Use school_id directly
-        // $assignments = DB::table('class_subject')
-        //     ->join('classes', 'class_subject.class_id', '=', 'classes.id')
-        //     ->join('subjects', 'class_subject.subject_id', '=', 'subjects.id')
-        //     ->where('class_subject.school_id', $activeSchoolId)
-        //     ->select(
-        //         'class_subject.*',
-        //         'classes.name as class_name',
-        //         'subjects.name as subject_name',
-        //         'subjects.code as subject_code'
-        //     )
-        //     ->get();
-
-        // Only load teacher assignments if the request is for the teacher assignment tab
-        // $teacherAssignments = collect([]);
-        // if ($request->has('tab') && $request->tab === 'assign-teachers') {
-        //     $teacherAssignments = DB::table('class_subject_teacher')
-        //         ->join('teachers', 'class_subject_teacher.teacher_id', '=', 'teachers.id')
-        //         ->join('users', 'teachers.user_id', '=', 'users.id')
-        //         ->join('classes', 'class_subject_teacher.class_id', '=', 'classes.id')
-        //         ->join('subjects', 'class_subject_teacher.subject_id', '=', 'subjects.id')
-        //         ->where('class_subject_teacher.school_id', $activeSchoolId)
-        //         ->select(
-        //             'class_subject_teacher.*',
-        //             'classes.name as class_name',
-        //             'subjects.name as subject_name',
-        //             'subjects.code as subject_code',
-        //             'users.name as teacher_name',
-        //             'users.id as teacher_user_id'
-        //         )
-        //         ->get();
-        // }
-
         return Inertia::render('Subjects/Index', [
             'subjects' => $subjects,
             'classes' => $classes,
@@ -194,63 +162,117 @@ class SubjectsController extends Controller
 
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[A-Z]{3,5}\d{3}$/', // e.g. MTH101, MATH101, PHYCH101
+                Rule::unique('subjects', 'code')->whereNull('deleted_at') // ignore soft-deleted
+            ],
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
         try {
             Log::info('Subject creation request received', $request->all());
 
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'code' => 'nullable|string|max:50|unique:subjects,code',
-                'description' => 'nullable|string|max:1000',
-            ]);
+            $existing = Subject::withTrashed()->where('code', $request->code)->first();
+
+            if ($existing && $existing->trashed()) {
+                $existing->restore();
+                $existing->update([
+                    'name' => $request->name,
+                    'description' => $request->description,
+                ]);
+
+                DB::commit();
+
+                return redirect()->back()->with('success', 'Previously deleted subject restored and updated!');
+            }
 
             $subject = Subject::create($validated);
 
+            DB::commit();
+
             Log::info('Subject created successfully', ['subject_id' => $subject->id]);
 
-            // Return redirect for Inertia instead of JSON
             return redirect()->back()->with('success', 'Subject created successfully!');
         } catch (\Exception $e) {
+            DB::rollBack();
+
             Log::error('Error creating subject', ['error' => $e->getMessage()]);
+
             return redirect()->back()->withErrors(['error' => 'Failed to create subject. Please try again.']);
         }
     }
 
     public function update(Request $request, $id)
     {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'code' => [
+                'required',
+                'string',
+                'max:50',
+                'regex:/^[A-Z]{3,5}\d{3}$/', // e.g. MTH101, MATH101, PHYCH101
+                Rule::unique('subjects', 'code')->ignore($id)->whereNull('deleted_at')
+            ],
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        DB::beginTransaction();
         try {
-            Log::info('Subject update request received', ['subject_id' => $id, 'data' => $request->all()]);
-
-            $subject = Subject::findOrFail($id);
-
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'code' => 'nullable|string|max:50|unique:subjects,code,' . $id,
-                'description' => 'nullable|string|max:1000',
+            Log::info('Subject update request received', [
+                'subject_id' => $id,
+                'data' => $request->all()
             ]);
+
+            $subject = Subject::withTrashed()->findOrFail($id);
+
+            if ($subject->trashed()) {
+                $subject->restore();
+                Log::warning('Soft-deleted subject restored during update.', ['subject_id' => $id]);
+            }
 
             $subject->update($validated);
 
+            DB::commit();
+
             Log::info('Subject updated successfully', ['subject_id' => $subject->id]);
 
-            // Return redirect for Inertia instead of JSON
             return redirect()->back()->with('success', 'Subject updated successfully!');
         } catch (\Exception $e) {
-            Log::error('Error updating subject', ['error' => $e->getMessage()]);
+            DB::rollBack();
+
+            Log::error('Error updating subject', [
+                'subject_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+
             return redirect()->back()->withErrors(['error' => 'Failed to update subject. Please try again.']);
         }
     }
+
 
     public function destroy($id)
     {
         try {
             Log::info('Subject deletion request received', ['subject_id' => $id]);
-
+            $isSubjectAssigned = ClassSubject::where('subject_id', $id)->exists();
+            if ($isSubjectAssigned) {
+                return redirect()->back()->with('error', 'Subject is assigned to a class. Please unassign it first.');
+            }
+            $isAssignedToTeacher = ClassSubjectTeacher::where('subject_id', $id)->exists();
+            if ($isAssignedToTeacher) {
+                return redirect()->back()->with('error', 'Subject is assigned to a teacher. Please unassign it first.');
+            }
             $subject = Subject::findOrFail($id);
             $subject->delete();
 
             Log::info('Subject deleted successfully', ['subject_id' => $subject->id]);
 
-            // Return redirect for Inertia instead of JSON
             return redirect()->back()->with('success', 'Subject deleted successfully!');
         } catch (\Exception $e) {
             Log::error('Error deleting subject', ['error' => $e->getMessage()]);
@@ -330,7 +352,6 @@ class SubjectsController extends Controller
                 'school_id' => $activeSchoolId
             ]);
 
-            // Return redirect for Inertia instead of JSON
             return redirect()->back()->with('success', 'Subjects assigned to class successfully!');
         } catch (\Exception $e) {
             Log::error('Error assigning subjects to class', [
@@ -364,7 +385,7 @@ class SubjectsController extends Controller
             // Check if all users have teacher or principal role
             $teachers = User::whereIn('id', $request->teacher_ids)->get();
             $nonTeachers = $teachers->filter(function ($user) {
-                return !$user->hasRole(['teacher']);
+                return !$user->hasRole(['teacher', 'principal']);
             });
 
             if ($nonTeachers->count() > 0) {
@@ -636,7 +657,6 @@ class SubjectsController extends Controller
                 ->where('teacher_id', $teacher->id)
                 ->delete();
 
-            // Return redirect for Inertia instead of JSON
             return redirect()->back()->with('success', 'Assignment removed successfully!');
         } catch (\Exception $e) {
             Log::error('Error removing assignment', [
@@ -672,19 +692,13 @@ class SubjectsController extends Controller
             ]);
 
             if (!$teacher) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Teacher not found'
-                ], 404);
+                return redirect()->back()->withErrors(['error' => 'Teacher not found.']);
             }
 
             // Get active school ID for additional validation
             $activeSchoolId = session('active_school_id');
             if (!$activeSchoolId) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'No active school selected'
-                ], 400);
+                return redirect()->back()->withErrors(['error' => 'No active school selected.']);
             }
 
             // Check if the assignment exists before deleting
@@ -704,10 +718,7 @@ class SubjectsController extends Controller
             ]);
 
             if (!$existingAssignment) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Assignment not found'
-                ], 404);
+                return redirect()->back()->withErrors(['error' => 'Assignment not found for the specified class, subject, and teacher.']);
             }
 
             // Delete the specific assignment
@@ -726,10 +737,7 @@ class SubjectsController extends Controller
                 'deleted_count' => $deleted
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Assignment removed successfully!'
-            ]);
+            return redirect()->back()->with('success', 'Specific assignment removed successfully!');
         } catch (\Exception $e) {
             Log::error('Error removing specific assignment', [
                 'error' => $e->getMessage(),
@@ -737,10 +745,7 @@ class SubjectsController extends Controller
                 'data' => $request->all()
             ]);
 
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to remove assignment: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to remove specific assignment: ' . $e->getMessage()]);
         }
     }
 
@@ -766,19 +771,13 @@ class SubjectsController extends Controller
             ]);
 
             if (!$teacher) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Teacher not found'
-                ], 404);
+                return redirect()->back()->withErrors(['error' => 'Teacher not found.']);
             }
 
             // Get active school ID for additional validation
             $activeSchoolId = session('active_school_id');
             if (!$activeSchoolId) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'No active school selected'
-                ], 400);
+                return redirect()->back()->withErrors(['error' => 'No active school selected.']);
             }
 
             // Check existing assignments before deleting
@@ -810,23 +809,14 @@ class SubjectsController extends Controller
                 'school_id' => $activeSchoolId,
                 'deleted_count' => $deleted
             ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => "All assignments removed for teacher successfully!",
-                'deleted_count' => $deleted
-            ]);
+            return redirect()->back()->with('success', 'All assignments removed for teacher successfully!');
         } catch (\Exception $e) {
             Log::error('Error removing teacher assignments', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'data' => $request->all()
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to remove teacher assignments: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to remove teacher assignments: ' . $e->getMessage()]);
         }
     }
 
@@ -883,80 +873,7 @@ class SubjectsController extends Controller
         }
     }
 
-    public function debugTeacherAssignments(Request $request)
-    {
-        try {
-            // Get active school ID
-            $activeSchoolId = session('active_school_id');
 
-            if (!$activeSchoolId) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'No active school selected'
-                ], 400);
-            }
-
-            // Test 1: Get total teacher assignments using Eloquent
-            $totalAssignments = ClassSubjectTeacher::count();
-
-            // Test 2: Get school-specific teacher assignments using Eloquent
-            $schoolAssignments = ClassSubjectTeacher::with(['teacher.user', 'teacher.class', 'class', 'subject'])
-                ->forSchool($activeSchoolId)
-                ->get();
-
-            // Test 3: Get teachers in the active school using Eloquent
-            $teachersInSchool = User::whereHas('teacher', function ($query) use ($activeSchoolId) {
-                $query->forSchool($activeSchoolId);
-            })->whereHas('roles', function ($query) {
-                $query->whereIn('name', ['teacher', 'principal']);
-            })->get();
-
-            // Test 4: Get class-subject assignments for the active school using Eloquent
-            $classSubjectAssignments = ClassSubject::with('subject')
-                ->where('school_id', $activeSchoolId)
-                ->get();
-
-            // Test 5: Get actual teacher assignments with relationships
-            $teacherAssignments = ClassSubjectTeacher::with(['teacher.user', 'teacher.class', 'class', 'subject'])
-                ->forSchool($activeSchoolId)
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'debug_info' => [
-                    'active_school_id' => $activeSchoolId,
-                    'total_teacher_assignments' => $totalAssignments,
-                    'school_teacher_assignments' => $schoolAssignments,
-                    'teachers_in_school' => $teachersInSchool,
-                    'class_subject_assignments' => $classSubjectAssignments,
-                    'teacher_assignments_with_relations' => $teacherAssignments->count(),
-                    'assignments_data' => $teacherAssignments->map(function ($assignment) {
-                        return [
-                            'id' => $assignment->id,
-                            'teacher_id' => $assignment->teacher_id,
-                            'teacher_name' => $assignment->teacher->user->name ?? 'N/A',
-                            'teacher_class_id' => $assignment->teacher->class_id,
-                            'teacher_class_name' => $assignment->teacher->class ? $assignment->teacher->class->name : 'N/A',
-                            'class_id' => $assignment->class_id,
-                            'class_name' => $assignment->class->name ?? 'N/A',
-                            'subject_id' => $assignment->subject_id,
-                            'subject_name' => $assignment->subject->name ?? 'N/A',
-                            'school_id' => $assignment->school_id
-                        ];
-                    })
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error fetching teacher assignments for debug', [
-                'error' => $e->getMessage()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to fetch teacher assignments for debug: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 
     public function removeSubjectFromClass(Request $request)
     {
@@ -974,10 +891,7 @@ class SubjectsController extends Controller
             // Get active school ID for additional validation
             $activeSchoolId = session('active_school_id');
             if (!$activeSchoolId) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'No active school selected'
-                ], 400);
+                return redirect()->back()->with('error', 'No active school selected');
             }
 
             // Check if the assignment exists before deleting
@@ -995,10 +909,7 @@ class SubjectsController extends Controller
             ]);
 
             if (!$existingAssignment) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Subject-class assignment not found'
-                ], 404);
+                return redirect()->back()->with('error', 'Subject-class assignment not found');
             }
 
             // Delete the subject-class assignment
@@ -1013,22 +924,14 @@ class SubjectsController extends Controller
                 'school_id' => $activeSchoolId,
                 'deleted_count' => $deleted
             ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Subject removed from class successfully!'
-            ]);
+            return redirect()->back()->with('success', 'Subject removed from class successfully!');
         } catch (\Exception $e) {
             Log::error('Error removing subject from class', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'data' => $request->all()
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to remove subject from class: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()->withErrors(['error' => 'Failed to remove subject from class: ' . $e->getMessage()]);
         }
     }
 }

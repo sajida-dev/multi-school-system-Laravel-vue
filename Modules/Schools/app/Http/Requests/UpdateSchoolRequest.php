@@ -21,8 +21,8 @@ class UpdateSchoolRequest extends FormRequest
     {
         return [
             'name' => 'required|string|min:2|max:255|regex:/^[a-zA-Z0-9\s\-\.]+$/',
-            'address' => 'nullable|string|min:10|max:500',
-            'contact' => 'nullable|string|regex:/^[\d\s\-\+\(\)]{7,20}$/',
+            'address' => 'required|string|min:10|max:500',
+            'contact' => ['required', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'],
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:1024',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
@@ -40,7 +40,7 @@ class UpdateSchoolRequest extends FormRequest
             'name.regex' => 'School name can only contain letters, numbers, spaces, hyphens, and periods.',
             'address.min' => 'Address must be at least 10 characters long.',
             'address.max' => 'Address cannot exceed 500 characters.',
-            'contact.regex' => 'Contact number must be 7-20 digits and may contain spaces, dashes, plus signs, and parentheses.',
+            'contact.regex' => 'Contact number must be in format: 03001234567 or +923001234567.',
             'logo.image' => 'Logo must be an image file.',
             'logo.mimes' => 'Logo must be a JPEG, PNG, JPG, or GIF file.',
             'logo.max' => 'Logo size must not exceed 1MB.',

@@ -21,8 +21,8 @@ class StoreSchoolRequest extends FormRequest
     {
         return [
             'name' => 'required|string|min:2|max:255|regex:/^[a-zA-Z0-9\s\-\.]+$/',
-            'address' => 'nullable|string|min:10|max:500',
-            'contact' => 'nullable|string|regex:/^[\d\s\-\+\(\)]{7,20}$/',
+            'address' => 'required|string|min:10|max:500',
+            'contact' => ['required', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'],
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:1024',
             'main_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];

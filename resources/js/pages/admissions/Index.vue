@@ -65,7 +65,8 @@
                         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
                     </select>
                 </div>
-                <div>
+                <!-- School filter only for superadmins -->
+                <div v-if="auth.user.roles?.some(r => r.name === 'superadmin')">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
                     <select v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
                         class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
@@ -122,83 +123,103 @@
                         </svg>
                     </button>
                 </template>
+                <!-- 
                 <template #expand="row">
-                    <div v-if="expandedRow === row.id" class="p-6 bg-gray-50 dark:bg-neutral-800 rounded shadow-inner">
-                        <div class="flex flex-col md:flex-row gap-6 mb-6">
-                            <div class="flex flex-col items-center md:w-1/4">
+                    <div v-if="expandedRow === row.id"
+                        class="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow border border-gray-200 dark:border-neutral-700 transition-all duration-300">
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-4 mb-6">
+                            <div class="flex items-center gap-4">
                                 <img :src="row.profile_photo_url" alt="Profile Photo"
-                                    class="w-28 h-28 rounded-full object-cover border-2 border-purple-400 mb-2" />
-                                <div class="text-xs text-gray-500 dark:text-gray-400">Profile Photo</div>
+                                    class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.name }}</h2>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300">Registration #: {{
+                                        row.registration_number }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300">Class: {{ row.class }} - Shift:
+                                        {{ row.class_shift }}</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300">School: {{ row.school }}
+                                    </p>
+                                </div>
                             </div>
-                            <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <h3 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">Student Information
-                                    </h3>
-                                    <div><strong>Name:</strong> {{ row.name }}</div>
-                                    <div><strong>Registration #:</strong> {{ row.registration_number }}</div>
-                                    <div><strong>Class:</strong> {{ row.class }}</div>
-                                    <div><strong>School:</strong> {{ row.school_id }}</div>
-                                    <div><strong>Nationality:</strong> {{ row.nationality }}</div>
-                                    <div><strong>B-Form Number:</strong> {{ row.b_form_number }}</div>
-                                    <div><strong>Admission Date:</strong> {{ row.admission_date }}</div>
-                                    <div><strong>Date of Birth:</strong> {{ row.date_of_birth }}</div>
-                                    <div><strong>Gender:</strong> {{ row.gender }}</div>
-                                    <div><strong>Class Shift:</strong> {{ row.class_shift }}</div>
-                                    <div><strong>Status:</strong> {{ row.status }}</div>
-                                    <div><strong>Previous School:</strong> {{ row.previous_school || 'N/A' }}</div>
-                                    <div><strong>Religion:</strong> {{ row.religion }}</div>
-                                    <div><strong>Inclusive:</strong> {{ row.inclusive }}</div>
-                                    <div v-if="row.other_inclusive_type"><strong>Other Inclusive Type:</strong> {{
-                                        row.other_inclusive_type }}</div>
-                                    <div><strong>Orphan:</strong> {{ row.is_orphan ? 'Yes' : 'No' }}</div>
-                                    <div><strong>Bricklin:</strong> {{ row.is_bricklin ? 'Yes' : 'No' }}</div>
-                                    <div><strong>QSC:</strong> {{ row.is_qsc ? 'Yes' : 'No' }}</div>
-                                </div>
-                                <div>
-                                    <h3 class="font-semibold text-green-700 dark:text-green-300 mb-2">Family Information
-                                    </h3>
-                                    <div><strong>Father Name:</strong> {{ row.father_name }}</div>
-                                    <div><strong>Guardian Name:</strong> {{ row.guardian_name || 'N/A' }}</div>
-                                    <div><strong>Father CNIC:</strong> {{ row.father_cnic }}</div>
-                                    <div><strong>Mother CNIC:</strong> {{ row.mother_cnic || 'N/A' }}</div>
-                                    <div><strong>Father Profession:</strong> {{ row.father_profession }}</div>
-                                    <div><strong>Mother Profession:</strong> {{ row.mother_profession }}</div>
-                                    <div><strong>No. of Children:</strong> {{ row.no_of_children || 'N/A' }}</div>
-                                    <div><strong>Job Type:</strong> {{ row.job_type || 'N/A' }}</div>
-                                    <div><strong>Father Education:</strong> {{ row.father_education }}</div>
-                                    <div><strong>Mother Education:</strong> {{ row.mother_education }}</div>
-                                    <div><strong>Father Income:</strong> {{ row.father_income }}</div>
-                                    <div><strong>Mother Income:</strong> {{ row.mother_income || 'N/A' }}</div>
-                                    <div><strong>Household Income:</strong> {{ row.household_income }}</div>
-                                    <div><strong>Permanent Address:</strong> {{ row.permanent_address }}</div>
-                                    <div><strong>Phone No:</strong> {{ row.phone_no || 'N/A' }}</div>
-                                    <div><strong>Mobile No:</strong> {{ row.mobile_no }}</div>
-                                </div>
+                            <div class="flex gap-2 mt-4 md:mt-0">
+                                <Button variant="outline" class="text-sm">
+                                    <UserPlus class="w-4 h-4 mr-2" /> Edit
+                                </Button>
+                                <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                                    @click="openVoucherModal(row.id)">
+                                    <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
+                                </Button>
                             </div>
                         </div>
-                        <div class="mt-4">
-                            <h3 class="font-semibold text-purple-700 dark:text-purple-300 mb-2">Other Details</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div><strong>Registration #:</strong> {{ row.registration_number }}</div>
+
+                        <hr class="mb-4 border-gray-300 dark:border-gray-600" />
+
+                        <div class="mb-6">
+                            <h3
+                                class="flex flex-row gap-2 items-center text-lg font-semibold text-blue-700 dark:text-blue-300 mb-3">
+                                <GraduationCap class="w-5 h-5" /> Personal
+                                Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div><strong>Nationality:</strong> {{ row.nationality }}</div>
                                 <div><strong>B-Form Number:</strong> {{ row.b_form_number }}</div>
                                 <div><strong>Admission Date:</strong> {{ row.admission_date }}</div>
                                 <div><strong>Date of Birth:</strong> {{ row.date_of_birth }}</div>
                                 <div><strong>Gender:</strong> {{ row.gender }}</div>
-                                <div><strong>Class Shift:</strong> {{ row.class_shift }}</div>
                                 <div><strong>Status:</strong> {{ row.status }}</div>
+                                <div><strong>Previous School:</strong> {{ row.previous_school || 'N/A' }}</div>
+                                <div><strong>Religion:</strong> {{ row.religion }}</div>
+                                <div><strong>Inclusive:</strong> {{ row.inclusive }}</div>
+                                <div v-if="row.other_inclusive_type"><strong>Other Inclusive Type:</strong> {{
+                                    row.other_inclusive_type }}</div>
+                                <div><strong>Orphan:</strong> {{ row.is_orphan ? 'Yes' : 'No' }}</div>
+                                <div><strong>Bricklin:</strong> {{ row.is_bricklin ? 'Yes' : 'No' }}</div>
+                                <div><strong>QSC:</strong> {{ row.is_qsc ? 'Yes' : 'No' }}</div>
                             </div>
                         </div>
-                        <div class="mt-6 flex flex-col gap-4">
+                        <hr class="mb-4 border-gray-300 dark:border-gray-600" />
+                        <div class="mb-6">
+                            <h3
+                                class="flex flex-row gap-4 items-center text-lg font-semibold text-green-700 dark:text-green-300 mb-3">
+                                <Users class="w-5 h-5" /> Family
+                                Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div><strong>Father's Name:</strong> {{ row.father_name }}</div>
+                                <div><strong>Guardian Name:</strong> {{ row.guardian_name || 'N/A' }}</div>
+                                <div><strong>Father CNIC:</strong> {{ row.father_cnic }}</div>
+                                <div><strong>Mother CNIC:</strong> {{ row.mother_cnic || 'N/A' }}</div>
+                                <div><strong>Phone No:</strong> {{ row.phone_no || 'N/A' }}</div>
+                                <div><strong>Mobile No:</strong> {{ row.mobile_no }}</div>
+                                <div><strong>Father Profession:</strong> {{ row.father_profession }}</div>
+                                <div><strong>Mother Profession:</strong> {{ row.mother_profession }}</div>
+                                <div><strong>Father Education:</strong> {{ row.father_education }}</div>
+                                <div><strong>Mother Education:</strong> {{ row.mother_education }}</div>
+                                <div><strong>Job Type:</strong> {{ row.job_type || 'N/A' }}</div>
+                                <div><strong>No. of Children:</strong> {{ row.no_of_children || 'N/A' }}</div>
+                            </div>
+                            <hr class="my-4 border-gray-300 dark:border-gray-600" />
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div><strong>Father Income:</strong> {{ row.father_income }}</div>
+                                <div><strong>Mother Income:</strong> {{ row.mother_income || 'N/A' }}</div>
+                                <div><strong>Household Income:</strong> {{ row.household_income }}</div>
+
+                            </div>
+                            <div><strong>Permanent Address:</strong> {{ row.permanent_address }}</div>
+                        </div>
+
+
+                        <div class="border-t pt-4 mt-4">
+                            <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
+                                <Receipt class="w-5 h-5" /> Voucher Status
+                            </h3>
                             <div v-if="row.status !== 'admitted'">
                                 <div v-if="!row.fee || row.fee.status !== 'paid'">
-                                    <Button variant="default" class="bg-green-800 hover:bg-green-900 text-white mt-2"
-                                        @click="openVoucherModal(row.id)">
-                                        Upload Paid Voucher
-                                    </Button>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Voucher not uploaded.</p>
                                 </div>
                                 <div v-else>
                                     <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
-                                    <div v-if="row.fee && row.fee.paid_voucher_image" class="mt-2">
+                                    <div class="mt-2">
                                         <label class="font-semibold">Paid Voucher Image:</label>
                                         <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
                                             class="w-40 h-auto border rounded mt-1" />
@@ -214,10 +235,187 @@
                                 </div>
                             </div>
                         </div>
+
+                        <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :student-id="row.id"
+                            @close="closeVoucherModal" @uploaded="onVoucherUploaded" />
+                    </div>
+                </template> -->
+
+
+                <template #expand="row">
+                    <div v-if="expandedRow === row.id"
+                        class="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow border border-gray-200 dark:border-neutral-700 transition-all duration-300">
+
+                        <!-- Top Header -->
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-4 mb-6">
+                            <div class="flex items-center gap-4">
+                                <img :src="row.profile_photo_url" alt="Profile Photo"
+                                    class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.name }}</h2>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <ClipboardList class="w-4 h-4" /> Registration #: {{ row.registration_number }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <GraduationCap class="w-4 h-4" /> Class: {{ row.class }} - Shift: {{
+                                            row.class_shift }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <School class="w-4 h-4" /> School: {{ row.school }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 mt-4 md:mt-0">
+                                <Button variant="default" class="text-sm">
+                                    <UserPlus class="w-4 h-4 mr-2" /> Edit
+                                </Button>
+                                <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                                    @click="openVoucherModal(row.id)">
+                                    <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
+                                </Button>
+                            </div>
+                        </div>
+
+                        <!-- Personal Info -->
+                        <div class="mb-6">
+                            <h3 class="flex items-center text-lg font-semibold text-blue-700 dark:text-blue-300 mb-3">
+                                <BookOpen class="w-5 h-5" /> Personal Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Nationality: {{ row.nationality }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> B-Form #: {{ row.b_form_number }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CalendarCheck class="w-4 h-4" /> Admission Date: {{ row.admission_date }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CalendarCheck class="w-4 h-4" /> Date of Birth: {{ row.date_of_birth }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Gender: {{ row.gender }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Award class="w-4 h-4" /> Status: {{ row.status }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Building2 class="w-4 h-4" /> Previous School: {{ row.previous_school || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpenCheck class="w-4 h-4" /> Religion: {{ row.religion }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> Inclusive: {{ row.inclusive }}
+                                </div>
+                                <div class="flex items-center gap-2" v-if="row.other_inclusive_type">
+                                    <ClipboardList class="w-4 h-4" /> Other: {{ row.other_inclusive_type }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Orphan: {{ row.is_orphan ? 'Yes' : 'No' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Bricklin: {{ row.is_bricklin ? 'Yes' : 'No' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> QSC: {{ row.is_qsc ? 'Yes' : 'No' }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Family Info -->
+                        <div class="mb-6">
+                            <h3 class="flex items-center text-lg font-semibold text-green-700 dark:text-green-300 mb-3">
+                                <Users class="w-5 h-5" /> Family Information
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Father's Name: {{ row.father_name }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Guardian Name: {{ row.guardian_name || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Father CNIC: {{ row.father_cnic }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Mother CNIC: {{ row.mother_cnic || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Phone class="w-4 h-4" /> Phone: {{ row.phone_no || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Phone class="w-4 h-4" /> Mobile: {{ row.mobile_no }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> Father Profession: {{ row.father_profession }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> Mother Profession: {{ row.mother_profession }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpen class="w-4 h-4" /> Father Education: {{ row.father_education }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpen class="w-4 h-4" /> Mother Education: {{ row.mother_education }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <LayoutGrid class="w-4 h-4" /> Job Type: {{ row.job_type || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> No. of Children: {{ row.no_of_children || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CreditCard class="w-4 h-4" /> Father Income: {{ row.father_income }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CreditCard class="w-4 h-4" /> Mother Income: {{ row.mother_income || 'N/A' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CreditCard class="w-4 h-4" /> Household Income: {{ row.household_income }}
+                                </div>
+
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Building2 class="w-4 h-4" /> Address: {{ row.permanent_address }}
+                            </div>
+                        </div>
+
+                        <!-- Voucher Section -->
+                        <div class="border-t pt-4 mt-4">
+                            <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
+                                <Receipt class="w-5 h-5" /> Voucher Status
+                            </h3>
+                            <div v-if="row.status !== 'admitted'">
+                                <div v-if="!row.fee || row.fee.status !== 'paid'">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Voucher not uploaded.</p>
+                                </div>
+                                <div v-else>
+                                    <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                                    <div class="mt-2">
+                                        <label class="font-semibold">Paid Voucher Image:</label>
+                                        <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                            class="w-40 h-auto border rounded mt-1" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                                <div v-if="row.fee && row.fee.paid_voucher_image" class="mt-2">
+                                    <label class="font-semibold">Paid Voucher Image:</label>
+                                    <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                        class="w-40 h-auto border rounded mt-1" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal -->
                         <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :student-id="row.id"
                             @close="closeVoucherModal" @uploaded="onVoucherUploaded" />
                     </div>
                 </template>
+
             </BaseDataTable>
         </div>
         <AlertDialog v-model="showDeleteDialog" title="Delete Student"
@@ -322,7 +520,7 @@ import Icon from '@/components/Icon.vue';
 import UploadVoucherModal from '@/components/UploadVoucherModal.vue';
 import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
 import "@webzlodimir/vue-bottom-sheet/dist/style.css";
-import { FilterIcon } from 'lucide-vue-next';
+import { Award, BookOpen, BookOpenCheck, Building2, CalendarCheck, ClipboardList, CreditCard, FileText, FilterIcon, GraduationCap, LayoutGrid, Phone, Receipt, School, UserPlus, Users } from 'lucide-vue-next';
 
 const defaultProfileImage = '/storage/default-profile.png';
 
@@ -332,6 +530,8 @@ interface User {
     email: string;
     isSuperAdmin?: boolean;
     schools?: { id: number; name: string }[];
+    roles?: { id: number; name: string }[];
+    [key: string]: any;
 }
 
 interface StudentsPagination {
@@ -410,6 +610,7 @@ function fetchData() {
         preserveState: true,
         replace: true,
         onSuccess: (page) => {
+            console.log('Fetch data success:', page.props.students);
             students.value = page.props.students as StudentsPagination;
             total.value = students.value && typeof students.value.total === 'number' ? students.value.total : 0;
             loading.value = false;
@@ -435,12 +636,15 @@ const headers = [
 
 const items = computed(() => {
     const data = Array.isArray(students.value?.data) ? students.value.data : [];
-    return data.map((student: any) => ({
-        ...student,
-        class: student.class ? student.class.name : '',
-        profile_photo_url: student.profile_photo_url || defaultProfileImage,
-        fee: student.fee || null, // Expecting fee data from backend
-    }));
+    return data.map((student: any) => {
+        console.log('Processing student:', student.id, 'fee:', student.fee);
+        return {
+            ...student,
+            class: student.class ? student.class.name : '',
+            profile_photo_url: student.profile_photo_url || defaultProfileImage,
+            fee: student.fee || null, // Expecting fee data from backend
+        };
+    });
 });
 
 const expandedRow = ref<number | null>(null);
@@ -566,6 +770,7 @@ function closeVoucherModal() {
     selectedStudentId.value = null;
 }
 function onVoucherUploaded() {
+    console.log('Voucher uploaded callback triggered');
     toast.success('Paid voucher uploaded and student approved.');
     fetchData();
     closeVoucherModal();

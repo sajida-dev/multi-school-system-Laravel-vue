@@ -15,7 +15,7 @@ const tabs = [
 </script>
 
 <template>
-    <div :class="['lg:inline-flex gap-1 hidden rounded-lg p-1 bg-gray-100 dark:bg-neutral-900']">
+    <div :class="['inline-flex gap-1 rounded-lg p-1 bg-gray-100 dark:bg-neutral-900']">
         <button v-for="{ value, Icon, label } in tabs" :key="value" @click="updateAppearance(value)" :class="[
             'flex items-center rounded-md transition-colors',
             compact

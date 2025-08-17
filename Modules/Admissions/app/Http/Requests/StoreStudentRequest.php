@@ -3,63 +3,95 @@
 namespace Modules\Admissions\App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreStudentRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
+        $genderValues = ['male', 'female', 'other'];
+        $classShiftValues = ['morning', 'evening', 'other'];
+        $inclusiveValues = ['no disability', 'physical', 'visual', 'hearing', 'intellectual', 'other'];
+        $religionValues = ['islam', 'christianity', 'hinduism', 'other'];
+        $fatherProfessionValues = ['unemployed', 'private/self employed', 'government', 'other'];
+        $jobTypeValues = ['private/self employed', 'government', 'other'];
+        $educationValues = ['none', 'primary', 'middle', 'matric', 'intermediate', 'graduate', 'post graduate'];
+        $motherProfessionValues = ['house wife', 'private/self employed', 'government', 'other'];
+        $incomeLevels = [
+            'income level between rs. 0 - 20,000',
+            'income level between rs. 20,001 - 27,000',
+            'income level between rs. 27,001 - 35,000',
+            'income level between rs. 35,001 - 50,000',
+            'income level above rs. 50,000',
+        ];
+        $motherIncomes = [
+            'none',
+            'income level between rs. 0 - 20,000',
+            'income level between rs. 20,001 - 27,000',
+            'income level between rs. 27,001 - 35,000',
+            'income level between rs. 35,001 - 50,000',
+            'income level above rs. 50,000',
+        ];
         return [
             'school_id' => 'required|exists:schools,id',
             'class_id' => 'required|exists:classes,id',
             'nationality' => 'required|string',
-            'registration_number' => 'required|string|unique:students|regex:/^[A-Z0-9]{6,12}$/',
-            'name' => 'required|string|min:2|max:100|regex:/^[a-zA-Z\s]+$/',
-            'b_form_number' => 'required|string|unique:students|regex:/^\d{5}-\d{7}-\d{1}$/',
+            'registration_number' => ['required', 'string', 'unique:students,registration_number', 'regex:/^[A-Z0-9]{6,12}$/'],
+            'name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[a-zA-Z\s]+$/'],
+            'b_form_number' => ['required', 'string', 'unique:students,b_form_number', 'regex:/^\d{5}-\d{7}-\d{1}$/'],
             'admission_date' => 'required|date|before_or_equal:today',
-            'date_of_birth' => 'required|date|before:today|before:admission_date',
-            'gender' => 'required|string|in:Male,Female,Other',
-            'class_shift' => 'required|string|in:Morning,Evening,Other',
+            'date_of_birth' => 'required|date|before:today',
+            'gender' => ['required', 'string', Rule::in($genderValues)],
+            'class_shift' => ['required', 'string', Rule::in($classShiftValues)],
             'previous_school' => 'nullable|string|max:200',
-            'inclusive' => 'required|string|in:No Disability,Physical,Visual,Hearing,Intellectual,Other',
+            'inclusive' => ['required', 'string', Rule::in($inclusiveValues)],
             'other_inclusive_type' => 'nullable|string|max:100',
-            'religion' => 'required|string|in:Islam,Christianity,Hinduism,Other',
-            'is_bricklin' => 'boolean',
-            'is_orphan' => 'boolean',
-            'is_qsc' => 'boolean',
+            'religion' => ['required', 'string', Rule::in($religionValues)],
+            'is_bricklin' => 'nullable|boolean',
+            'is_orphan' => 'nullable|boolean',
+            'is_qsc' => 'nullable|boolean',
             'profile_photo_path' => 'nullable|file|image|max:2048',
-            'father_name' => 'required|string|min:2|max:100|regex:/^[a-zA-Z\s]+$/',
-            'guardian_name' => 'nullable|string|max:100|regex:/^[a-zA-Z\s]*$/',
-            'father_cnic' => 'required|string|regex:/^\d{5}-\d{7}-\d{1}$/',
-            'mother_cnic' => 'nullable|string|regex:/^\d{5}-\d{7}-\d{1}$/',
-            'father_profession' => 'required|string|in:Unemployed,Private/Self Employed,Government,Other',
+            'father_name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[a-zA-Z\s]+$/'],
+            'guardian_name' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z\s]*$/'],
+            'father_cnic' => ['required', 'string', 'regex:/^\d{5}-\d{7}-\d{1}$/'],
+            'mother_cnic' => ['nullable', 'string', 'regex:/^\d{5}-\d{7}-\d{1}$/'],
+            'father_profession' => ['required', 'string', Rule::in($fatherProfessionValues)],
             'no_of_children' => 'nullable|integer|min:0|max:20',
-            'job_type' => 'nullable|string|in:Private/Self Employed,Government,Other',
-            'father_education' => 'required|string|in:None,Primary,Middle,Matric,Intermediate,Graduate,Post Graduate',
-            'mother_education' => 'required|string|in:None,Primary,Middle,Matric,Intermediate,Graduate,Post Graduate',
-            'mother_profession' => 'required|string|in:House Wife,Private/Self Employed,Government,Other',
-            'father_income' => 'required|string|in:INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
-            'mother_income' => 'nullable|string|in:NOT APPLICABLE,INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
-            'household_income' => 'required|string|in:INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
+            'job_type' => ['nullable', 'string', Rule::in($jobTypeValues)],
+            'father_education' =>  ['required', 'string', Rule::in($educationValues)],
+            'mother_education' => ['required', 'string', Rule::in($educationValues)],
+            'mother_profession' => ['required', 'string', Rule::in($motherProfessionValues)],
+            'father_income' => ['required', 'string', Rule::in($incomeLevels)],
+            'mother_income' => ['nullable', 'string', Rule::in($motherIncomes)],
+            'household_income' => ['required', 'string', Rule::in($incomeLevels)],
             'permanent_address' => 'required|string|min:10|max:500',
-            'phone_no' => 'nullable|string|regex:/^[\d\s\-\+\(\)]{7,15}$/',
-            'mobile_no' => 'required|string|regex:/^03\d{9}$/',
+            'phone_no' => ['nullable', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'], // e.g., 03001234567 or +923001234567
+            'mobile_no' => ['required', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'], // e.g., 03001234567 or +923001234567
         ];
     }
 
-    /**
-     * Get custom error messages for validation rules.
-     */
+    public function withValidator($validator)
+    {
+        // Require other_inclusive_type only if inclusive is 'Other'
+        $validator->sometimes('other_inclusive_type', 'required|string|max:100', function ($input) {
+            return $input->inclusive === 'Other';
+        });
+
+        // Custom validation: date_of_birth must be before admission_date
+        $validator->after(function ($validator) {
+            $dob = strtotime($this->date_of_birth);
+            $admission = strtotime($this->admission_date);
+            if ($dob !== false && $admission !== false && $dob >= $admission) {
+                $validator->errors()->add('date_of_birth', 'Date of birth must be before admission date.');
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [
@@ -82,7 +114,6 @@ class StoreStudentRequest extends FormRequest
             'admission_date.before_or_equal' => 'Admission date cannot be in the future.',
             'date_of_birth.required' => 'Date of birth is required.',
             'date_of_birth.before' => 'Date of birth must be before today.',
-            'date_of_birth.before:admission_date' => 'Date of birth must be before admission date.',
             'gender.required' => 'Gender is required.',
             'gender.in' => 'Please select a valid gender.',
             'class_shift.required' => 'Class shift is required.',
@@ -90,6 +121,7 @@ class StoreStudentRequest extends FormRequest
             'previous_school.max' => 'Previous school name cannot exceed 200 characters.',
             'inclusive.required' => 'Inclusive status is required.',
             'inclusive.in' => 'Please select a valid inclusive status.',
+            'other_inclusive_type.required' => 'Other inclusive type is required when inclusive is Other.',
             'other_inclusive_type.max' => 'Other inclusive type cannot exceed 100 characters.',
             'religion.required' => 'Religion is required.',
             'religion.in' => 'Please select a valid religion.',
@@ -123,15 +155,12 @@ class StoreStudentRequest extends FormRequest
             'permanent_address.required' => 'Permanent address is required.',
             'permanent_address.min' => 'Permanent address must be at least 10 characters long.',
             'permanent_address.max' => 'Permanent address cannot exceed 500 characters.',
-            'phone_no.regex' => 'Phone number must be 7-15 digits and may contain spaces, dashes, plus signs, and parentheses.',
+            'phone_no.regex' => 'Phone number must be in the format: 03001234567 or +923001234567.',
             'mobile_no.required' => 'Mobile number is required.',
-            'mobile_no.regex' => 'Mobile number must start with 03 and be 11 digits long (e.g., 03001234567).',
+            'mobile_no.regex' => 'Mobile number must be in the format: 03001234567 or +923001234567.',
         ];
     }
 
-    /**
-     * Get custom attributes for validation error messages.
-     */
     public function attributes(): array
     {
         return [
@@ -163,4 +192,4 @@ class StoreStudentRequest extends FormRequest
             'mobile_no' => 'mobile number',
         ];
     }
-} 
+}

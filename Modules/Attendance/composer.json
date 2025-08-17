@@ -9,10 +9,11 @@
     ],
     "extra": {
         "laravel": {
-            "providers": [],
-            "aliases": {
-
-            }
+            "providers": [
+                "Modules\\Attendance\\Providers\\AttendanceServiceProvider",
+                "Modules\\Attendance\\Providers\\RouteServiceProvider"
+            ],
+            "aliases": {}
         }
     },
     "autoload": {

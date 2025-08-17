@@ -36,7 +36,7 @@ defineProps<Props>();
     <DropdownMenuGroup>
         <div class="flex items-center gap-1 px-2 py-1.5">
             <span class="text-xs text-muted-foreground mr-2">Theme:</span>
-            <ThemeSwitch compact debounce />
+            <ThemeSwitch compact />
         </div>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

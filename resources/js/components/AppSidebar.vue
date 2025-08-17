@@ -20,7 +20,8 @@ import {
     Award,
     LayoutGrid,
     Settings,
-    BookOpenCheck
+    BookOpenCheck,
+    CalendarCheck
 } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
@@ -41,6 +42,11 @@ const mainNavItems: NavItem[] = [
         icon: School, // or Layers, or another relevant icon
     },
     {
+        title: 'Manage Subjects',
+        href: '/subjects',
+        icon: BookOpenCheck,
+    },
+    {
         title: 'Manage Students',
         href: '/students',
         icon: GraduationCap,
@@ -50,11 +56,7 @@ const mainNavItems: NavItem[] = [
         href: '/teachers',
         icon: Users,
     },
-    {
-        title: 'Manage Subjects',
-        href: '/subjects',
-        icon: BookOpenCheck,
-    },
+
     {
         title: 'Admissions',
         href: '/admissions',
@@ -70,7 +72,11 @@ const mainNavItems: NavItem[] = [
         href: '/papersquestions',
         icon: FileText,
     },
-
+    {
+        title: 'Attendance Management',
+        href: '/attendance',
+        icon: CalendarCheck,
+    },
     {
         title: 'Manage Results',
         href: '/results',

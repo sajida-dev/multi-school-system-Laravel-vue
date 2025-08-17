@@ -4,6 +4,7 @@ namespace Modules\Admissions\App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Admissions\App\Models\Student;
 
 class UpdateStudentRequest extends FormRequest
 {
@@ -20,8 +21,30 @@ class UpdateStudentRequest extends FormRequest
      */
     public function rules(): array
     {
-        $studentId = $this->route('admission'); // Assuming the route parameter is 'admission'
-
+        $studentId = $this->route('id'); // Assuming the route parameter is 'admission'
+        $genderValues = ['male', 'female', 'other'];
+        $classShiftValues = ['morning', 'evening', 'other'];
+        $inclusiveValues = ['no disability', 'physical', 'visual', 'hearing', 'intellectual', 'other'];
+        $religionValues = ['islam', 'christianity', 'hinduism', 'other'];
+        $fatherProfessionValues = ['unemployed', 'private/self employed', 'government', 'other'];
+        $jobTypeValues = ['private/self employed', 'government', 'other'];
+        $educationValues = ['none', 'primary', 'middle', 'matric', 'intermediate', 'graduate', 'post graduate'];
+        $motherProfessionValues = ['house wife', 'private/self employed', 'government', 'other'];
+        $incomeLevels = [
+            'income level between rs. 0 - 20,000',
+            'income level between rs. 20,001 - 27,000',
+            'income level between rs. 27,001 - 35,000',
+            'income level between rs. 35,001 - 50,000',
+            'income level above rs. 50,000',
+        ];
+        $motherIncomes = [
+            'none',
+            'income level between rs. 0 - 20,000',
+            'income level between rs. 20,001 - 27,000',
+            'income level between rs. 27,001 - 35,000',
+            'income level between rs. 35,001 - 50,000',
+            'income level above rs. 50,000',
+        ];
         return [
             'school_id' => 'required|exists:schools,id',
             'class_id' => 'required|exists:classes,id',
@@ -30,43 +53,44 @@ class UpdateStudentRequest extends FormRequest
                 'required',
                 'string',
                 'regex:/^[A-Z0-9]{6,12}$/',
-                Rule::unique('students')->ignore($studentId)
+                Rule::unique('students', 'registration_number')->ignore($studentId)
             ],
-            'name' => 'required|string|min:2|max:100|regex:/^[a-zA-Z\s]+$/',
+            'name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[a-zA-Z\s]+$/'],
             'b_form_number' => [
                 'required',
                 'string',
                 'regex:/^\d{5}-\d{7}-\d{1}$/',
-                Rule::unique('students')->ignore($studentId)
+                Rule::unique('students', 'b_form_number')->ignore($studentId)
+
             ],
             'admission_date' => 'required|date|before_or_equal:today',
             'date_of_birth' => 'required|date|before:today|before:admission_date',
-            'gender' => 'required|string|in:Male,Female,Other',
-            'class_shift' => 'required|string|in:Morning,Evening,Other',
+            'gender' => ['required', 'string', Rule::in($genderValues)],
+            'class_shift' => ['required', 'string', Rule::in($classShiftValues)],
             'previous_school' => 'nullable|string|max:200',
-            'inclusive' => 'required|string|in:No Disability,Physical,Visual,Hearing,Intellectual,Other',
+            'inclusive' => ['required', 'string', Rule::in($inclusiveValues)],
             'other_inclusive_type' => 'nullable|string|max:100',
-            'religion' => 'required|string|in:Islam,Christianity,Hinduism,Other',
+            'religion' => ['required', 'string', Rule::in($religionValues)],
             'is_bricklin' => 'boolean',
             'is_orphan' => 'boolean',
             'is_qsc' => 'boolean',
             'profile_photo_path' => 'nullable|file|image|max:2048',
-            'father_name' => 'required|string|min:2|max:100|regex:/^[a-zA-Z\s]+$/',
-            'guardian_name' => 'nullable|string|max:100|regex:/^[a-zA-Z\s]*$/',
-            'father_cnic' => 'required|string|regex:/^\d{5}-\d{7}-\d{1}$/',
-            'mother_cnic' => 'nullable|string|regex:/^\d{5}-\d{7}-\d{1}$/',
-            'father_profession' => 'required|string|in:Unemployed,Private/Self Employed,Government,Other',
+            'father_name' => ['required', 'string', 'min:2', 'max:100', 'regex:/^[a-zA-Z\s]+$/'],
+            'guardian_name' => ['nullable', 'string', 'max:100', 'regex:/^[a-zA-Z\s]*$/'],
+            'father_cnic' => ['required', 'string', 'regex:/^\d{5}-\d{7}-\d{1}$/'],
+            'mother_cnic' => ['nullable', 'string', 'regex:/^\d{5}-\d{7}-\d{1}$/'],
+            'father_profession' => ['required', 'string', Rule::in($fatherProfessionValues)],
             'no_of_children' => 'nullable|integer|min:0|max:20',
-            'job_type' => 'nullable|string|in:Private/Self Employed,Government,Other',
-            'father_education' => 'required|string|in:None,Primary,Middle,Matric,Intermediate,Graduate,Post Graduate',
-            'mother_education' => 'required|string|in:None,Primary,Middle,Matric,Intermediate,Graduate,Post Graduate',
-            'mother_profession' => 'required|string|in:House Wife,Private/Self Employed,Government,Other',
-            'father_income' => 'required|string|in:INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
-            'mother_income' => 'nullable|string|in:NOT APPLICABLE,INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
-            'household_income' => 'required|string|in:INCOME LEVEL BETWEEN RS. 0 - 20,000,INCOME LEVEL BETWEEN RS. 20,001 - 27,000,INCOME LEVEL BETWEEN RS. 27,001 - 35,000,INCOME LEVEL BETWEEN RS. 35,001 - 50,000,INCOME LEVEL ABOVE RS. 50,000',
+            'job_type' => ['nullable', 'string', Rule::in($jobTypeValues)],
+            'father_education' =>  ['required', 'string', Rule::in($educationValues)],
+            'mother_education' => ['required', 'string', Rule::in($educationValues)],
+            'mother_profession' => ['required', 'string', Rule::in($motherProfessionValues)],
+            'father_income' => ['required', 'string', Rule::in($incomeLevels)],
+            'mother_income' => ['nullable', 'string', Rule::in($motherIncomes)],
+            'household_income' => ['required', 'string', Rule::in($incomeLevels)],
             'permanent_address' => 'required|string|min:10|max:500',
-            'phone_no' => 'nullable|string|regex:/^[\d\s\-\+\(\)]{7,15}$/',
-            'mobile_no' => 'required|string|regex:/^03\d{9}$/',
+            'phone_no' => ['nullable', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'], // e.g., 03001234567 or +923001234567
+            'mobile_no' => ['required', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'], // e.g., 03001234567 or +923001234567
         ];
     }
 

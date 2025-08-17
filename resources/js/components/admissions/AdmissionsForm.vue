@@ -2,7 +2,7 @@
     <form @submit.prevent="$emit('submit')" enctype="multipart/form-data">
         <!-- Pattern Information -->
         <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">📋 Required Formats:</h3>
+            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2"> Required Formats:</h3>
             <div class="text-xs text-blue-700 dark:text-blue-300 space-y-1">
                 <p><strong>Registration Number:</strong> 6-12 characters, letters and numbers only (e.g., STU2024001)
                 </p>
@@ -25,8 +25,9 @@
                 <Icon name="user" class="w-5 h-5 mr-2" /> Student Information
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <SelectInput id="nationality" v-model="form.nationality" label="Nationality" :options="nationalities"
-                    :required="true" :error="errors.nationality" placeholder="Select nationality" />
+                <SelectInput id="nationality" v-model="form.nationality" label="Nationality"
+                    :options="nationalityOptions" :required="true" :error="errors.nationality"
+                    placeholder="Select nationality" />
                 <TextInput id="registration_number" v-model="form.registration_number" label="Registration Number"
                     required :error="errors.registration_number" placeholder="e.g. STU2024001" pattern="[A-Z0-9]{6,12}"
                     title="6-12 characters, letters and numbers only" />
@@ -42,17 +43,18 @@
                     :error="errors.date_of_birth" placeholder="Select date of birth" />
                 <SelectInput id="class_id" v-model="form.class_id" label="Class" :options="classes" :required="true"
                     :error="errors.class_id" placeholder="Select class" />
-                <SelectInput id="gender" v-model="form.gender" label="Gender" :options="genders" :required="true"
+                <SelectInput id="gender" v-model="form.gender" label="Gender" :options="genderOptions" :required="true"
                     :error="errors.gender" placeholder="Select gender" />
-                <SelectInput id="class_shift" v-model="form.class_shift" label="Class Shift" :options="classShifts"
-                    :required="true" :error="errors.class_shift" placeholder="Select class shift" />
+                <SelectInput id="class_shift" v-model="form.class_shift" label="Class Shift"
+                    :options="classShiftOptions" :required="true" :error="errors.class_shift"
+                    placeholder="Select class shift" />
                 <TextInput id="previous_school" v-model="form.previous_school" label="Previous School"
                     :error="errors.previous_school" placeholder="Enter previous school (if any)" />
-                <SelectInput id="inclusive" v-model="form.inclusive" label="Inclusive" :options="inclusives"
+                <SelectInput id="inclusive" v-model="form.inclusive" label="Inclusive" :options="inclusiveOptions"
                     :required="true" :error="errors.inclusive" placeholder="Select inclusivity" />
                 <TextInput id="other_inclusive_type" v-model="form.other_inclusive_type" label="Other Inclusive Type"
                     :error="errors.other_inclusive_type" placeholder="Specify if other" />
-                <SelectInput id="religion" v-model="form.religion" label="Religion" :options="religions"
+                <SelectInput id="religion" v-model="form.religion" label="Religion" :options="religionOptions"
                     :required="true" :error="errors.religion" placeholder="Select religion" />
                 <!-- Checkboxes in a single row, right-aligned -->
                 <div class="flex flex-wrap items-center gap-6 mt-2 ">
@@ -96,37 +98,39 @@
                 <TextInput id="mother_cnic" v-model="form.mother_cnic" label="Mother CNIC" :error="errors.mother_cnic"
                     placeholder="12345-6789012-3" pattern="\d{5}-\d{7}-\d{1}" title="Format: 12345-6789012-3" />
                 <SelectInput id="father_profession" v-model="form.father_profession" label="Father Profession"
-                    :options="fatherProfessions" :required="true" :error="errors.father_profession"
+                    :options="fatherProfessionOptions" :required="true" :error="errors.father_profession"
                     placeholder="Select father's profession" />
                 <TextInput id="no_of_children" v-model="form.no_of_children" label="No of Children" type="number"
                     :error="errors.no_of_children" placeholder="Enter number of children (0-20)" min="0" max="20"
                     title="Number between 0 and 20" />
-                <SelectInput id="job_type" v-model="form.job_type" label="Job Type" :options="jobTypes"
+                <SelectInput id="job_type" v-model="form.job_type" label="Job Type" :options="jobTypeOptions"
                     :error="errors.job_type" placeholder="Select job type" />
                 <SelectInput id="father_education" v-model="form.father_education" label="Father Education"
-                    :options="educations" :required="true" :error="errors.father_education"
+                    :options="educationOptions" :required="true" :error="errors.father_education"
                     placeholder="Select father's education" />
                 <SelectInput id="mother_education" v-model="form.mother_education" label="Mother Education"
-                    :options="educations" :required="true" :error="errors.mother_education"
+                    :options="educationOptions" :required="true" :error="errors.mother_education"
                     placeholder="Select mother's education" />
                 <SelectInput id="mother_profession" v-model="form.mother_profession" label="Mother Profession"
-                    :options="motherProfessions" :required="true" :error="errors.mother_profession"
+                    :options="motherProfessionOptions" :required="true" :error="errors.mother_profession"
                     placeholder="Select mother's profession" />
-                <SelectInput id="father_income" v-model="form.father_income" label="Father Income" :options="incomes"
-                    :required="true" :error="errors.father_income" placeholder="Select father's income" />
-                <SelectInput id="mother_income" v-model="form.mother_income" label="Mother Income" :options="incomes"
-                    :error="errors.mother_income" placeholder="Select mother's income" />
+                <SelectInput id="father_income" v-model="form.father_income" label="Father Income"
+                    :options="incomeOptions" :required="true" :error="errors.father_income"
+                    placeholder="Select father's income" />
+                <SelectInput id="mother_income" v-model="form.mother_income" label="Mother Income"
+                    :options="motherIncomeOptions" :error="errors.mother_income" placeholder="Select mother's income" />
                 <SelectInput id="household_income" v-model="form.household_income" label="Household Income"
-                    :options="incomes" :required="true" :error="errors.household_income"
+                    :options="incomeOptions" :required="true" :error="errors.household_income"
                     placeholder="Select household income" />
                 <TextInput id="permanent_address" v-model="form.permanent_address" label="Permanent Address" required
                     :error="errors.permanent_address" placeholder="Enter permanent address (min 10 characters)"
                     minlength="10" maxlength="500" title="Address must be at least 10 characters long" />
                 <TextInput id="phone_no" v-model="form.phone_no" label="Phone No" :error="errors.phone_no"
-                    placeholder="Enter phone number (if any)" pattern="[\d\s\-\+\(\)]{7,15}"
-                    title="7-15 digits, may include spaces, dashes, plus signs, and parentheses" />
+                    placeholder="Enter phone number: e.g. 03001234567 or +923001234567" pattern="^(03\d{9}|\+92\d{10})$"
+                    title="Must follow the format: 03001234567 or +923001234567" />
                 <TextInput id="mobile_no" v-model="form.mobile_no" label="Mobile No" required :error="errors.mobile_no"
-                    placeholder="03001234567" pattern="03\d{9}" title="Must start with 03 and be 11 digits long" />
+                    placeholder="e.g. 03001234567 or +923001234567" pattern="^(03\d{9}|\+92\d{10})$"
+                    title="Must follow the format: 03001234567 or +923001234567" />
             </div>
         </div>
         <div class="mt-6 flex justify-end items-center gap-2">
@@ -147,24 +151,32 @@ import Button from '@/components/ui/button/Button.vue';
 import InputError from '@/components/InputError.vue';
 import Icon from '@/components/Icon.vue';
 
-// Static select option arrays (shared, single source of truth)
+// Static select option arrays (shared, single source of truth) - all lowercase for backend compatibility
 const nationalities = [
-    'Pakistan', 'India', 'Bangladesh', 'Afghanistan', 'China', 'Saudi Arabia', 'United Arab Emirates', 'United States', 'United Kingdom', 'Canada', 'Australia', 'Turkey', 'Iran', 'Indonesia', 'Malaysia', 'Egypt', 'South Africa', 'Germany', 'France', 'Italy', 'Other'
+    'pakistan', 'india', 'bangladesh', 'afghanistan', 'china', 'saudi arabia', 'united arab emirates', 'united states', 'united kingdom', 'canada', 'australia', 'turkey', 'iran', 'indonesia', 'malaysia', 'egypt', 'south africa', 'germany', 'france', 'italy', 'other'
 ];
-const genders = ['Male', 'Female', 'Other'];
-const classShifts = ['Morning', 'Evening', 'Other'];
-const inclusives = ['No Disability', 'Physical', 'Visual', 'Hearing', 'Intellectual', 'Other'];
-const religions = ['Islam', 'Christianity', 'Hinduism', 'Other'];
-const fatherProfessions = ['Unemployed', 'Private/Self Employed', 'Government', 'Other'];
-const jobTypes = ['Private/Self Employed', 'Government', 'Other'];
-const educations = ['None', 'Primary', 'Middle', 'Matric', 'Intermediate', 'Graduate', 'Post Graduate'];
-const motherProfessions = ['House Wife', 'Private/Self Employed', 'Government', 'Other'];
+const genders = ['male', 'female', 'other'];
+const classShifts = ['morning', 'evening', 'other'];
+const inclusives = ['no disability', 'physical', 'visual', 'hearing', 'intellectual', 'other'];
+const religions = ['islam', 'christianity', 'hinduism', 'other'];
+const fatherProfessions = ['unemployed', 'private/self employed', 'government', 'other'];
+const jobTypes = ['private/self employed', 'government', 'other'];
+const educations = ['none', 'primary', 'middle', 'matric', 'intermediate', 'graduate', 'post graduate'];
+const motherProfessions = ['house wife', 'private/self employed', 'government', 'other'];
 const incomes = [
-    'INCOME LEVEL BETWEEN RS. 0 - 20,000',
-    'INCOME LEVEL BETWEEN RS. 20,001 - 27,000',
-    'INCOME LEVEL BETWEEN RS. 27,001 - 35,000',
-    'INCOME LEVEL BETWEEN RS. 35,001 - 50,000',
-    'INCOME LEVEL ABOVE RS. 50,000',
+    'income level between rs. 0 - 20,000',
+    'income level between rs. 20,001 - 27,000',
+    'income level between rs. 27,001 - 35,000',
+    'income level between rs. 35,001 - 50,000',
+    'income level above rs. 50,000',
+];
+const motherIncomes = [
+    'none',
+    'income level between rs. 0 - 20,000',
+    'income level between rs. 20,001 - 27,000',
+    'income level between rs. 27,001 - 35,000',
+    'income level between rs. 35,001 - 50,000',
+    'income level above rs. 50,000',
 ];
 
 
@@ -200,5 +212,83 @@ const profilePhotoUrl = computed(() => {
     }
     return null;
 });
+
+// Computed properties for frontend display with proper capitalization
+const nationalityOptions = computed(() =>
+    nationalities.map(item => ({
+        label: item.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value: item
+    }))
+);
+
+const genderOptions = computed(() =>
+    genders.map(item => ({
+        label: item.charAt(0).toUpperCase() + item.slice(1),
+        value: item
+    }))
+);
+
+const classShiftOptions = computed(() =>
+    classShifts.map(item => ({
+        label: item.charAt(0).toUpperCase() + item.slice(1),
+        value: item
+    }))
+);
+
+const inclusiveOptions = computed(() =>
+    inclusives.map(item => ({
+        label: item.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value: item
+    }))
+);
+
+const religionOptions = computed(() =>
+    religions.map(item => ({
+        label: item.charAt(0).toUpperCase() + item.slice(1),
+        value: item
+    }))
+);
+
+const fatherProfessionOptions = computed(() =>
+    fatherProfessions.map(item => ({
+        label: item.split('/').map(part => part.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join('/'),
+        value: item
+    }))
+);
+
+const jobTypeOptions = computed(() =>
+    jobTypes.map(item => ({
+        label: item.split('/').map(part => part.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join('/'),
+        value: item
+    }))
+);
+
+const educationOptions = computed(() =>
+    educations.map(item => ({
+        label: item.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value: item
+    }))
+);
+
+const motherProfessionOptions = computed(() =>
+    motherProfessions.map(item => ({
+        label: item.split('/').map(part => part.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')).join('/'),
+        value: item
+    }))
+);
+
+const incomeOptions = computed(() =>
+    incomes.map(item => ({
+        label: item.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value: item
+    }))
+);
+
+const motherIncomeOptions = computed(() =>
+    motherIncomes.map(item => ({
+        label: item === 'none' ? 'None' : item.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+        value: item
+    }))
+);
 
 </script>
