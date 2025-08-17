@@ -4,6 +4,22 @@ import { Head } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 import StatCard from '@/components/StatCard.vue';
 import { ref, computed } from 'vue';
+import {
+  School,
+  Users,
+  Settings,
+  UserPlus,
+  WebhookIcon,
+  CircleDollarSign,
+  LineChart,
+  CalendarCheck,
+  Trophy,
+  FileText,
+  BarChart2,
+  UserCircle2,
+  Clock3,
+  Plus,
+} from 'lucide-vue-next'
 
 interface School {
   id: string | number;
@@ -94,7 +110,7 @@ const hasRecentData = computed(() => {
         <div class="flex justify-between items-center mb-4">
           <div>
             <h1 class="text-3xl font-bold text-neutral-800 dark:text-neutral-50">{{ getWelcomeMessage(props.userRoles)
-            }}
+              }}
             </h1>
             <p class="text-neutral-600 dark:text-neutral-100">Welcome back, {{ props.user.name }} ({{
               getRoleDisplayName(props.userRoles) }})</p>
@@ -128,72 +144,72 @@ const hasRecentData = computed(() => {
           <div class="space-y-3">
             <div v-if="props.userRoles.includes('superadmin')" class="space-y-2">
               <button
-                class="w-full text-left p-2 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
-                <i class="fas fa-school mr-2 py-3 px-2.5 rounded-full bg-blue-300 text-blue-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
+                <School class="w-10 h-10 mr-2 p-2 text-blue-600 rounded-full bg-blue-300" />
                 Manage Schools
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
-                <i class="fas fa-users mr-2 py-3 px-2.5 rounded-full bg-green-300 text-green-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                <Users class="w-10 h-10 mr-2 p-2  rounded-full bg-green-300 text-green-600" />
                 System Users
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
-                <i class="fas fa-cog mr-2 py-3 px-3 rounded-full bg-purple-300 text-purple-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                <i class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600"></i>
                 System Settings
               </button>
             </div>
 
             <div v-if="props.userRoles.includes('admin')" class="space-y-2">
               <button
-                class="w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
-                <i class="fas fa-user-plus mr-2 py-3 px-2.5 rounded-full bg-blue-300 text-blue-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
+                <UserPlus class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
                 New Admission
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
-                <i class="fas fa-chalkboard-teacher mr-2 py-3 px-2.5 rounded-full bg-green-300 text-green-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                <Users class="w-10 h-10 mr-2 p-2 rounded-full bg-green-300 text-green-600" />
                 Manage Teachers
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
-                <i class="fas fa-money-bill mr-2 py-3 px-3 rounded-full bg-purple-300 text-purple-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                <CircleDollarSign class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 Fee Management
               </button>
             </div>
 
             <div v-if="props.userRoles.includes('principal')" class="space-y-2">
               <button
-                class="w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
-                <i class="fas fa-chart-line mr-2 py-3 px-2.5 rounded-full bg-blue-300 text-blue-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
+                <LineChart class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
                 Academic Reports
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
-                <i class="fas fa-calendar-check mr-2 py-3 px-2.5 rounded-full bg-green-300 text-green-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                <CalendarCheck class="w-10 h-10 mr-2 p-2 rounded-full bg-green-300 text-green-600" />
                 Attendance Overview
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
-                <i class="fas fa-trophy mr-2 py-3 px-3 rounded-full bg-purple-300 text-purple-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                <Trophy class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 Performance Analysis
               </button>
             </div>
 
             <div v-if="props.userRoles.includes('teacher')" class="space-y-2">
               <button
-                class="w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
-                <i class="fas fa-file-alt mr-2 py-3 px-2.5 rounded-full bg-blue-300 text-blue-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
+                <FileText class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
                 Create Paper
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
-                <i class="fas fa-chart-bar mr-2 py-3 px-2.5 rounded-full bg-green-300 text-green-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                <BarChart2 class="w-10 h-10 mr-2 p-2 rounded-full bg-green-300 text-green-600" />
                 Publish Results
               </button>
               <button
-                class="w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
-                <i class="fas fa-users mr-2 py-3 px-3 rounded-full bg-purple-300 text-purple-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                <UserCircle2 class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 My Students
               </button>
             </div>
