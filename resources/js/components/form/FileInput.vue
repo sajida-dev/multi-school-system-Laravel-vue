@@ -7,6 +7,7 @@
             @dragover.prevent @drop.prevent="onDrop" @click="triggerFileInput">
             <input ref="fileInput" :id="id" type="file" accept="image/png, image/jpeg" @change="onFileChange"
                 :required="required" class="hidden" v-bind="$attrs" />
+            <InputError :error="error" />
             <div v-if="previewUrl" class="flex flex-col items-center justify-center w-full">
                 <img :src="previewUrl" alt="Preview" class="h-24 w-24 object-cover rounded-full border mb-2" />
                 <span class="text-xs text-neutral-500">Preview</span>
@@ -26,15 +27,18 @@
 </template>
 <script setup>
 import { ref, watch } from 'vue';
+import InputError from '../InputError.vue';
 const emit = defineEmits(['update:modelValue']);
 const props = defineProps({
     label: String,
     modelValue: [File, null],
     required: Boolean,
+    previewUrl: String,
+    error: String,
     id: { type: String, default: () => Math.random().toString(36).substr(2, 9) }
 });
 const fileInput = ref(null);
-const previewUrl = ref(null);
+const previewUrl = ref(props.previewUrl || null);
 
 function triggerFileInput() {
     fileInput.value && fileInput.value.click();

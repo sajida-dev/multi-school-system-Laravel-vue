@@ -21,7 +21,7 @@ class StoreFeeRequest extends FormRequest
             'description' => ['nullable', 'string'],
 
             'fee_items' => ['required', 'array', 'min:1'],
-            'fee_items.*.type' => ['required', 'in:tuition,library,security,admission,sports,transport'],
+            'fee_items.*.type' => ['required', 'in:tuition,library,security,papers,sports,transport'],
             'fee_items.*.description' => ['nullable', 'string'],
             'fee_items.*.amount' => ['required', 'numeric', 'min:0.01'],
         ];

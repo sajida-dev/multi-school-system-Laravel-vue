@@ -179,7 +179,7 @@ class SchoolsController extends Controller
                     // Continue without main image update
                 }
 
-                return redirect()->back()->with([
+                return redirect()->route('schools.index')->with([
                     'success' => 'School updated successfully.',
                     'school' => $school,
                 ]);

@@ -12,7 +12,7 @@ class FeeItem extends Model
     protected $dates = ['deleted_at'];
     protected $fillable = [
         'fee_id',
-        'description',
+        'type',
         'amount'
     ];
 

@@ -100,4 +100,19 @@ class ClassController extends Controller
             return redirect()->back()->withErrors(['error' => 'Failed to delete class. Please try again.']);
         }
     }
+    // app/Http/Controllers/ClassController.php
+    public function getSections($classId)
+    {
+        $schoolId = session('active_school_id');
+
+        $sections = Section::whereIn('id', function ($query) use ($schoolId, $classId) {
+            $query->select('class_school_sections.section_id')
+                ->from('class_school_sections')
+                ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+                ->where('class_schools.school_id', $schoolId)
+                ->where('class_schools.class_id', $classId);
+        })->orderBy('name')->get(['id', 'name']);
+
+        return response()->json($sections);
+    }
 }

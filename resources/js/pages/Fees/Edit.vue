@@ -1,129 +1,222 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { router, useForm } from '@inertiajs/vue3';
+import { toast } from 'vue3-toastify';
+import AppLayout from '@/layouts/AppLayout.vue';
+import Button from '@/components/ui/button/Button.vue';
+import TextInput from '@/components/form/TextInput.vue';
+import SelectInput from '@/components/form/SelectInput.vue';
+import { Trash } from 'lucide-vue-next';
+
+interface FeeItem {
+    type: string;
+    amount: string | number;
+}
+
+interface Props {
+    fee: {
+        id: number;
+        type: string;
+        due_date: string;
+        school_id: number;
+        class_id: number;
+        fee_items: FeeItem[];
+    };
+    schools: { id: number; name: string }[];
+    classes: { id: number; name: string }[];
+    students: { id: number; name: string; registration_number: string }[];
+}
+
+const props = defineProps<Props>();
+
+const types = {
+    "admission": "Admission Fee",
+    "monthly": "Monthly Fee",
+    "papers": "Papers Fee",
+};
+
+const form = useForm({
+    type: props.fee.type,
+    due_date: props.fee.due_date,
+    school_id: String(props.fee.school_id),
+    class_id: String(props.fee.class_id),
+    fee_items: props.fee.fee_items.map(item => ({
+        type: item.type,
+        amount: String(item.amount),
+    })),
+});
+
+const errors = computed(() => form.errors);
+const today = computed(() => new Date().toISOString().split('T')[0]);
+
+function goBack() {
+    router.visit(route('fees.index'));
+}
+
+function getFeeItemError(index: number, field: 'type' | 'amount') {
+    const key = `fee_items.${index}.${field}`;
+    return (form.errors as Record<string, string | undefined>)[key];
+}
+
+function onSchoolChange() {
+    form.class_id = '';
+    if (form.school_id) {
+        router.get(
+            route('fees.edit', props.fee.id),
+            { school_id: form.school_id },
+            { preserveState: true, preserveScroll: true, replace: true }
+        );
+    }
+}
+
+function onClassChange() {
+    if (form.school_id && form.class_id) {
+        router.get(
+            route('fees.edit', props.fee.id),
+            { school_id: form.school_id, class_id: form.class_id },
+            { preserveState: true, preserveScroll: true, replace: true }
+        );
+    }
+}
+
+function addFeeItem() {
+    form.fee_items.push({ type: '', amount: '' });
+}
+
+function removeFeeItem(index: number) {
+    form.fee_items.splice(index, 1);
+}
+
+function submitForm() {
+    let valid = true;
+    form.fee_items.forEach((item) => {
+        if (!item.type || !item.amount || Number(item.amount) <= 0) {
+            valid = false;
+            toast.error('Please fill in all fee item types and positive amounts.');
+        }
+    });
+    if (!valid) return;
+
+    form.put(route('fees.update', props.fee.id), {
+        onSuccess: () => toast.success('Fee updated successfully!'),
+        onError: (errors) => {
+            Object.values(errors).flat().forEach((message) => {
+                if (typeof message === 'string') toast.error(message);
+            });
+        },
+    });
+}
+</script>
+
 <template>
     <AppLayout>
-
-        <Head title="Edit Fee" />
-
-        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
+        <div class="max-w-7xl mx-auto w-full px-4 py-8">
             <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Fee</h1>
                     <Button variant="outline" @click="goBack">Back to Fees</Button>
                 </div>
 
-                <!-- Student Information -->
-                <div class="bg-gray-50 dark:bg-neutral-800 rounded-lg p-4 mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">Student Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Name:</span>
-                            <span class="ml-2 text-gray-900 dark:text-gray-100">{{ fee.student?.name }}</span>
-                        </div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Registration
-                                Number:</span>
-                            <span class="ml-2 text-gray-900 dark:text-gray-100">{{ fee.student?.registration_number
-                            }}</span>
-                        </div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Class:</span>
-                            <span class="ml-2 text-gray-900 dark:text-gray-100">{{ fee.student?.class?.name }}</span>
-                        </div>
-                        <div>
-                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">School:</span>
-                            <span class="ml-2 text-gray-900 dark:text-gray-100">{{ fee.student?.school?.name }}</span>
-                        </div>
-                    </div>
-                </div>
-
                 <form @submit.prevent="submitForm" class="space-y-6">
-                    <!-- First Row: Fee Type, Amount, Status -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Fee Type -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Fee Type *
-                            </label>
-                            <select v-model="form.type"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                :class="{ 'border-red-500': errors.type }">
-                                <option value="admission">Admission Fee</option>
-                                <option value="tuition">Tuition Fee</option>
-                                <option value="papers">Papers Fee</option>
-                            </select>
-                            <InputError :message="errors.type" />
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <SelectInput id="school_id" v-model="form.school_id" label="School"
+                            :options="props.schools.map(s => ({ label: s.name, value: String(s.id) }))"
+                            placeholder="Select School" :error="errors.school_id" @change="onSchoolChange" />
+
+                        <SelectInput id="fee_type" v-model="form.type" label="Fee Type"
+                            :options="Object.entries(types).map(([value, label]) => ({ label, value }))"
+                            placeholder="Select Fee Type" :error="errors.type" />
+
+                        <SelectInput id="class_id" v-model="form.class_id" label="Class"
+                            :options="props.classes.map(c => ({ label: c.name, value: String(c.id) }))"
+                            placeholder="Select Class" :error="errors.class_id" :disabled="!form.school_id"
+                            @change="onClassChange" />
+
+                        <TextInput id="due_date" v-model="form.due_date" label="Due Date" type="date" :min="today"
+                            :error="errors.due_date" />
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-neutral-800 shadow rounded-lg p-4">
+                        <label class="block mb-4 text-gray-700 dark:text-gray-200 font-medium">Fee Items</label>
+
+                        <div v-for="(item, index) in form.fee_items" :key="index"
+                            class="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                            <div class="w-full md:w-1/2">
+                                <select v-model="item.type" :class="['w-full px-3 py-2 rounded-md border',
+                                    'bg-white dark:bg-neutral-900',
+                                    'text-gray-900 dark:text-gray-100',
+                                    'border-gray-300 dark:border-gray-600',
+                                    'focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500',
+                                    getFeeItemError(index, 'type') ? 'border-red-500' : '']">
+                                    <option value="" disabled>Select Fee Type</option>
+                                    <option value="tuition">Tuition Fee</option>
+                                    <option value="library">Library Fee</option>
+                                    <option value="security">Security Fee</option>
+                                    <option value="papers">Papers Fee</option>
+                                    <option value="sports">Sports Fee</option>
+                                    <option value="transport">Transport Fee</option>
+                                </select>
+                                <p v-if="getFeeItemError(index, 'type')" class="text-red-500 text-sm mt-1">
+                                    {{ getFeeItemError(index, 'type') }}
+                                </p>
+                            </div>
+
+                            <div class="w-full md:w-1/2">
+                                <input v-model="item.amount" type="number" min="0" step="0.01"
+                                    placeholder="Amount (PKR)" :class="['w-full px-3 py-2 rounded-md border',
+                                        'bg-white dark:bg-neutral-900',
+                                        'text-gray-900 dark:text-gray-100',
+                                        'border-gray-300 dark:border-gray-600',
+                                        'focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500',
+                                        getFeeItemError(index, 'amount') ? 'border-red-500' : '']" />
+                                <p v-if="getFeeItemError(index, 'amount')" class="text-red-500 text-sm mt-1">
+                                    {{ getFeeItemError(index, 'amount') }}
+                                </p>
+                            </div>
+
+                            <div class="w-full md:w-auto flex items-center justify-end md:justify-start">
+                                <button type="button" @click="removeFeeItem(index)"
+                                    :disabled="form.fee_items.length === 1"
+                                    class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50">
+                                    <Trash class="w-5 h-5 text-white cursor-pointer" />
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Amount -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Amount (PKR) *
-                            </label>
-                            <input v-model="form.amount" type="number" step="0.01" min="0"
-                                placeholder="Enter fee amount"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                :class="{ 'border-red-500': errors.amount }" />
-                            <InputError :message="errors.amount" />
-                        </div>
+                        <button type="button" @click="addFeeItem"
+                            class="px-4 py-2 text-sm font-medium text-primary-700 border border-primary-600 hover:bg-primary-100 rounded-md mt-2">
+                            + Add Fee Item
+                        </button>
+                    </div>
 
-                        <!-- Status -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Status *
-                            </label>
-                            <select v-model="form.status"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                :class="{ 'border-red-500': errors.status }">
-                                <option value="unpaid">Unpaid</option>
-                                <option value="paid">Paid</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                            <InputError :message="errors.status" />
+                    <div v-if="props.students.length" class="bg-blue-100 dark:bg-blue-800 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
+                            Total Students in Selected Class ({{ props.students.length }})
+                        </h3>
+                        <div class="max-h-40 overflow-y-auto">
+                            <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
+                                <div v-for="student in props.students" :key="student.id"
+                                    class="text-sm text-gray-600 dark:text-gray-300">
+                                    {{ student.id }} : {{ student.name }} (Reg# {{ student.registration_number }})
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Second Row: Due Date, Voucher Number (if paid) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Due Date -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Due Date *
-                            </label>
-                            <input v-model="form.due_date" type="date"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                :class="{ 'border-red-500': errors.due_date }" />
-                            <InputError :message="errors.due_date" />
-                        </div>
-
-                        <!-- Voucher Number (only show if status is paid) -->
-                        <div v-if="form.status === 'paid'">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                                Voucher Number
-                            </label>
-                            <input v-model="form.voucher_number" type="text" placeholder="Enter voucher number"
-                                class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                                :class="{ 'border-red-500': errors.voucher_number }" />
-                            <InputError :message="errors.voucher_number" />
+                    <div v-else
+                        class="text-center py-4 px-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                        <div class="text-yellow-800 dark:text-yellow-200 font-medium mb-1">⚠️ No Students Found</div>
+                        <div class="text-yellow-700 dark:text-yellow-300 text-sm">
+                            No admitted students found in the selected class. Please ensure there are admitted students
+                            before assigning fees.
                         </div>
                     </div>
 
-                    <!-- Third Row: Paid Date (only show if status is paid) -->
-                    <div v-if="form.status === 'paid'">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                            Paid Date
-                        </label>
-                        <input v-model="form.paid_at" type="datetime-local"
-                            class="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                            :class="{ 'border-red-500': errors.paid_at }" />
-                        <InputError :message="errors.paid_at" />
-                    </div>
-
-                    <!-- Submit Button -->
                     <div class="flex justify-end space-x-3">
-                        <Button type="button" variant="outline" @click="goBack">
-                            Cancel
-                        </Button>
-                        <Button type="submit" :disabled="form.processing">
+                        <Button type="button" variant="outline" @click="goBack">Cancel</Button>
+                        <Button type="submit" :disabled="form.processing || !props.students.length">
                             <span v-if="form.processing">Updating...</span>
+                            <span v-else-if="!props.students.length">No Students Available</span>
                             <span v-else>Update Fee</span>
                         </Button>
                     </div>
@@ -132,73 +225,3 @@
         </div>
     </AppLayout>
 </template>
-
-<script setup lang="ts">
-import { computed } from 'vue';
-import { router, Head, useForm } from '@inertiajs/vue3';
-import { toast } from 'vue3-toastify';
-import AppLayout from '@/layouts/AppLayout.vue';
-import Button from '@/components/ui/button/Button.vue';
-import InputError from '@/components/InputError.vue';
-
-interface Student {
-    id: number;
-    name: string;
-    registration_number: string;
-    class?: {
-        id: number;
-        name: string;
-    };
-    school?: {
-        id: number;
-        name: string;
-    };
-}
-
-interface Fee {
-    id: number;
-    student_id: number;
-    type: string;
-    amount: number;
-    status: string;
-    due_date: string;
-    paid_at?: string;
-    voucher_number?: string;
-    student?: Student;
-}
-
-interface Props {
-    fee: Fee;
-}
-
-const props = defineProps<Props>();
-
-const form = useForm({
-    type: props.fee.type,
-    amount: props.fee.amount,
-    status: props.fee.status,
-    due_date: props.fee.due_date,
-    paid_at: props.fee.paid_at ? new Date(props.fee.paid_at).toISOString().slice(0, 16) : '',
-    voucher_number: props.fee.voucher_number || '',
-});
-
-const errors = computed(() => form.errors);
-
-function goBack() {
-    router.visit(route('fees.index'));
-}
-
-function submitForm() {
-    form.put(route('fees.update', props.fee.id), {
-        onSuccess: () => {
-            toast.success('Fee updated successfully!');
-        },
-        onError: (errors) => {
-            // Show validation errors as toast messages for non-field errors
-            if (errors.error) {
-                toast.error(errors.error);
-            }
-        },
-    });
-}
-</script>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Fees\App\Models\FeeItem;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Fees\Models\FeeInstallment;
 
 class Fee extends Model
 {
@@ -37,5 +38,9 @@ class Fee extends Model
     public function feeItems(): HasMany
     {
         return $this->hasMany(FeeItem::class);
+    }
+    public function installments()
+    {
+        return $this->hasMany(FeeInstallment::class);
     }
 }

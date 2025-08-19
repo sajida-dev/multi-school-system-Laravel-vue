@@ -3,6 +3,7 @@
 namespace Modules\Fees\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\Fees\App\Models\Fee;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Fees\App\Http\Requests\StoreFeeRequest;
 use Modules\Fees\App\Http\Requests\UpdateFeeRequest;
+use Modules\Fees\App\Models\FeeItem;
 
 class FeesController extends Controller
 {
@@ -167,22 +169,26 @@ class FeesController extends Controller
                         'type' => $validated['type'], // e.g., admission/monthly/etc
                         'amount' => $totalAmount,
                         'status' => 'unpaid',
-                        'due_date' => $validated['due_date'],
+                        'due_date' => Carbon::parse($validated['due_date']),
                         'description' => $validated['description'] ?? null,
                     ]);
 
                     // Create associated fee items for each student
                     foreach ($feeItems as $item) {
+                        Log::info('Creating fee item', [
+                            'fee_id' => $fee->id,
+                            'type' => $item['type'],
+                            'amount' => $item['amount'],
+                        ]);
+
                         $fee->feeItems()->create([
                             'type' => $item['type'],
-                            'description' => $item['description'] ?? '',
                             'amount' => $item['amount'],
                         ]);
                     }
 
                     $createdFees[] = $fee;
                 }
-
                 return redirect()->route('fees.index')
                     ->with('success', "Fees created successfully for {$students->count()} students.");
             }, 5); // Retry transaction up to 5 times in case of deadlock
@@ -214,12 +220,33 @@ class FeesController extends Controller
      */
     public function edit($id)
     {
-        $fee = Fee::with(['student.school', 'student.class'])->findOrFail($id);
-
+        $fee = Fee::with(['student.school', 'class', 'feeItems'])->findOrFail($id);
+        $schoolId = $fee->student->school_id;
+        $classId = $fee->class_id;
+        $status = ($fee->type == 'admission') ? 'applicant' : 'admitted';
         return Inertia::render('Fees/Edit', [
-            'fee' => $fee,
+            'fee' => [
+                'id' => $fee->id,
+                'type' => $fee->type,
+                'due_date' => $fee->due_date,
+                // 'due_date' => $fee->due_date->format('Y-m-d'),
+                'school_id' => $schoolId,
+                'class_id' => $classId,
+                'fee_items' => $fee->feeItems->map(fn($item) => [
+                    'type' => $item->type,
+                    'amount' => $item->amount,
+                ]),
+            ],
+            'schools' => School::select('id', 'name')->get(),
+            'classes' => ClassModel::forSchool($schoolId)->select('id', 'name')->get(),
+            'students' => Student::where('school_id', $schoolId)
+                ->where('class_id', $classId)
+                ->where('status', $status)
+                ->select('id', 'name', 'registration_number')
+                ->get(),
         ]);
     }
+
 
     /**
      * Update the specified resource in storage.

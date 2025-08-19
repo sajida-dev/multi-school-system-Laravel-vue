@@ -113,7 +113,6 @@ onMounted(() => {
 });
 
 function submit() {
-    console.log('Form data being sent:', form.data()); // Debug log
 
     const formData = new FormData();
     const formDataObj = form.data();

@@ -8,6 +8,7 @@ use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Fees\App\Models\Fee;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\Storage;
+use Modules\ClassesSections\app\Models\Section;
 
 class Student extends Model
 {
@@ -18,6 +19,7 @@ class Student extends Model
     protected $fillable = [
         'school_id',
         'class_id',
+        'section_id',
         'nationality',
         'registration_number',
         'name',
@@ -89,6 +91,11 @@ class Student extends Model
             ->take(2)
             ->join('');
     }
+    public function section()
+    {
+        return $this->belongsTo(Section::class, 'section_id');
+    }
+
 
     public function fees()
     {

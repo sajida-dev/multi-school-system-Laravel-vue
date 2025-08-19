@@ -62,8 +62,8 @@ class AttendanceController extends Controller
                     });
                 })
                 ->where('school_id', $schoolId)
-                ->with(['class', 'section', 'user'])
-                ->orderBy('roll_number')
+                ->with(['class', 'section'])
+                ->orderBy('registration_number')
                 ->get();
 
             // Get existing attendance records for the selected date
@@ -73,7 +73,7 @@ class AttendanceController extends Controller
                 })
                 ->where('date', $selectedDate)
                 ->where('school_id', $schoolId)
-                ->with(['student.user'])
+                ->with(['student'])
                 ->get()
                 ->keyBy('student_id');
         }

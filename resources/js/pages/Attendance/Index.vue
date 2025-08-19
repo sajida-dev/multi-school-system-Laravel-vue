@@ -45,7 +45,8 @@
                         <select id="section_id" v-model="selectedSection"
                             class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-neutral-600 rounded bg-white dark:bg-neutral-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
                             <option value="">All Sections</option>
-                            <option v-for="section in sections" :key="section.id" :value="section.id">{{ section.name }}
+                            <option v-for="section in filteredSections" :key="section.id" :value="section.id">{{
+                                section.name }}
                             </option>
                         </select>
                     </div>
@@ -136,14 +137,18 @@
                                         <div class="flex-shrink-0 h-10 w-10">
                                             <div
                                                 class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                                <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                                    {{ getInitials(student.user?.name || 'Student') }}
+                                                <img v-if="student.profile_photo_url" :src="student.profile_photo_url"
+                                                    alt="Profile Photo" class="h-10 w-10 rounded-full object-cover">
+
+                                                <span v-else
+                                                    class="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                                    {{ getInitials(student.name || 'Student') }}
                                                 </span>
                                             </div>
                                         </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                {{ student.user?.name || 'Unknown' }}
+                                                {{ student.name || 'Unknown' }}
                                             </div>
                                             <div class="text-sm text-gray-500 dark:text-gray-400">
                                                 {{ student.section?.name || 'No Section' }}
@@ -152,7 +157,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                    {{ student.roll_number || '-' }}
+                                    {{ student.registration_number || '-' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <select v-model="attendanceData[student.id].status"
@@ -174,10 +179,10 @@
 
                 <!-- Save Button -->
                 <div class="p-6 border-t border-gray-200 dark:border-neutral-700">
-                    <Button @click="saveAttendance" :disabled="loading" class="w-full sm:w-auto px-4 py-2 text-sm">
-                        <Loader2 v-if="loading" class="w-4 h-4 mr-2 animate-spin" />
+                    <Button @click="saveAttendance" :disabled="load" class="w-full sm:w-auto px-4 py-2 text-sm">
+                        <Loader2 v-if="load" class="w-4 h-4 mr-2 animate-spin" />
                         <Save v-else class="w-4 h-4 mr-2" />
-                        {{ loading ? 'Saving...' : 'Save Attendance' }}
+                        {{ load ? 'Saving...' : 'Save Attendance' }}
                     </Button>
                 </div>
             </div>
@@ -289,13 +294,15 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Calendar, Building2, Users, RefreshCw, Save, Loader2, Filter } from 'lucide-vue-next';
+import { useSections } from '@/composables/useSections';
+
+
 
 interface Student {
     id: number;
-    roll_number?: string;
-    user?: {
-        name: string;
-    };
+    name: string;
+    profile_photo_url?: string;
+    registration_number?: string;
     class?: {
         name: string;
     };
@@ -312,6 +319,8 @@ interface Class {
 interface Section {
     id: number;
     name: string;
+    class_id: number;
+
 }
 
 interface Teacher {
@@ -339,6 +348,7 @@ const props = defineProps<Props>();
 
 const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
 
+
 function openFilterSheet() {
     filterSheet.value?.open();
 }
@@ -357,7 +367,16 @@ const selectedSection = ref(props.selectedSection || '');
 const selectedTeacher = ref(props.selectedTeacher || '');
 const selectedDate = ref(props.selectedDate);
 const students = ref<Student[]>(props.students || []);
-const loading = ref(false);
+const load = ref(false);
+
+
+const { sections: filteredSections, fetchSectionsByClass, loading } = useSections();
+
+
+watch(selectedClass, (newClassId) => {
+    selectedSection.value = '';
+    fetchSectionsByClass(newClassId);
+});
 
 // Initialize attendance data for each student
 const attendanceData = ref<Record<number, { status: string; remarks: string }>>({});
@@ -449,7 +468,7 @@ function saveAttendance() {
         return;
     }
 
-    loading.value = true;
+    load.value = true;
 
     const form = useForm({
         class_id: selectedClass.value,
@@ -469,11 +488,11 @@ function saveAttendance() {
     form.post(route('attendance.store'), {
         onSuccess: () => {
             toast.success('Attendance marked successfully!');
-            loading.value = false;
+            load.value = false;
         },
         onError: (errors) => {
             toast.error('Failed to mark attendance. Please try again.');
-            loading.value = false;
+            load.value = false;
         }
     });
 }

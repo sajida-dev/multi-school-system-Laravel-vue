@@ -114,7 +114,6 @@ class AdmissionsController extends Controller
                     FeeItem::create([
                         'fee_id' => $fee->id,
                         'type' => 'admission',
-                        'description' => 'This admission fee is for the students to admit to the school.',
                         'amount' => 500,
                     ]);
                 } catch (\Exception $feeException) {

@@ -132,7 +132,7 @@ class TeachersController extends Controller
                 'required',
                 'string',
                 'min:8',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&^_-])[A-Za-z\d@$!%*#?&^_-]{8,}$/'
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&^_.-])[A-Za-z\d@$!%*#?&^_.-]{8,}$/'
             ],
             'cnic' => ['required', 'string', 'unique:teachers,cnic', 'regex:/^\d{5}-\d{7}-\d{1}$/'], // Format: 12345-1234567-1
             'gender' => 'required|in:Male,Female',
