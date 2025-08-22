@@ -293,8 +293,9 @@
                         </div>
 
                         <!-- Modal -->
-                        <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :student-id="row.id"
-                            @close="closeVoucherModal" @uploaded="onVoucherUploaded" />
+                        <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :id="row.id"
+                            :submitUrl="'admissions.approve'" @close="closeVoucherModal"
+                            @uploaded="onVoucherUploaded" />
                     </div>
                 </template>
 
@@ -653,9 +654,9 @@ function closeVoucherModal() {
 }
 function onVoucherUploaded() {
     console.log('Voucher uploaded callback triggered');
-    toast.success('Paid voucher uploaded and student approved.');
     fetchData();
     closeVoucherModal();
+    toast.success('Paid voucher uploaded and student approved.');
 }
 
 function onSearchInput() {

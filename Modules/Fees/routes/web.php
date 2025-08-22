@@ -14,4 +14,5 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
         Route::post('/create', 'store')->name('installments.store');
         Route::post('/{installment}/pay', 'markAsPaid')->name('installments.pay');
     });
+    Route::post('/fees/{fee}/mark-as-paid', [FeesController::class, 'markAsPaid'])->name('fees.markAsPaid');
 });

@@ -18,12 +18,6 @@ return new class extends Migration
             $table->boolean('published')->default(false);
             $table->integer('total_marks')->default(0);
             $table->integer('time_duration')->default(120); // in minutes
-            $table->string('course_name')->nullable();
-            $table->string('course_code')->nullable();
-            $table->string('program')->nullable(); // BSCS, BSIT, etc.
-            $table->string('semester')->nullable();
-            $table->string('session')->nullable();
-            $table->date('exam_date')->nullable();
             $table->text('instructions')->nullable();
             $table->timestamps();
             $table->softDeletes();

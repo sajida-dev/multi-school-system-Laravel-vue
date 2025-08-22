@@ -22,70 +22,74 @@ class PapersQuestionsController extends Controller
      */
     public function index(Request $request)
     {
-        $schoolId = session('active_school_id');
-        $query = Paper::query()->with(['class', 'section', 'teacher', 'subject'])
-            ->withCount('questions');
+        try {
+            $schoolId = session('active_school_id');
+            $query = Paper::query()->with(['class', 'section', 'teacher', 'subject'])
+                ->withCount('questions');
 
-        // Filter by selected school
-        if ($schoolId) {
-            $query->whereHas('class.schools', function ($q) use ($schoolId) {
-                $q->where('schools.id', $schoolId);
-            });
+            // Filter by selected school
+            if ($schoolId) {
+                $query->whereHas('class.schools', function ($q) use ($schoolId) {
+                    $q->where('schools.id', $schoolId);
+                });
+            }
+
+            // Apply filters
+            if ($request->filled('class_id')) {
+                $query->where('class_id', $request->class_id);
+            }
+            if ($request->filled('section_id')) {
+                $query->where('section_id', $request->section_id);
+            }
+            if ($request->filled('teacher_id')) {
+                $query->where('teacher_id', $request->teacher_id);
+            }
+            if ($request->filled('published')) {
+                $query->where('published', $request->published);
+            }
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where('title', 'like', "%{$search}%");
+            }
+
+            $perPage = $request->input('per_page', 12);
+            $papers = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+
+            // Get classes, sections, and teachers for filters
+            $classes = collect();
+            $sections = collect();
+            $teachers = collect();
+
+            if ($schoolId) {
+                $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
+                    $q->where('schools.id', $schoolId);
+                })->orderBy('name')->get(['id', 'name']);
+
+                // Get sections that are associated with classes in this school through pivot tables
+                $sections = Section::whereIn('id', function ($query) use ($schoolId) {
+                    $query->select('class_school_sections.section_id')
+                        ->from('class_school_sections')
+                        ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+                        ->where('class_schools.school_id', $schoolId);
+                })->orderBy('name')->get(['id', 'name']);
+
+                // Get teachers with their names from users table
+                $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
+                    ->where('teachers.school_id', $schoolId)
+                    ->orderBy('users.name')
+                    ->get(['teachers.id', 'users.name']);
+            }
+
+            return Inertia::render('PapersQuestions/Index', [
+                'papers' => $papers,
+                'classes' => $classes,
+                'sections' => $sections,
+                'teachers' => $teachers,
+                'filters' => $request->only(['class_id', 'section_id', 'teacher_id', 'published', 'search']),
+            ]);
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to load papers. Please try again.'])->withInput();
         }
-
-        // Apply filters
-        if ($request->filled('class_id')) {
-            $query->where('class_id', $request->class_id);
-        }
-        if ($request->filled('section_id')) {
-            $query->where('section_id', $request->section_id);
-        }
-        if ($request->filled('teacher_id')) {
-            $query->where('teacher_id', $request->teacher_id);
-        }
-        if ($request->filled('published')) {
-            $query->where('published', $request->published);
-        }
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('title', 'like', "%{$search}%");
-        }
-
-        $perPage = $request->input('per_page', 12);
-        $papers = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
-
-        // Get classes, sections, and teachers for filters
-        $classes = collect();
-        $sections = collect();
-        $teachers = collect();
-
-        if ($schoolId) {
-            $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
-                $q->where('schools.id', $schoolId);
-            })->orderBy('name')->get(['id', 'name']);
-
-            // Get sections that are associated with classes in this school through pivot tables
-            $sections = Section::whereIn('id', function ($query) use ($schoolId) {
-                $query->select('class_school_sections.section_id')
-                    ->from('class_school_sections')
-                    ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
-                    ->where('class_schools.school_id', $schoolId);
-            })->orderBy('name')->get(['id', 'name']);
-
-            // Get teachers with their names from users table
-            $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
-                ->where('teachers.school_id', $schoolId)
-                ->orderBy('users.name')
-                ->get(['teachers.id', 'users.name']);
-        }
-
-        return Inertia::render('PapersQuestions/Index', [
-            'papers' => $papers,
-            'classes' => $classes,
-            'sections' => $sections,
-            'teachers' => $teachers,
-            'filters' => $request->only(['class_id', 'section_id', 'teacher_id', 'published', 'search']),
-        ]);
     }
 
     /**
@@ -294,7 +298,7 @@ class PapersQuestionsController extends Controller
      */
     public function show($id)
     {
-        $paper = Paper::with(['class', 'section', 'teacher', 'questions'])->findOrFail($id);
+        $paper = Paper::with(['class', 'section', 'teacher', 'questions', 'subject'])->findOrFail($id);
 
         return Inertia::render('PapersQuestions/Show', [
             'paper' => $paper,

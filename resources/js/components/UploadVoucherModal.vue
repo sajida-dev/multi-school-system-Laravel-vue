@@ -10,7 +10,7 @@
             </button>
             <h2 class="text-lg font-semibold mb-4 text-center text-gray-900 dark:text-gray-100">Upload Paid Voucher</h2>
             <form @submit.prevent="submit">
-                <FileInput label="Paid Voucher Image" v-model="file" required />
+                <FileInput v-model="file" accept="image/*" @change="previewUrl = null" />
                 <div v-if="previewUrl" class="flex flex-col items-center mt-2">
                     <img :src="previewUrl" alt="Preview" class="w-40 h-auto border rounded mb-2" />
                 </div>
@@ -35,7 +35,10 @@ import { router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import FileInput from '@/components/form/FileInput.vue';
 
-const props = defineProps<{ studentId: number }>();
+const props = defineProps<{
+    id: number,
+    submitUrl?: string,
+}>();
 const emit = defineEmits(['uploaded', 'close']);
 
 const file = ref<File | null>(null);
@@ -55,14 +58,15 @@ function submit() {
     loading.value = true;
     const formData = new FormData();
     formData.append('paid_voucher_image', file.value);
-    router.post(route('admissions.approve', props.studentId), formData, {
+    router.post(route(props.submitUrl, props.id), formData, {
         forceFormData: true,
         onSuccess: (page) => {
             console.log('Upload success response:', page);
             toast.success('Paid voucher uploaded and student approved.');
             emit('uploaded');
         },
-        onError: () => {
+        onError: (e) => {
+            console.error('Upload error:', e);
             toast.error('Failed to upload voucher.');
         },
         onFinish: () => {

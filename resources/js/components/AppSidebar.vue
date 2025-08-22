@@ -77,26 +77,26 @@ const mainNavItems: NavItem[] = [
         href: '/attendance',
         icon: CalendarCheck,
     },
-    {
-        title: 'Manage Results',
-        href: '/results',
-        icon: BarChart3,
-    },
-    {
-        title: 'Manage Reports',
-        href: '/reports',
-        icon: BarChart3,
-    },
-    {
-        title: 'Manage Installments',
-        href: '/installments',
-        icon: Receipt,
-    },
-    {
-        title: 'Manage Certificates',
-        href: '/certificates',
-        icon: Award,
-    },
+    // {
+    //     title: 'Manage Results',
+    //     href: '/results',
+    //     icon: BarChart3,
+    // },
+    // {
+    //     title: 'Manage Reports',
+    //     href: '/reports',
+    //     icon: BarChart3,
+    // },
+    // {
+    //     title: 'Manage Installments',
+    //     href: '/installments',
+    //     icon: Receipt,
+    // },
+    // {
+    //     title: 'Manage Certificates',
+    //     href: '/certificates',
+    //     icon: Award,
+    // },
 ];
 
 const footerNavItems: NavItem[] = [];
@@ -115,11 +115,9 @@ const footerNavItems: NavItem[] = [];
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
-
         <SidebarContent>
             <NavMain :items="mainNavItems" />
         </SidebarContent>
-
         <SidebarFooter>
             <SidebarGroup class="px-2 py-0">
                 <NavFooter :items="footerNavItems" />

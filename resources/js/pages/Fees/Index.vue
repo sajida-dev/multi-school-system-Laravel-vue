@@ -175,7 +175,8 @@
         </vue-bottom-sheet>
         <!-- Fee Listing Table -->
         <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
-            :server-items-length="serverItemsLength"
+            :server-items-length="serverItemsLength" :expandable="true"
+            :expand-row-keys="expandedRow ? [expandedRow] : []"
             @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
             table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all min-w-full"
             row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
@@ -209,6 +210,102 @@
                     <Icon name="trash" class="w-5 h-5" />
                 </button>
             </template>
+            <template #item-expand="row">
+                <button @click="toggleRowExpansion(row)"
+                    class="text-gray-500 hover:text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded p-1 transition">
+                    <svg v-if="expandedRow === row.id" class="w-4 h-4" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7">
+                        </path>
+                    </svg>
+                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                        </path>
+                    </svg>
+                </button>
+            </template>
+            <template #expand="row">
+                <div v-if="expandedRow === row.id"
+                    class="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow border border-gray-200 dark:border-neutral-700 transition-all duration-300">
+
+                    <!-- 👤 Student Header with Photo & Actions -->
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-4 mb-6">
+                        <div class="flex items-center gap-4">
+                            <img :src="row.fee.student.profile_photo_url" alt="Profile Photo"
+                                class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
+                            <div>
+                                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.student_name }}
+                                </h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                    <ClipboardList class="w-4 h-4" /> Registration #: {{
+                                        row.fee.student.registration_number
+                                    }}
+                                </p>
+                                <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                    <GraduationCap class="w-4 h-4" /> Class: {{ row.fee.student.class.name }} - Shift:
+                                    {{
+                                        row.fee.student.class_shift
+                                    }}
+                                </p>
+                                <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                    <School class="w-4 h-4" /> School: {{ row.fee.student.school.name }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
+                            <!-- <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                                @click="openVoucherModal(row.id)">
+                                <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
+                            </Button> -->
+                            <!-- <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
+                                @click="printVoucher(row.id)">
+                                <Printer class="w-4 h-4 mr-2" /> Print Voucher
+                            </Button> -->
+                        </div>
+                    </div>
+
+                    <!-- Personal Info Section -->
+                    <!-- [Same as your original layout] -->
+
+                    <!-- Family Info Section -->
+                    <!-- [Same as your original layout] -->
+
+                    <!-- Voucher Section -->
+                    <!-- Voucher Section -->
+                    <div class="border-t pt-4 mt-4">
+                        <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
+                            <Receipt class="w-5 h-5" /> Voucher Status
+                        </h3>
+                        <div v-if="row.status !== 'admitted'">
+                            <div v-if="!row.fee || row.fee.status !== 'paid'">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Voucher not uploaded.</p>
+                            </div>
+                            <div v-else>
+                                <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                                <div class="mt-2">
+                                    <label class="font-semibold">Paid Voucher Image:</label>
+                                    <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                        class="w-40 h-auto border rounded mt-1" />
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else>
+                            <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                            <div v-if="row.fee && row.fee.paid_voucher_image" class="mt-2">
+                                <label class="font-semibold">Paid Voucher Image:</label>
+                                <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                    class="w-40 h-auto border rounded mt-1" />
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Modal -->
+                    <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :id="row.id"
+                        :submitUrl="'fees.markAsPaid'" @close="closeVoucherModal" @uploaded="onVoucherUploaded" />
+                </div>
+            </template>
+
         </BaseDataTable>
 
         <!-- Delete Confirmation Dialog -->
@@ -233,12 +330,13 @@ import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
-import { FilterIcon } from "lucide-vue-next";
+import { ClipboardList, CreditCard, FilterIcon, GraduationCap, Printer, School, UserPlus } from "lucide-vue-next";
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Icon from '@/components/Icon.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import { Plus } from "lucide-vue-next";
+import UploadVoucherModal from "@/components/UploadVoucherModal.vue";
 
 // Define props interface for the data coming from backend
 interface Props {
@@ -275,7 +373,10 @@ interface Props {
         student_id?: string;
     };
 }
-
+const expandedRow = ref<number | null>(null);
+function toggleRowExpansion(row: any) {
+    expandedRow.value = expandedRow.value === row.id ? null : row.id;
+}
 // Define props
 const props = defineProps<Props>();
 
@@ -286,6 +387,9 @@ const breadcrumbItems: BreadcrumbItem[] = [
     },
 ];
 
+function printVoucher(studentId: number) {
+    router.get(route('fees.voucher', { student: studentId }));
+}
 const myBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
 
 const open = () => {
@@ -337,8 +441,27 @@ const items = computed(() => {
         status: fee.status,
         amount: fee.amount,
         due_date: fee.due_date,
+        fee: fee,
     }));
 });
+
+function fetchData() {
+    loading.value = true;
+    filtersForm.get(route('fees.index'), {
+        preserveState: true,
+        replace: true,
+        onSuccess: (page) => {
+            console.log('Fetch data success:', page.props.students);
+            // students.value = page.props.students as StudentsPagination;
+            // total.value = students.value && typeof students.value.total === 'number' ? students.value.total : 0;
+            // loading.value = false;
+        },
+        onError: () => {
+            loading.value = false;
+        }
+    });
+}
+
 
 // Delete dialog state
 const showDeleteDialog = ref(false);
@@ -407,6 +530,24 @@ function deleteFee() {
             feeToDelete.value = null;
         },
     });
+}
+
+
+const showVoucherModal = ref(false);
+const selectedStudentId = ref<number | null>(null);
+function openVoucherModal(studentId: number) {
+    selectedStudentId.value = studentId;
+    showVoucherModal.value = true;
+}
+function closeVoucherModal() {
+    showVoucherModal.value = false;
+    selectedStudentId.value = null;
+}
+function onVoucherUploaded() {
+    console.log('Voucher uploaded callback triggered');
+    fetchData();
+    closeVoucherModal();
+    toast.success('Paid voucher uploaded and student approved.');
 }
 </script>
 

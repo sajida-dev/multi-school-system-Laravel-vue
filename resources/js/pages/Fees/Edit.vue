@@ -119,7 +119,7 @@ function submitForm() {
 
                 <form @submit.prevent="submitForm" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <SelectInput id="school_id" v-model="form.school_id" label="School"
+                        <SelectInput id="school_id" v-model="form.school_id" label="School" disabled
                             :options="props.schools.map(s => ({ label: s.name, value: String(s.id) }))"
                             placeholder="Select School" :error="errors.school_id" @change="onSchoolChange" />
 
@@ -128,9 +128,8 @@ function submitForm() {
                             placeholder="Select Fee Type" :error="errors.type" />
 
                         <SelectInput id="class_id" v-model="form.class_id" label="Class"
-                            :options="props.classes.map(c => ({ label: c.name, value: String(c.id) }))"
-                            placeholder="Select Class" :error="errors.class_id" :disabled="!form.school_id"
-                            @change="onClassChange" />
+                            :options="props.classes.map(c => ({ label: c.name, value: String(c.id) }))" disabled
+                            placeholder="Select Class" :error="errors.class_id" @change="onClassChange" />
 
                         <TextInput id="due_date" v-model="form.due_date" label="Due Date" type="date" :min="today"
                             :error="errors.due_date" />
@@ -190,9 +189,9 @@ function submitForm() {
                     </div>
 
                     <div v-if="props.students.length" class="bg-blue-100 dark:bg-blue-800 rounded-lg p-4">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
+                        <!-- <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
                             Total Students in Selected Class ({{ props.students.length }})
-                        </h3>
+                        </h3> -->
                         <div class="max-h-40 overflow-y-auto">
                             <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
                                 <div v-for="student in props.students" :key="student.id"

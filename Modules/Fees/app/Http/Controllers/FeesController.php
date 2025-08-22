@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Fees\App\Http\Requests\StoreFeeRequest;
 use Modules\Fees\App\Http\Requests\UpdateFeeRequest;
 use Modules\Fees\App\Models\FeeItem;
+use Modules\Fees\Http\Requests\StorePaidVoucherRequest;
 
 class FeesController extends Controller
 {
@@ -72,7 +73,7 @@ class FeesController extends Controller
             }])->find($schoolId);
             $classes = $school ? $school->classes : collect();
         }
-
+        // dd($fees);
         return Inertia::render('Fees/Index', [
             'fees' => $fees,
             'schools' => $schools,
@@ -170,7 +171,6 @@ class FeesController extends Controller
                         'amount' => $totalAmount,
                         'status' => 'unpaid',
                         'due_date' => Carbon::parse($validated['due_date']),
-                        'description' => $validated['description'] ?? null,
                     ]);
 
                     // Create associated fee items for each student
@@ -251,51 +251,63 @@ class FeesController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateFeeRequest $request, $id)
+    public function update(UpdateFeeRequest $request, Fee $fee)
     {
         try {
-            return DB::transaction(function () use ($request, $id) {
-                $fee = Fee::findOrFail($id);
+            return DB::transaction(function () use ($request, $fee) {
                 $validated = $request->validated();
 
-                $data = [
+                $feeItems = $validated['fee_items'] ?? [];
+
+                if (empty($feeItems)) {
+                    return back()->withErrors(['fee_items' => 'At least one fee item is required.'])->withInput();
+                }
+
+                // Calculate total amount from new fee items
+                $totalAmount = collect($feeItems)->sum(function ($item) {
+                    return floatval($item['amount']);
+                });
+
+                // Update main fee fields
+                $fee->update([
+                    'class_id' => $validated['class_id'],
                     'type' => $validated['type'],
-                    'amount' => $validated['amount'],
-                    'status' => $validated['status'],
-                    'due_date' => $validated['due_date'],
+                    'amount' => $totalAmount,
+                    'due_date' => \Carbon\Carbon::parse($validated['due_date']),
                     'description' => $validated['description'] ?? null,
-                ];
+                ]);
 
-                // Set paid_at if status is paid and it's not already set
-                if ($validated['status'] === 'paid' && !$fee->paid_at) {
-                    $data['paid_at'] = now();
-                } elseif ($validated['status'] !== 'paid') {
-                    $data['paid_at'] = null;
-                }
+                // Delete existing fee items
+                $fee->feeItems()->delete();
 
-                // Set paid_amount and paid_date if provided
-                if (isset($validated['paid_amount'])) {
-                    $data['paid_amount'] = $validated['paid_amount'];
-                }
-                if (isset($validated['paid_date'])) {
-                    $data['paid_date'] = $validated['paid_date'];
-                }
+                // Re-create fee items
+                foreach ($feeItems as $item) {
+                    Log::info('Updating fee item', [
+                        'fee_id' => $fee->id,
+                        'type' => $item['type'],
+                        'amount' => $item['amount'],
+                    ]);
 
-                $fee->update($data);
+                    $fee->feeItems()->create([
+                        'type' => $item['type'],
+                        'amount' => $item['amount'],
+                        'description' => $item['description'] ?? null,
+                    ]);
+                }
 
                 return redirect()->route('fees.index')
                     ->with('success', 'Fee updated successfully.');
-            }, 5); // 5 retries for deadlock handling
+            }, 5); // Retry in case of deadlock
         } catch (\Exception $e) {
             Log::error('Error updating fee:', [
                 'error' => $e->getMessage(),
-                'fee_id' => $id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return back()->withErrors(['error' => 'Failed to update fee. Please try again.'])->withInput();
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -351,5 +363,36 @@ class FeesController extends Controller
             ->get();
 
         return response()->json($students);
+    }
+
+
+    public function markAsPaid(StorePaidVoucherRequest $request, Fee $fee)
+    {
+
+        $validated = $request->validated();
+        try {
+
+            // Handle file upload
+            if ($request->hasFile('paid_voucher_image')) {
+                $imagePath = $request->file('paid_voucher_image')->store('vouchers', 'public');
+            }
+
+            // Update fee status
+            $fee->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+                'voucher_number' => $validated['voucher_number'],
+                'paid_voucher_image' => $imagePath ?? null,
+            ]);
+
+            return redirect()->route('fees.index')->with('success', 'Fee marked as paid successfully.');
+        } catch (\Exception $e) {
+            Log::error('Error marking fee as paid:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()->withErrors(['error' => 'Failed to mark fee as paid. Please try again.']);
+        }
     }
 }
