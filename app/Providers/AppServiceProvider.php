@@ -5,7 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use App\Observers\PermissionObserver;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,5 +29,17 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('superadmin') ? true : null;
         });
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Share permissions globally with Inertia
+        Inertia::share([
+            'auth' => fn() => [
+                'user' => $user,
+                'permissions' => Auth::check()
+                    ? $user->getAllPermissions()->pluck('name')
+                    : [],
+            ],
+        ]);
     }
 }

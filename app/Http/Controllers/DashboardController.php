@@ -120,6 +120,7 @@ class DashboardController extends Controller
                 'value' => $schools->count(),
                 'icon' => 'school',
                 'color' => 'blue',
+                'link' => 'schools.index',
                 'change' => $schools->count() > 0 ? 'Active schools' : 'No schools yet'
             ],
             [
@@ -127,6 +128,7 @@ class DashboardController extends Controller
                 'value' => $totalStudents,
                 'icon' => 'users',
                 'color' => 'green',
+                'link' => 'students.index',
                 'change' => $studentChange > 0 ? "+{$studentChange}% this month" : "{$studentChange}% this month"
             ],
             [
@@ -134,6 +136,7 @@ class DashboardController extends Controller
                 'value' => $totalTeachers,
                 'icon' => 'user-tie',
                 'color' => 'purple',
+                'link' => 'teachers.index',
                 'change' => $teacherChange > 0 ? "+{$teacherChange}% this month" : "{$teacherChange}% this month"
             ],
             [
@@ -141,6 +144,7 @@ class DashboardController extends Controller
                 'value' => $totalClasses,
                 'icon' => 'graduation-cap',
                 'color' => 'orange',
+                'link' => 'classes.index',
                 'change' => $totalClasses > 0 ? 'Active classes' : 'No classes yet'
             ]
         ];
@@ -152,6 +156,7 @@ class DashboardController extends Controller
                 'recentTeachers' => Teacher::with('school')->latest()->take(5)->get(),
                 'recentStudents' => Student::with('school')->latest()->take(5)->get(),
                 'recentFees' => Fee::with(['student.school'])->latest()->take(5)->get(),
+
             ];
         } catch (\Exception $e) {
             Log::error('Error loading recent data', ['error' => $e->getMessage()]);
@@ -209,6 +214,7 @@ class DashboardController extends Controller
                 'value' => $totalStudents,
                 'icon' => 'users',
                 'color' => 'blue',
+                'link' => 'students.index',
                 'change' => $studentChange > 0 ? "+{$studentChange}% this month" : "{$studentChange}% this month"
             ],
             [
@@ -216,6 +222,7 @@ class DashboardController extends Controller
                 'value' => $totalTeachers,
                 'icon' => 'user-tie',
                 'color' => 'green',
+                'link' => 'teachers.index',
                 'change' => $teacherChange > 0 ? "+{$teacherChange}% this month" : "{$teacherChange}% this month"
             ],
             [
@@ -223,6 +230,7 @@ class DashboardController extends Controller
                 'value' => $totalClasses,
                 'icon' => 'graduation-cap',
                 'color' => 'purple',
+                'link' => 'classes.index',
                 'change' => $totalClasses > 0 ? 'Active classes' : 'No classes yet'
             ],
             [
@@ -230,6 +238,7 @@ class DashboardController extends Controller
                 'value' => $totalSections,
                 'icon' => 'layer-group',
                 'color' => 'orange',
+                'link' => 'sections.index',
                 'change' => $totalSections > 0 ? 'Active sections' : 'No sections yet'
             ]
         ];
@@ -270,6 +279,7 @@ class DashboardController extends Controller
                 'value' => $totalStudents,
                 'icon' => 'users',
                 'color' => 'blue',
+                'link' => 'students.index',
                 'change' => $studentChange > 0 ? "+{$studentChange}% this month" : "{$studentChange}% this month"
             ],
             [
@@ -277,6 +287,7 @@ class DashboardController extends Controller
                 'value' => $totalTeachers,
                 'icon' => 'user-tie',
                 'color' => 'green',
+                'link' => 'teachers.index',
                 'change' => $totalTeachers > 0 ? 'Active teachers' : 'No teachers yet'
             ],
             [
@@ -284,6 +295,7 @@ class DashboardController extends Controller
                 'value' => $totalApplicants,
                 'icon' => 'user-plus',
                 'color' => 'yellow',
+                'link' => 'admissions.index',
                 'change' => $totalApplicants > 0 ? 'Awaiting admission decision' : 'No pending applications'
             ],
             [
@@ -291,6 +303,7 @@ class DashboardController extends Controller
                 'value' => $totalPapers,
                 'icon' => 'trophy',
                 'color' => 'orange',
+                'link' => 'papersquestions.index',
                 'change' => $totalPapers > 0 ? 'Created papers' : 'No papers yet'
             ]
         ];
@@ -337,6 +350,7 @@ class DashboardController extends Controller
                 'value' => $myStudents,
                 'icon' => 'users',
                 'color' => 'blue',
+                'link' => 'students.index',
                 'change' => $myStudents > 0 ? 'Current students' : 'No students assigned'
             ],
             [
@@ -344,6 +358,7 @@ class DashboardController extends Controller
                 'value' => $myClasses,
                 'icon' => 'graduation-cap',
                 'color' => 'green',
+                'link' => 'classes.index',
                 'change' => $myClasses > 0 ? 'Active classes' : 'No classes assigned'
             ],
             [
@@ -351,6 +366,7 @@ class DashboardController extends Controller
                 'value' => $papersCreated,
                 'icon' => 'file-alt',
                 'color' => 'purple',
+                'link' => 'papersquestions.index',
                 'change' => $paperChange > 0 ? "+{$paperChange}% this month" : "{$paperChange}% this month"
             ],
             [
@@ -358,6 +374,7 @@ class DashboardController extends Controller
                 'value' => $admissionsHandled,
                 'icon' => 'user-plus',
                 'color' => 'orange',
+                'link' => 'admissions.index',
                 'change' => $admissionsHandled > 0 ? 'Students admitted' : 'No admissions yet'
             ]
         ];
