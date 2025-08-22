@@ -66,11 +66,13 @@
                 </div>
 
             </div>
-            <hr class="border-neutral-300 my-6">
+
             <!-- Questions by Section -->
             <div class="space-y-8">
+
                 <!-- Section A: Objective Questions -->
                 <div v-if="getSectionQuestions('objective').length > 0" class="section">
+                    <hr class="border-neutral-300 my-6">
                     <h2 class="text-xl font-bold text-center text-neutral-900 mb-4 underline dark:text-neutral-400">
                         SECTION A</h2>
                     <p class="text-neutral-700 mb-6 text-center dark:text-neutral-500">
@@ -109,10 +111,11 @@
                         </div>
                     </div>
                 </div>
-                <hr class="border-neutral-300 my-6">
+
 
                 <!-- Section B: Short Questions -->
                 <div v-if="getSectionQuestions('short_questions').length > 0" class="section">
+                    <hr class="border-neutral-300 my-6">
                     <h2 class="text-xl font-bold text-center text-neutral-900 mb-4 underline dark:text-neutral-400">
                         SECTION B</h2>
                     <p class="text-neutral-700 mb-6 text-center dark:text-neutral-500">
@@ -133,10 +136,11 @@
                         </div>
                     </div>
                 </div>
-                <hr class="border-neutral-300 my-6">
+
 
                 <!-- Section C: Long Questions -->
                 <div v-if="getSectionQuestions('long_questions').length > 0" class="section">
+                    <hr class="border-neutral-300 my-6">
                     <h2 class="text-xl font-bold text-center text-neutral-900 mb-4 underline dark:text-neutral-400">
                         SECTION C</h2>
                     <p class="text-neutral-700 mb-6 text-center dark:text-neutral-500">

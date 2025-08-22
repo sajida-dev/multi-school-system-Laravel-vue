@@ -154,6 +154,7 @@ function submitForm() {
                                     <option value="papers">Papers Fee</option>
                                     <option value="sports">Sports Fee</option>
                                     <option value="transport">Transport Fee</option>
+                                    <option value="admission">Admission Fee</option>
                                 </select>
                                 <p v-if="getFeeItemError(index, 'type')" class="text-red-500 text-sm mt-1">
                                     {{ getFeeItemError(index, 'type') }}

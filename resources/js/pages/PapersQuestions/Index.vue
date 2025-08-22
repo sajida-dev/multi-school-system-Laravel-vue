@@ -202,13 +202,13 @@
                 <button
                     class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                     @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
-                    <Icon name="eye" class="w-5 h-5" />
+                    <Eye class="w-5 h-5" />
                 </button>
-                <button
+                <!-- <button
                     class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
                     @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
-                    <Icon name="printer" class="w-5 h-5" />
-                </button>
+                    <Printer class="w-5 h-5" />
+                </button> -->
                 <button :class="[
                     'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
                     row.published
@@ -217,17 +217,18 @@
                 ]" @click="togglePublishStatus(row.id, row.published)"
                     :aria-label="row.published ? 'Unpublish Paper' : 'Publish Paper'"
                     :title="row.published ? 'Unpublish Paper' : 'Publish Paper'">
-                    <Icon :name="row.published ? 'eye-off' : 'eye'" class="w-5 h-5" />
+                    <EyeOff v-if="row.published" class="w-5 h-5" />
+                    <Eye v-else class="w-5 h-5" />
                 </button>
-                <button
+                <!-- <button
                     class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
                     @click="editPaper(row.id)" aria-label="Edit Paper" title="Edit Paper">
-                    <Icon name="edit" class="w-5 h-5" />
-                </button>
+                    <Edit class="w-5 h-5" />
+                </button> -->
                 <button
                     class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                     @click="askDeletePaper(row.id)" aria-label="Delete Paper" title="Delete Paper">
-                    <Icon name="trash" class="w-5 h-5" />
+                    <Trash class="w-5 h-5" />
                 </button>
             </template>
         </BaseDataTable>
@@ -291,10 +292,9 @@ import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
-import { FilterIcon, Plus, Info, CheckCircle, X } from "lucide-vue-next";
+import { FilterIcon, Plus, Info, CheckCircle, X, Eye, EyeOff, Edit, Printer, Trash } from "lucide-vue-next";
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
-import Icon from '@/components/Icon.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 

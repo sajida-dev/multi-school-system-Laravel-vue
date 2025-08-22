@@ -454,11 +454,7 @@ class PapersQuestionsController extends Controller
         $paper->save();
 
         $status = $paper->published ? 'published' : 'unpublished';
-
-        return response()->json([
-            'success' => true,
-            'message' => "Paper {$status} successfully",
-            'published' => $paper->published
-        ]);
+        return redirect()->route('papersquestions.index')
+            ->with('success', "Paper {$status} successfully.");
     }
 }
