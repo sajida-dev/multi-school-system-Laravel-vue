@@ -52,9 +52,7 @@ class DashboardController extends Controller
             // Handle Super Admin (no school required)
             if ($user->hasRole('superadmin')) {
                 $dashboardData = $this->getSuperAdminData($dashboardData);
-            }
-            // Handle other roles (school required)
-            elseif ($user->hasRole(['admin', 'principal', 'teacher'])) {
+            } elseif ($user->hasRole(['admin', 'principal', 'teacher'])) { // Handle other roles (school required)
                 if (!$activeSchoolId) {
                     $dashboardData['errors'][] = 'No active school selected. Please select a school.';
                     Log::warning('No active school for user', ['user_id' => $user->id, 'roles' => $user->roles->pluck('name')]);
@@ -153,7 +151,7 @@ class DashboardController extends Controller
                 'recentSchools' => School::latest()->take(5)->get(),
                 'recentTeachers' => Teacher::with('school')->latest()->take(5)->get(),
                 'recentStudents' => Student::with('school')->latest()->take(5)->get(),
-                'recentFees' => Fee::with(['student', 'school'])->latest()->take(5)->get(),
+                'recentFees' => Fee::with(['student.school'])->latest()->take(5)->get(),
             ];
         } catch (\Exception $e) {
             Log::error('Error loading recent data', ['error' => $e->getMessage()]);

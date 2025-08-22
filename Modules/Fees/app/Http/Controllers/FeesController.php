@@ -241,7 +241,7 @@ class FeesController extends Controller
             'classes' => ClassModel::forSchool($schoolId)->select('id', 'name')->get(),
             'students' => Student::where('school_id', $schoolId)
                 ->where('class_id', $classId)
-                ->where('status', $status)
+                // ->where('status', $status)
                 ->select('id', 'name', 'registration_number')
                 ->get(),
         ]);

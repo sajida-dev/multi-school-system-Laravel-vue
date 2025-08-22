@@ -19,6 +19,9 @@ import {
   UserCircle2,
   Clock3,
   Plus,
+  Settings2,
+  SettingsIcon,
+  LucideSettings,
 } from 'lucide-vue-next'
 
 interface School {
@@ -137,30 +140,30 @@ const hasRecentData = computed(() => {
       </div>
 
       <!-- Role-specific content -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="felx flex-col space-y-6">
         <!-- Quick Actions -->
         <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 border">
           <h3 class="text-lg font-semibold text-neutral-800 dark:text-white mb-4">Quick Actions</h3>
           <div class="space-y-3">
-            <div v-if="props.userRoles.includes('superadmin')" class="space-y-2">
+            <div v-if="props.userRoles.includes('superadmin')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button
                 class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
                 <School class="w-10 h-10 mr-2 p-2 text-blue-600 rounded-full bg-blue-300" />
                 Manage Schools
               </button>
               <button
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
                 <Users class="w-10 h-10 mr-2 p-2  rounded-full bg-green-300 text-green-600" />
                 System Users
               </button>
               <button
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
-                <i class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600"></i>
+                class="flex flex-row gap-3 items-center w-full text-left px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                <LucideSettings class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 System Settings
               </button>
             </div>
 
-            <div v-if="props.userRoles.includes('admin')" class="space-y-2">
+            <div v-if="props.userRoles.includes('admin')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button
                 class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
                 <UserPlus class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
@@ -178,7 +181,7 @@ const hasRecentData = computed(() => {
               </button>
             </div>
 
-            <div v-if="props.userRoles.includes('principal')" class="space-y-2">
+            <div v-if="props.userRoles.includes('principal')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button
                 class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
                 <LineChart class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
@@ -196,7 +199,7 @@ const hasRecentData = computed(() => {
               </button>
             </div>
 
-            <div v-if="props.userRoles.includes('teacher')" class="space-y-2">
+            <div v-if="props.userRoles.includes('teacher')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button
                 class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
                 <FileText class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
@@ -218,13 +221,13 @@ const hasRecentData = computed(() => {
 
         <!-- Recent Activity -->
         <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 border">
-          <h3 class="text-lg font-semibold text-neutral-800 mb-4">Recent Activity</h3>
-          <div class="space-y-3">
+          <h3 class="text-lg font-semibold text-neutral-800 dark:text-white mb-4">Recent Activity</h3>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Schools (for Super Admin) -->
             <div v-if="props.recentData?.recentSchools && props.recentData.recentSchools.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">Recent Schools</h4>
               <div v-for="school in props.recentData.recentSchools.slice(0, 3)" :key="school.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ school.name || 'Unknown School' }}</p>
@@ -238,7 +241,7 @@ const hasRecentData = computed(() => {
             <div v-if="props.recentData?.recentTeachers && props.recentData.recentTeachers.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">Recent Teachers</h4>
               <div v-for="teacher in props.recentData.recentTeachers.slice(0, 3)" :key="teacher.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ teacher.name || 'Unknown Teacher' }}</p>
@@ -251,7 +254,7 @@ const hasRecentData = computed(() => {
             <div v-if="props.recentData?.recentStudents && props.recentData.recentStudents.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">Recent Students</h4>
               <div v-for="student in props.recentData.recentStudents.slice(0, 3)" :key="student.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ student.name || 'Unknown Student' }}</p>
@@ -265,7 +268,7 @@ const hasRecentData = computed(() => {
             <div v-if="props.recentData?.recentFees && props.recentData.recentFees.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">Recent Fees</h4>
               <div v-for="fee in props.recentData.recentFees.slice(0, 3)" :key="fee.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ fee.student?.name || 'Unknown Student' }}</p>
@@ -274,11 +277,12 @@ const hasRecentData = computed(() => {
               </div>
             </div>
 
+
             <!-- Recent Applicants -->
             <div v-if="props.recentData?.recentApplicants && props.recentData.recentApplicants.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">Recent Applicants</h4>
               <div v-for="applicant in props.recentData.recentApplicants.slice(0, 3)" :key="applicant.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ applicant.name || 'Unknown Student' }}</p>
@@ -292,7 +296,7 @@ const hasRecentData = computed(() => {
             <div v-if="props.recentData?.myStudents && props.recentData.myStudents.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">My Students</h4>
               <div v-for="student in props.recentData.myStudents.slice(0, 3)" :key="student.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ student.name }}</p>
@@ -305,7 +309,7 @@ const hasRecentData = computed(() => {
             <div v-if="props.recentData?.myPapers && props.recentData.myPapers.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">My Papers</h4>
               <div v-for="paper in props.recentData.myPapers.slice(0, 3)" :key="paper.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ paper.title || 'Untitled Paper' }}</p>
@@ -318,7 +322,7 @@ const hasRecentData = computed(() => {
             <div v-if="props.recentData?.myAdmissions && props.recentData.myAdmissions.length > 0">
               <h4 class="text-sm font-medium text-neutral-700 mb-2">My Admissions</h4>
               <div v-for="admission in props.recentData.myAdmissions.slice(0, 3)" :key="admission.id"
-                class="flex items-center p-3 bg-neutral-50 rounded-lg">
+                class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
                 <div>
                   <p class="text-sm font-medium">{{ admission.name || 'Unknown Student' }}</p>
