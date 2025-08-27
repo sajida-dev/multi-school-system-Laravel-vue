@@ -253,26 +253,87 @@
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
-                            <!-- <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                            <Button v-if="(row.type === 'monthly' && row.status === 'unpaid')"
+                                class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
+                                @click="navigateToInstallments(row.id)">
+                                <Receipt class="w-4 h-4 mr-2" />Create
+                                Installments
+                            </Button>
+                            <Button v-else-if="(row.type === 'installments')"
+                                class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
+                                @click="navigateToInstallments(row.id)">
+                                <Receipt class="w-4 h-4 mr-2" />
+                                View Installments
+                            </Button>
+                            <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
                                 @click="openVoucherModal(row.id)">
                                 <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
-                            </Button> -->
-                            <!-- <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
+                            </Button>
+                            <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
                                 @click="printVoucher(row.id)">
                                 <Printer class="w-4 h-4 mr-2" /> Print Voucher
-                            </Button> -->
+                            </Button>
                         </div>
                     </div>
 
-                    <!-- Personal Info Section -->
-                    <!-- [Same as your original layout] -->
+                    <!--Personal Information-->
+                    <div class="mb-6">
+                        <h3 class="flex items-center text-lg font-semibold text-blue-700 dark:text-blue-300 mb-4">
+                            <UserPlus class="w-5 h-5 mr-2" /> Personal Information
+                        </h3>
+                        <div div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <FileText class="w-4 h-4" /> Nationality: {{ row.fee.student.nationality }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <ClipboardList class="w-4 h-4" /> B-Form #: {{ row.fee.student.b_form_number }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <CalendarCheck class="w-4 h-4" /> Admission Date: {{ row.fee.student.admission_date
+                                }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <CalendarCheck class="w-4 h-4" /> Date of Birth: {{ row.fee.student.date_of_birth }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <UserPlus class="w-4 h-4" /> Gender: {{ row.fee.student.gender }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Award class="w-4 h-4" /> Status: {{ row.fee.student.status }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <School class="w-4 h-4" /> Previous School: {{ row.fee.student.previous_school ||
+                                    'N/A'
+                                }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <BookOpenCheck class="w-4 h-4" /> Religion: {{ row.fee.student.religion }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <Users class="w-4 h-4" /> Inclusive: {{ row.fee.student.inclusive }}
+                            </div>
+                            <div v-if="row.other_inclusive_type" class="flex items-center gap-2">
+                                <ClipboardList class="w-4 h-4" /> Other Inclusive Type: {{
+                                    row.fee.student.other_inclusive_type
+                                }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <UserPlus class="w-4 h-4" /> Orphan: {{ row.fee.student.is_orphan ? 'Yes' : 'No' }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <UserPlus class="w-4 h-4" /> Bricklin: {{ row.fee.student.is_bricklin ? 'Yes' : 'No'
+                                }}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <UserPlus class="w-4 h-4" /> QSC: {{ row.fee.student.is_qsc ? 'Yes' : 'No' }}
+                            </div>
 
-                    <!-- Family Info Section -->
-                    <!-- [Same as your original layout] -->
-
+                        </div>
+                    </div>
+                    <!-- Divider -->
+                    <hr class="my-4 border-gray-300 dark:border-gray-600" />
                     <!-- Voucher Section -->
-                    <!-- Voucher Section -->
-                    <div class="border-t pt-4 mt-4">
+                    <div class=" pt-4 mt-4">
                         <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
                             <Receipt class="w-5 h-5" /> Voucher Status
                         </h3>
@@ -330,7 +391,7 @@ import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
-import { ClipboardList, CreditCard, FilterIcon, GraduationCap, Printer, School, UserPlus } from "lucide-vue-next";
+import { Award, BookOpenCheck, CalendarCheck, ClipboardList, CreditCard, FileText, FilterIcon, GraduationCap, Printer, Receipt, School, UserPlus, Users } from "lucide-vue-next";
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Icon from '@/components/Icon.vue';
@@ -350,6 +411,19 @@ interface Props {
             student?: {
                 name: string;
                 registration_number: string;
+                nationality: string;
+                b_form_number: string;
+                admission_date: string;
+                date_of_birth: string;
+                gender: string;
+                status: string;
+                previous_school?: string;
+                religion: string;
+                inclusive: string;
+                other_inclusive_type?: string;
+                is_orphan: boolean;
+                is_bricklin: boolean;
+                is_qsc: boolean;
                 school?: {
                     name: string;
                 };
@@ -494,6 +568,10 @@ function editFee(id: number) {
     router.visit(route('fees.edit', id));
 }
 
+function navigateToInstallments(id: number) {
+    router.visit(route('installments.create', id));
+}
+
 function goToCreate() {
     router.visit(route('fees.create'));
 }
@@ -535,8 +613,8 @@ function deleteFee() {
 
 const showVoucherModal = ref(false);
 const selectedStudentId = ref<number | null>(null);
-function openVoucherModal(studentId: number) {
-    selectedStudentId.value = studentId;
+function openVoucherModal(id: number) {
+    selectedStudentId.value = id;
     showVoucherModal.value = true;
 }
 function closeVoucherModal() {

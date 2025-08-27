@@ -73,7 +73,6 @@ class FeesController extends Controller
             }])->find($schoolId);
             $classes = $school ? $school->classes : collect();
         }
-        // dd($fees);
         return Inertia::render('Fees/Index', [
             'fees' => $fees,
             'schools' => $schools,

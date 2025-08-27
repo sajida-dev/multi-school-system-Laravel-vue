@@ -12,45 +12,21 @@ use Modules\Fees\Models\FeeInstallment;
 
 class FeeInstallmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
-    {
-        $registrationNumber = $request->input('registration_number');
 
-        $student = Student::where('registration_number', $registrationNumber)->first();
-
-        if (!$student) {
-            return Inertia::render('FeeInstallments/Index', [
-                'student' => null,
-                'fee' => null,
-                'fee_items' => [],
-                'installments' => [],
-                'error' => 'Student not found.'
-            ]);
-        }
-
-
-        $fee = Fee::with('feeItems')->where('student_id', $student->id)->where('type', '=', 'monthly')->first();
-        $feeItems = $fee ? $fee->feeItems : collect([]);
-        $installments = FeeInstallment::where('student_id', $student->id)->get();
-        // dd($fee, $feeItems, $installments);
-        return Inertia::render('FeeInstallments/Index', [
-            'student' => $student,
-            'fee' => $fee,
-            'fee_items' => $feeItems,
-            'installments' => $installments,
-            'error' => null
-        ]);
-    }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Fee $fee, Request $request)
     {
-        return view('fees::create');
+        $fee = Fee::with('student', 'feeItems', 'class')->findOrFail($fee->id);
+        $installments = FeeInstallment::where('fee_id', $fee->id)->get();
+        return Inertia::render('FeeInstallments/Create', [
+            'fee' => $fee,
+            'student' => $fee->student,
+            'fee_items' => $fee->feeItems,
+            'installments' => $installments,
+        ]);
     }
 
     /**
@@ -67,6 +43,8 @@ class FeeInstallmentController extends Controller
 
         $fee = Fee::findOrFail($request->fee_id);
         $studentId = $fee->student_id;
+        $fee->type = 'installments';
+        $fee->update();
 
         foreach ($request->installments as $installment) {
             FeeInstallment::create([
@@ -78,44 +56,20 @@ class FeeInstallmentController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Installments created successfully.');
+
+        return redirect()->route('fees.index')->with('success', 'Installments created successfully.');
     }
 
     public function markAsPaid(FeeInstallment $installment, Request $request)
     {
+        $path = $request->file('paid_voucher_image')->store('vouchers', 'public');
+
         $installment->update([
             'status' => 'paid',
             'paid_at' => now(),
-            'voucher_number' => $request->voucher_number,
-            'paid_voucher_image' => $request->paid_voucher_image, // You'll need to handle upload
+            'paid_voucher_image' => $path, // store file path in DB
         ]);
 
         return back()->with('success', 'Installment marked as paid.');
     }
-
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('fees::show');
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('fees::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
 }

@@ -283,6 +283,35 @@
                                 <Building2 class="w-4 h-4" /> Address: {{ row.permanent_address }}
                             </div>
                         </div>
+
+                        <!-- Voucher Section -->
+                        <div class="border-t pt-4 mt-4">
+                            <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
+                                <Receipt class="w-5 h-5" /> Voucher Status
+                            </h3>
+                            <div v-if="row.status !== 'admitted'">
+                                <div v-if="!row.fee || row.fee.status !== 'paid'">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Voucher not uploaded.</p>
+                                </div>
+                                <div v-else>
+                                    <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                                    <div class="mt-2">
+                                        <label class="font-semibold">Paid Voucher Image:</label>
+                                        <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                            class="w-40 h-auto border rounded mt-1" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                                <div v-if="row.fee && row.fee.paid_voucher_image" class="mt-2">
+                                    <label class="font-semibold">Paid Voucher Image:</label>
+                                    <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                        class="w-40 h-auto border rounded mt-1" />
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </template>
 

@@ -10,8 +10,8 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
     Route::get('fees/students/by-class', [FeesController::class, 'getStudents'])->name('fees.students.by-class');
 
     Route::prefix('installments')->controller(FeeInstallmentController::class)->group(function () {
-        Route::get('/', 'index')->name('installments.index');
-        Route::post('/create', 'store')->name('installments.store');
+        Route::get('/{fee}/create', 'create')->name('installments.create');
+        Route::post('/', 'store')->name('installments.store');
         Route::post('/{installment}/pay', 'markAsPaid')->name('installments.pay');
     });
     Route::post('/fees/{fee}/mark-as-paid', [FeesController::class, 'markAsPaid'])->name('fees.markAsPaid');
