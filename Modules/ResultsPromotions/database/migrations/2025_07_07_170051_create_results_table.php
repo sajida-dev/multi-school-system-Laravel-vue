@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
             $table->foreignId('section_id')->nullable()->constrained('sections')->onDelete('cascade');
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
-            $table->enum('term', ['1st_term', '2nd_term', '3rd_term', 'final'])->default('1st_term');
+            $table->foreignId('exam_type_id')->constrained('exam_types');
             $table->decimal('obtained_marks', 8, 2);
             $table->decimal('total_marks', 8, 2);
             $table->text('remarks')->nullable();
@@ -23,10 +23,10 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['student_id', 'paper_id', 'term'], 'unique_student_paper_term');
-            $table->index(['class_id', 'term']);
-            $table->index(['school_id', 'term']);
-            $table->index(['student_id', 'term']);
+            $table->unique(['student_id', 'paper_id', 'exam_type_id'], 'unique_student_paper_term');
+            $table->index(['class_id', 'exam_type_id']);
+            $table->index(['school_id', 'exam_type_id']);
+            $table->index(['student_id', 'exam_type_id']);
         });
     }
 

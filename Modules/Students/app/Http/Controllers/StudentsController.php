@@ -9,6 +9,8 @@ use Modules\Admissions\App\Models\Student;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
 
 class StudentsController extends Controller
@@ -134,12 +136,40 @@ class StudentsController extends Controller
      */
     public function update(UpdateStudentRequest $request, $id)
     {
-        $student = Student::findOrFail($id);
-        $validated = $request->validated();
-        $student->update($validated);
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $student = Student::findOrFail($id);
+                $validated = $request->validated();
 
-        return redirect()->route('students.index')
-            ->with('success', 'Student updated successfully.');
+                // Handle file upload
+                if ($request->hasFile('profile_photo_path')) {
+                    // Remove old image if it exists
+                    if ($student->profile_photo_path && Storage::disk('public')->exists($student->profile_photo_path)) {
+                        Storage::disk('public')->delete($student->profile_photo_path);
+                    }
+                    $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
+                    $validated['profile_photo_path'] = $path;
+                } else {
+                    // If not uploading a new file, keep the old path
+                    $validated['profile_photo_path'] = $student->profile_photo_path;
+                }
+
+                $student->update($validated);
+                // Broadcast::event('student.updated', $student);
+                return redirect()->route('students.index')->with('success', 'Student updated successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to update student admission', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'student_id' => $id,
+                'request_data' => $request->except(['profile_photo_path'])
+            ]);
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Failed to update student. Please try again.'])
+                ->withInput();
+        }
     }
 
     /**

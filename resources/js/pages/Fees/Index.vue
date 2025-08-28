@@ -265,14 +265,14 @@
                                 <Receipt class="w-4 h-4 mr-2" />
                                 View Installments
                             </Button>
-                            <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                            <!-- <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
                                 @click="openVoucherModal(row.id)">
                                 <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
                             </Button>
                             <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
                                 @click="printVoucher(row.id)">
                                 <Printer class="w-4 h-4 mr-2" /> Print Voucher
-                            </Button>
+                            </Button> -->
                         </div>
                     </div>
 

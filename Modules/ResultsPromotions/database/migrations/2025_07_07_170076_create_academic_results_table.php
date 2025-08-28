@@ -14,8 +14,6 @@ return new class extends Migration
             $table->string('academic_year');
             $table->unsignedBigInteger('class_id');
             $table->unsignedBigInteger('section_id')->nullable();
-            $table->unsignedBigInteger('next_class_id')->nullable(); // For promotion
-            $table->unsignedBigInteger('next_section_id')->nullable();
 
             // Term-wise results (calculated from term_results table)
             $table->decimal('term1_percentage', 5, 2)->nullable();
@@ -44,8 +42,6 @@ return new class extends Migration
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');
-            $table->foreign('next_class_id')->references('id')->on('classes')->onDelete('set null');
-            $table->foreign('next_section_id')->references('id')->on('sections')->onDelete('set null');
             $table->foreign('verified_by')->references('id')->on('users')->onDelete('set null');
             $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
             $table->unique(['student_id', 'academic_year']); // One result per student per year

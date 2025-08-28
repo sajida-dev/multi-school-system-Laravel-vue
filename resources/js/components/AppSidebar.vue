@@ -83,14 +83,14 @@ const mainNavItems: NavItem[] = [
     //     icon: BarChart3,
     // },
     // {
+    //     title: 'Manage Exams',
+    //     href: '/exams',
+    //     icon: Receipt,
+    // }
+    // {
     //     title: 'Manage Reports',
     //     href: '/reports',
     //     icon: BarChart3,
-    // },
-    // {
-    //     title: 'Manage Installments',
-    //     href: '/installments',
-    //     icon: Receipt,
     // },
     // {
     //     title: 'Manage Certificates',

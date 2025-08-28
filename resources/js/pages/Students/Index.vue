@@ -49,7 +49,7 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
-                    <select v-model="filtersForm.class_id"
+                    <select v-model="filtersForm.class_id" @change="fetchSections(filtersForm.class_id)"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -443,10 +443,12 @@ import {
     Users,
     Award,
     Pencil,
-    Trash2
+    Trash2,
+    Receipt
 } from 'lucide-vue-next';
-const defaultProfileImage = '/storage/default-avatar.png';
+import axios from "axios";
 
+const defaultProfileImage = '/storage/default-avatar.png';
 const filterSheet = ref<InstanceType<typeof VueBottomSheet>>();
 
 function openFilterSheet() {
@@ -539,9 +541,11 @@ const schools = computed(() => page.props.schools || []);
 const auth = computed(() => page.props.auth || {});
 const schoolStore = useSchoolStore();
 const { selectedSchool } = storeToRefs(schoolStore);
-
+const sectionCache = new Map();
 const classes = computed(() => page.props.classes || []);
-const sections = computed(() => page.props.sections || []);
+const originalSections = computed(() => page.props.sections || []);
+const sections = ref<Array<{ id: number; name: string }>>(originalSections.value);
+
 
 const items = computed(() => {
     const data = Array.isArray(students.value?.data) ? students.value.data : [];
@@ -564,6 +568,27 @@ const filtersForm = useForm({
     page: 1,
     per_page: 12,
 });
+
+async function fetchSections(classId: string | number) {
+    if (sectionCache.has(classId)) {
+        sections.value = sectionCache.get(classId);
+        return;
+    }
+
+    try {
+        const res = await axios.get(`/api/classes/${classId}/sections`);
+        sectionCache.set(classId, res.data);
+        sections.value = res.data;
+    } catch (error) {
+        console.error('Failed to load sections:', error);
+        sections.value = [];
+    }
+}
+
+watch(filtersForm.class_id, (newClassId) => {
+    filtersForm.section_id = '';
+    fetchSections(newClassId);
+}, { immediate: true });
 
 const loading = ref(false);
 const serverOptions = ref({

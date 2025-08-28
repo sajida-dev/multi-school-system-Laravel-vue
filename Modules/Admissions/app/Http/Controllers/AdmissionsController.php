@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Admissions\App\Http\Requests\StoreStudentRequest;
 use Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
 use Illuminate\Support\Facades\DB;
+use Modules\Admissions\Models\StudentEnrollment;
 
 class AdmissionsController extends Controller
 {
@@ -99,6 +100,24 @@ class AdmissionsController extends Controller
                 }
 
                 $student = Student::create($validated);
+
+                // Get academic year from form or generate
+                $academicYear = $request->input('academic_year') ?? now()->year . '-' . now()->addYear()->year;
+                $school_id = session('active_school_id');
+                if ($school_id == null) {
+                    $school_id = Auth::user()->last_school_id;
+                }
+                // Create student enrollment (historical + current tracking)
+                StudentEnrollment::create([
+                    'student_id' => $student->id,
+                    'school_id' => $school_id,
+                    'class_id' => $validated['class_id'],
+                    'section_id' => $validated['section_id'] ?? null,
+                    'academic_year' => $academicYear,
+                    'admission_date' => now(),
+                    'status' => 'enrolled',
+                    'is_current' => true,
+                ]);
 
                 // Create fee for admission (with error handling)
                 try {
@@ -197,7 +216,7 @@ class AdmissionsController extends Controller
                 }
 
                 $student->update($validated);
-                Broadcast::event('student.updated', $student);
+                // Broadcast::event('student.updated', $student);
                 return redirect()->route('admissions.index')->with('success', 'Student updated successfully.');
             }, 5); // 5 retries for deadlock handling
         } catch (\Exception $e) {

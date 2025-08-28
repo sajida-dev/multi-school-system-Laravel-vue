@@ -11,8 +11,8 @@
                 row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
                 <template #toolbar>
                     <Button variant="default" size="lg" class="mr-2" @click="addSchool">Add School</Button>
-                    <Button variant="secondary" size="lg" class="mr-2" @click="importSchools">Import</Button>
-                    <Button variant="outline" size="lg" @click="exportSchools">Export</Button>
+                    <!-- <Button variant="secondary" size="lg" class="mr-2" @click="importSchools">Import</Button>
+                    <Button variant="outline" size="lg" @click="exportSchools">Export</Button> -->
                 </template>
                 <template #item-name="row">
                     <div>

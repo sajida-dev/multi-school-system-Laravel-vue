@@ -1,0 +1,44 @@
+<?php
+
+namespace Modules\ResultsPromotions\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\PapersQuestions\App\Models\Paper;
+use Modules\ResultsPromotions\app\Models\Exam;
+use Modules\ResultsPromotions\app\Models\ExamResult;
+
+// use Modules\ResultsPromotions\Database\Factories\ExamPaperFactory;
+
+class ExamPaper extends Model
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     */
+
+    // protected static function newFactory(): ExamPaperFactory
+    // {
+    //     // return ExamPaperFactory::new();
+    // }
+
+    use SoftDeletes;
+
+    protected $table = 'exam_paper';
+    protected $fillable = ['exam_id', 'paper_id', 'exam_date', 'start_time', 'end_time', 'total_marks', 'passing_marks'];
+
+    public function exam()
+    {
+        return $this->belongsTo(Exam::class);
+    }
+    public function paper()
+    {
+        return $this->belongsTo(Paper::class);
+    }
+    public function results()
+    {
+        return $this->hasMany(ExamResult::class);
+    }
+}

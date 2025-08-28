@@ -24,7 +24,7 @@ class PapersQuestionsController extends Controller
     {
         try {
             $schoolId = session('active_school_id');
-            $query = Paper::query()->with(['class', 'section', 'teacher', 'subject'])
+            $query = Paper::query()->with(['class', 'section', 'teacher.user', 'subject'])
                 ->withCount('questions');
 
             // Filter by selected school

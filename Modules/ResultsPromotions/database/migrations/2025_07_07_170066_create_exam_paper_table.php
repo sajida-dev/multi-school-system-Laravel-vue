@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // for single subject of single class
         Schema::create('exam_paper', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('exam_id');

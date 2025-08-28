@@ -51,5 +51,5 @@ Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () 
 
     Route::post('classes/{class}/subjects', [SubjectsController::class, 'assignToClass'])->name('classes.subjects.assign');
 
-    Route::get('/api/classes/{class}/sections', [ClassController::class, 'getSections']);
+    Route::get('/api/classes/{class}/sections', [ClassController::class, 'getSections'])->name('api.classes.sections');
 });

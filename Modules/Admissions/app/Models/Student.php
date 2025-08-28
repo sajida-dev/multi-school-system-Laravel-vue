@@ -8,6 +8,7 @@ use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Fees\App\Models\Fee;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\Storage;
+use Modules\Admissions\Models\StudentEnrollment;
 use Modules\ClassesSections\app\Models\Section;
 
 class Student extends Model
@@ -115,5 +116,14 @@ class Student extends Model
     public function class()
     {
         return $this->belongsTo(ClassModel::class, 'class_id');
+    }
+    public function enrollments()
+    {
+        return $this->hasMany(StudentEnrollment::class);
+    }
+
+    public function currentEnrollment()
+    {
+        return $this->hasOne(StudentEnrollment::class)->where('is_current', true);
     }
 }

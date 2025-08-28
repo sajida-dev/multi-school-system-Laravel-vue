@@ -153,7 +153,7 @@ class DashboardController extends Controller
         try {
             $dashboardData['recentData'] = [
                 'recentSchools' => School::latest()->take(5)->get(),
-                'recentTeachers' => Teacher::with('school')->latest()->take(5)->get(),
+                'recentTeachers' => Teacher::with('user', 'school')->latest()->take(5)->get(),
                 'recentStudents' => Student::with('school')->latest()->take(5)->get(),
                 'recentFees' => Fee::with(['student.school'])->latest()->take(5)->get(),
 

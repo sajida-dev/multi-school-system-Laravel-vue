@@ -154,12 +154,12 @@ const hasRecentData = computed(() => {
                 Manage Schools
               </button>
               <button @click="router.visit(route('settings.users'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-400 transition-colors">
                 <Users class="w-10 h-10 mr-2 p-2  rounded-full bg-green-300 text-green-600" />
                 System Users
               </button>
               <button @click="router.visit(route('profile.edit'))"
-                class="flex flex-row gap-3 items-center w-full text-left px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-400 transition-colors">
                 <LucideSettings class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 System Settings
               </button>
@@ -167,17 +167,17 @@ const hasRecentData = computed(() => {
 
             <div v-if="props.userRoles.includes('admin')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button @click="router.visit(route('admissions.create'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
                 <UserPlus class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
                 New Admission
               </button>
               <button @click="router.visit(route('teachers.create'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-400 transition-colors">
                 <Users class="w-10 h-10 mr-2 p-2 rounded-full bg-green-300 text-green-600" />
                 Manage Teachers
               </button>
               <button @click="router.visit(route('fees.index'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-400 transition-colors">
                 <CircleDollarSign class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 Fee Management
               </button>
@@ -185,17 +185,17 @@ const hasRecentData = computed(() => {
 
             <div v-if="props.userRoles.includes('principal')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button @click="router.visit(route('reports.index'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
                 <LineChart class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
                 Academic Reports
               </button>
               <button @click="router.visit(route('attendance.index'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-400 transition-colors">
                 <CalendarCheck class="w-10 h-10 mr-2 p-2 rounded-full bg-green-300 text-green-600" />
                 Attendance Overview
               </button>
               <button
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-400 transition-colors">
                 <Trophy class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 Performance Analysis
               </button>
@@ -203,17 +203,17 @@ const hasRecentData = computed(() => {
 
             <div v-if="props.userRoles.includes('teacher')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
               <button @click="router.visit(route('papers.create'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
                 <FileText class="w-10 h-10 mr-2 p-2 rounded-full bg-blue-300 text-blue-600" />
                 Create Paper
               </button>
               <button @click="router.visit(route('results.index'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-400 transition-colors">
                 <BarChart2 class="w-10 h-10 mr-2 p-2 rounded-full bg-green-300 text-green-600" />
                 Publish Results
               </button>
               <button @click="router.visit(route('students.index'))"
-                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-100 transition-colors">
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-400 transition-colors">
                 <UserCircle2 class="w-10 h-10 mr-2 p-2 rounded-full bg-purple-300 text-purple-600" />
                 My Students
               </button>
@@ -246,7 +246,7 @@ const hasRecentData = computed(() => {
                 class="flex items-center p-3 mt-1 bg-neutral-50 dark:bg-neutral-700 rounded-lg">
                 <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
                 <div>
-                  <p class="text-sm font-medium">{{ teacher.name || 'Unknown Teacher' }}</p>
+                  <p class="text-sm font-medium">{{ teacher.user.name || 'Unknown Teacher' }}</p>
                   <p class="text-xs text-neutral-500">{{ teacher.school?.name || 'School not assigned' }}</p>
                 </div>
               </div>

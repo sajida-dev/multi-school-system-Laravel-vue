@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('student_id');
             $table->unsignedBigInteger('exam_id'); // References the term exam
-            $table->string('exam_type'); // 1st Term, 2nd Term, 3rd Term, Final Term
+            $table->foreignId('exam_type_id')->constrained('exam_types');
             $table->string('academic_year');
             $table->integer('total_subjects');
             $table->decimal('total_marks_obtained', 10, 2);
@@ -34,7 +34,7 @@ return new class extends Migration
             $table->foreign('exam_id')->references('id')->on('exams')->onDelete('cascade');
             $table->foreign('verified_by')->references('id')->on('users')->onDelete('set null');
             $table->unique(['student_id', 'exam_id']); // One term result per student per exam
-            $table->index(['student_id', 'academic_year', 'exam_type']);
+            $table->index(['student_id', 'academic_year', 'exam_type_id']);
         });
     }
 

@@ -45,7 +45,7 @@
                 <div class="flex flex-col">
                     <label for="class_id"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
-                    <select id="class_id" v-model="filtersForm.class_id"
+                    <select id="class_id" v-model="filtersForm.class_id" @change="fetchSections(filtersForm.class_id)"
                         class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
@@ -178,7 +178,7 @@
                 <span class="text-gray-900 dark:text-gray-100">{{ row.subject?.name || '-' }}</span>
             </template>
             <template #item-teacher="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.teacher?.name || '-' }}</span>
+                <span class="text-gray-900 dark:text-gray-100">{{ row.teacher?.user?.name || '-' }}</span>
             </template>
             <template #item-duration="row">
                 <span class="text-gray-900 dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
@@ -287,7 +287,7 @@
 <script setup lang="ts">
 import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
 import "@webzlodimir/vue-bottom-sheet/dist/style.css";
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, Prop } from "vue";
 import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
@@ -297,6 +297,7 @@ import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import axios from 'axios';
 
 // Define props interface for the data coming from backend
 interface Props {
@@ -315,7 +316,9 @@ interface Props {
                 name: string;
             };
             teacher?: {
-                name: string;
+                user: {
+                    name: string;
+                }
             };
             questions_count?: number;
             total_marks?: number;
@@ -340,13 +343,42 @@ interface Props {
 
 // Define props
 const props = defineProps<Props>();
-
+console.log('props', props)
+const sections = ref<Props['sections']>([]);
+const sectionCache = new Map();
+const selectedClass = ref<string | number>('');
+const selectedSection = ref<string | number>('');
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'Papers & Questions',
         href: route('papersquestions.index'),
     },
 ];
+
+
+
+async function fetchSections(classId: string | number) {
+    if (sectionCache.has(classId)) {
+        sections.value = sectionCache.get(classId);
+        return;
+    }
+
+    try {
+        const res = await axios.get(`/api/classes/${classId}/sections`);
+        sectionCache.set(classId, res.data);
+        sections.value = res.data;
+    } catch (error) {
+        console.error('Failed to load sections:', error);
+        sections.value = [];
+    }
+}
+
+
+watch(selectedClass, (newClassId) => {
+    selectedSection.value = '';
+    fetchSections(newClassId);
+}, { immediate: true });
+
 
 const myBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
 

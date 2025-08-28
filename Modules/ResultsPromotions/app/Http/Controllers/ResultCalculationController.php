@@ -10,6 +10,7 @@ use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\ResultsPromotions\app\Models\TermResult;
 use Modules\ResultsPromotions\app\Models\AcademicResult;
 use Modules\Admissions\app\Models\Student;
+use Modules\ClassesSections\App\Models\ClassModel;
 
 class ResultCalculationController extends Controller
 {
@@ -120,7 +121,7 @@ class ResultCalculationController extends Controller
     public function calculateAcademicResults()
     {
         $academicYears = TermResult::distinct()->pluck('academic_year');
-        $classes = \Modules\ClassesSections\app\Models\SchoolClass::all();
+        $classes = ClassModel::all();
 
         return Inertia::render('Results/CalculateAcademicResults', [
             'academicYears' => $academicYears,
@@ -138,7 +139,7 @@ class ResultCalculationController extends Controller
             'class_id' => 'required|exists:classes,id'
         ]);
 
-        $students = Student::where('class', \Modules\ClassesSections\app\Models\SchoolClass::find($request->class_id)->name)->get();
+        $students = Student::where('class', ClassModel::find($request->class_id)->name)->get();
 
         $results = [];
         $errors = [];

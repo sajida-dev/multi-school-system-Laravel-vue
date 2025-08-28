@@ -15,9 +15,9 @@
                                 performance</p>
                         </div>
                         <div>
-                            <Button @click="router.visit(route('results.create'))" class="px-4 py-2 text-sm">
+                            <Button @click="router.visit(route('exam-types.index'))" class="px-4 py-2 text-sm">
                                 <Plus class="w-4 h-4 mr-2" />
-                                Add Results
+                                All Exam Types
                             </Button>
                         </div>
 
