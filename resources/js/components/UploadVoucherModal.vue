@@ -62,7 +62,7 @@ function submit() {
         forceFormData: true,
         onSuccess: (page) => {
             console.log('Upload success response:', page);
-            toast.success('Paid voucher uploaded and student approved.');
+            toast.success('Paid voucher uploaded successfully.');
             emit('uploaded');
         },
         onError: (e) => {

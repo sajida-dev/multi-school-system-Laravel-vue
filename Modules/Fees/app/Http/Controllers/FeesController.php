@@ -365,10 +365,12 @@ class FeesController extends Controller
     }
 
 
-    public function markAsPaid(StorePaidVoucherRequest $request, Fee $fee)
+    public function markAsPaid(Request $request, Fee $fee)
     {
 
-        $validated = $request->validated();
+        $request->validate([
+            'paid_voucher_image' => 'required|file|image|max:2048',
+        ]);
         try {
 
             // Handle file upload
@@ -380,7 +382,6 @@ class FeesController extends Controller
             $fee->update([
                 'status' => 'paid',
                 'paid_at' => now(),
-                'voucher_number' => $validated['voucher_number'],
                 'paid_voucher_image' => $imagePath ?? null,
             ]);
 
@@ -390,8 +391,8 @@ class FeesController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            return back()->withErrors(['error' => 'Failed to mark fee as paid. Please try again.']);
+            $msg =  'Failed to mark fee as paid. Please try again.' . $e->getMessage() . $e->getTraceAsString();
+            return back()->withErrors(['error' => $msg]);
         }
     }
 }

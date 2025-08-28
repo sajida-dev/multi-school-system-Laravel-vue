@@ -35,7 +35,7 @@
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         Total Fee: <span class="font-medium text-gray-900 dark:text-gray-100">Rs {{ fee?.amount
-                        }}</span>
+                            }}</span>
                     </p>
                 </div>
                 <!-- Installment Generator -->
@@ -157,11 +157,14 @@
                                     <td class="p-3">{{ inst.status }}</td>
                                     <td class="p-3">{{ inst.paid_at ?? '-' }}</td>
                                     <td>
-                                        <Button variant="default"
+                                        <Button variant="default" v-if="inst.status !== 'paid'"
                                             class="bg-green-700 hover:bg-green-800 text-white text-sm"
                                             @click="openVoucherModal(inst.id!)">
                                             <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
                                         </Button>
+                                        <span v-else>
+                                            <span class="text-green-800 dark:text-green-700 font-semibold">Paid</span>
+                                        </span>
                                     </td>
                                     <!-- Modal -->
                                     <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === inst.id"
@@ -184,7 +187,7 @@ import { ref } from 'vue';
 import { useForm, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ArrowLeft, Calendar, Search } from 'lucide-vue-next';
+import { ArrowLeft, Calendar, CreditCard, Search } from 'lucide-vue-next';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue3-toastify';
@@ -274,7 +277,7 @@ function closeVoucherModal() {
 function onVoucherUploaded() {
     console.log('Voucher uploaded callback triggered');
     closeVoucherModal();
-    toast.success('Paid voucher uploaded and student approved.');
+    router.visit(route('installments.create', fee.value?.id));
 }
 
 </script>

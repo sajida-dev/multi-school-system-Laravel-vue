@@ -253,6 +253,21 @@
                             </div>
                         </div>
                         <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
+
+
+                            <!-- <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
+                                @click="printVoucher(row.id)">
+                                <Printer class="w-4 h-4 mr-2" /> Print Voucher
+                            </Button> -->
+                            <Button v-if="row.status === 'paid'" variant="default"
+                                class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                                @click="openVoucherModal(row.id)">
+                                <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
+                            </Button>
+                            <span v-else>
+                                <span class="text-green-800 dark:text-green-700 font-semibold">Paid</span>
+                            </span>
+
                             <Button v-if="(row.type === 'monthly' && row.status === 'unpaid')"
                                 class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
                                 @click="navigateToInstallments(row.id)">
@@ -265,14 +280,6 @@
                                 <Receipt class="w-4 h-4 mr-2" />
                                 View Installments
                             </Button>
-                            <!-- <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
-                                @click="openVoucherModal(row.id)">
-                                <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
-                            </Button>
-                            <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
-                                @click="printVoucher(row.id)">
-                                <Printer class="w-4 h-4 mr-2" /> Print Voucher
-                            </Button> -->
                         </div>
                     </div>
 
@@ -625,7 +632,6 @@ function onVoucherUploaded() {
     console.log('Voucher uploaded callback triggered');
     fetchData();
     closeVoucherModal();
-    toast.success('Paid voucher uploaded and student approved.');
 }
 </script>
 

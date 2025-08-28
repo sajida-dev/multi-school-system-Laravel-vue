@@ -62,6 +62,9 @@ class FeeInstallmentController extends Controller
 
     public function markAsPaid(FeeInstallment $installment, Request $request)
     {
+        $request->validate([
+            'paid_voucher_image' => 'required|file|image|max:2048',
+        ]);
         $path = $request->file('paid_voucher_image')->store('vouchers', 'public');
 
         $installment->update([
@@ -70,6 +73,6 @@ class FeeInstallmentController extends Controller
             'paid_voucher_image' => $path, // store file path in DB
         ]);
 
-        return back()->with('success', 'Installment marked as paid.');
+        return redirect()->route('installments.create', ['fee' => $installment->id])->with('success', 'Installment marked as paid.');
     }
 }
