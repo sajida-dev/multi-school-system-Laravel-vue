@@ -57,7 +57,7 @@ function markAllAsRead() {
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
             <Button variant="ghost" size="icon" class="group h-9 w-9 cursor-pointer relative">
-                <Bell class="size-5 opacity-80 group-hover:opacity-100" />
+                <Bell class="size-5 opacity-80 group-hover:opacity-100 text-white" />
                 <span v-if="unreadCount"
                     class="absolute top-1 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full">{{
                         unreadCount }}</span>

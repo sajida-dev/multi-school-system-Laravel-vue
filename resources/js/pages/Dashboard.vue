@@ -113,7 +113,7 @@ const hasRecentData = computed(() => {
         <div class="flex justify-between items-center mb-4">
           <div>
             <h1 class="text-3xl font-bold text-neutral-800 dark:text-neutral-50">{{ getWelcomeMessage(props.userRoles)
-              }}
+            }}
             </h1>
             <p class="text-neutral-600 dark:text-neutral-100">Welcome back, {{ props.user.name }} ({{
               getRoleDisplayName(props.userRoles) }})</p>
@@ -364,17 +364,18 @@ const hasRecentData = computed(() => {
 
               <!-- Quick Action Buttons -->
               <div class="mt-4 space-y-2">
-                <button v-if="props.userRoles.includes('superadmin')" @click="router.visit('schools.create')"
+                <button v-if="props.userRoles.includes('superadmin')" @click="router.visit(route('schools.create'))"
                   class="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
                   <i class="fas fa-plus mr-1"></i>
                   Add School
                 </button>
-                <button v-if="props.userRoles.includes('admin')" @click="router.visit('/admin/admissions')"
+                <button v-if="props.userRoles.includes('admin')" @click="router.visit(route('admissions.create'))"
                   class="inline-flex items-center px-3 py-2 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                   <i class="fas fa-user-plus mr-1"></i>
                   Add Student
                 </button>
-                <button v-if="props.userRoles.includes('teacher')" @click="router.visit('/teacher/papers')"
+                <button v-if="props.userRoles.includes('teacher')"
+                  @click="router.visit(route('papersquestions.create'))"
                   class="inline-flex items-center px-3 py-2 text-xs font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                   <i class="fas fa-file-alt mr-1"></i>
                   Create Paper

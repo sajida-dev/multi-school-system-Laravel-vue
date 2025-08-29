@@ -9,6 +9,6 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
     </div>
     <div class="ml-1 grid flex-1 text-left text-sm">
         <span class="mb-0.5 truncate leading-tight font-semibold">EDU Champ</span>
-        <span class="truncate text-xs text-muted-foreground">Multi-School System</span>
+        <span class="truncate text-xs text-neutral-400">Multi-School System</span>
     </div>
 </template>

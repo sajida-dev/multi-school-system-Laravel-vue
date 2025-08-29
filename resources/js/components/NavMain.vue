@@ -7,10 +7,11 @@ defineProps<{
     items: NavItem[];
 }>();
 
+
 const page = usePage();
 </script>
 <template>
-    <SidebarGroup class="px-2 py-0">
+    <SidebarGroup class="px-2 py-0 text-white">
         <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">

@@ -15,15 +15,15 @@ const tabs = [
 </script>
 
 <template>
-    <div :class="['inline-flex gap-1 rounded-lg p-1 bg-gray-100 dark:bg-neutral-900']">
+    <div :class="['inline-flex gap-1 rounded-lg p-1 border border-neutral-300 ']">
         <button v-for="{ value, Icon, label } in tabs" :key="value" @click="updateAppearance(value)" :class="[
             'flex items-center rounded-md transition-colors',
             compact
                 ? 'px-2 py-1'
                 : 'px-3.5 py-1.5',
             appearance === value
-                ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100'
-                : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
+                ? 'bg-neutral-200 shadow-xs  text-purple-800'
+                : 'text-neutral-200 hover:bg-neutral-200/60 hover:text-black ',
         ]" :aria-label="label" type="button">
             <component :is="Icon" class="h-4 w-4" />
             <span v-if="!compact" class="ml-1.5 text-sm">{{ label }}</span>

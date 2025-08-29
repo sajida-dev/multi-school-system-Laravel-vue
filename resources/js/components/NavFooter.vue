@@ -13,15 +13,14 @@ const page = usePage();
 </script>
 
 <template>
-    <SidebarGroup :class="`group-data-[collapsible=icon]:p-0 ${$props.class || ''}`">
+    <SidebarGroup :class="`text-white group-data-[collapsible=icon]:p-0 ${$props.class || ''}`">
         <SidebarGroupContent>
             <SidebarMenu>
                 <SidebarMenuItem v-for="item in items" :key="item.title">
-                    <SidebarMenuButton
-                        class="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
-                        as-child :is-active="item.href === page.url" :tooltip="item.title">
+                    <SidebarMenuButton class=" text-neutral-100 hover:text-neutral-200 " as-child
+                        :is-active="item.href === page.url" :tooltip="item.title">
                         <Link :href="item.href">
-                        <component :is="item.icon" class="size-4" />
+                        <component :is="item.icon" class="size-4 text-white" />
                         <span>{{ item.title }}</span>
                         </Link>
                     </SidebarMenuButton>

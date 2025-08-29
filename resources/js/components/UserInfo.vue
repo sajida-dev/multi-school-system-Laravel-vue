@@ -26,16 +26,16 @@ const showAvatar = computed(() => true);
 </script>
 
 <template>
-    <Avatar class="h-10 w-10 rounded-full border-2 border-sidebar-accent">
-        <AvatarImage :src="avatarSrc" :alt="user.name" class="object-cover w-full h-full rounded-full" />
+    <Avatar class="h-10 w-10 rounded-full border border-sidebar-accent ">
+        <AvatarImage :src="avatarSrc" :alt="user.name" class="object-cover w-10 h-10 rounded-full" />
         <AvatarFallback class="rounded-full text-white  bg-gradient-to-br from-blue-900 to-purple-900 font-semibold">
             {{ getInitials(user.name) }}
         </AvatarFallback>
     </Avatar>
 
-    <div class="grid flex-1 text-left text-sm leading-tight">
-        <span class="truncate font-semibold text-sidebar-foreground">{{ user.name }}</span>
+    <div class="grid flex-1 text-left  text-sm leading-tight">
+        <span class="truncate font-semibold text-white">{{ user.name }}</span>
         <span v-if="showEmail" class="truncate text-xs text-muted-foreground">{{ user.email }}</span>
-        <span v-else class="truncate text-xs text-muted-foreground">Administrator</span>
+        <span v-else class="truncate text-xs text-neutral-300">Administrator</span>
     </div>
 </template>

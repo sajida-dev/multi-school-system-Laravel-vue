@@ -93,8 +93,8 @@ function onSearch() {
                 <div class="flex items-center gap-2 flex-1 relative">
                     <form @submit.prevent="onSearch" class="relative w-full max-w-xs hidden md:block">
                         <input v-model="searchQuery" type="text" placeholder="Search..."
-                            class="w-full rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 py-2 pl-9 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary/40 transition" />
-                        <SearchIcon class="absolute left-2 top-2.5 h-4 w-4 text-gray-400 dark:text-neutral-500" />
+                            class="w-full rounded-md border border-gray-200   py-2 pl-9 pr-3 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400  focus:outline-none focus:ring-2 focus:ring-primary/40 transition" />
+                        <SearchIcon class="absolute left-2 top-2.5 h-4 w-4 text-gray-400 " />
                     </form>
                     <ThemeSwitch compact class="ml-2" />
                     <NotificationDropdown :notifications="notifications" @read="markNotificationRead"

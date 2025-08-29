@@ -131,7 +131,7 @@ const filteredNavItems = mainNavItems.filter((item) => {
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset" class="bg-white dark:bg-black">
+    <Sidebar collapsible="icon" variant="inset" class="bg-purple-900 text-white">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
