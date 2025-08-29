@@ -17,7 +17,7 @@
                         class="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-2">
                         <div class="grid grid-cols-2 gap-2">
                             <!-- Classes Tab -->
-                            <button :class="[
+                            <button v-can="'read-classes'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'classes'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -28,7 +28,7 @@
                             </button>
 
                             <!-- Sections Tab -->
-                            <button :class="[
+                            <button v-can="'read-sections'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'sections'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -39,7 +39,7 @@
                             </button>
 
                             <!-- Assign Classes Tab -->
-                            <button :class="[
+                            <button v-can="'assign-classes-to-schools'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'assign-classes'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -50,7 +50,7 @@
                             </button>
 
                             <!-- Assign Sections Tab -->
-                            <button :class="[
+                            <button v-can="'assign-sections-to-classes'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'assign-sections'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -66,25 +66,25 @@
                 <!-- Desktop Tabs (Secondary Design) -->
                 <div
                     class="hidden md:flex gap-1 border border-gray-200 dark:border-neutral-700 rounded-lg p-1 bg-gray-50 dark:bg-neutral-800">
-                    <button
+                    <button v-can="'read-classes'"
                         :class="['flex items-center gap-2 px-4 py-3 rounded-md font-medium transition-all', activeTab === 'classes' ? 'bg-white dark:bg-neutral-700 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100']"
                         @click="activeTab = 'classes'">
                         <Building2 class="w-4 h-4" />
                         Classes
                     </button>
-                    <button
+                    <button v-can="'read-sections'"
                         :class="['flex items-center gap-2 px-4 py-3 rounded-md font-medium transition-all', activeTab === 'sections' ? 'bg-white dark:bg-neutral-700 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100']"
                         @click="activeTab = 'sections'">
                         <Users class="w-4 h-4" />
                         Sections
                     </button>
-                    <button
+                    <button v-can="'assign-classes-to-schools'"
                         :class="['flex items-center gap-2 px-4 py-3 rounded-md font-medium transition-all', activeTab === 'assign-classes' ? 'bg-white dark:bg-neutral-700 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100']"
                         @click="activeTab = 'assign-classes'">
                         <Link class="w-4 h-4" />
                         Assign Classes to Schools
                     </button>
-                    <button
+                    <button v-can="'assign-sections-to-classes'"
                         :class="['flex items-center gap-2 px-4 py-3 rounded-md font-medium transition-all', activeTab === 'assign-sections' ? 'bg-white dark:bg-neutral-700 text-blue-600 shadow-sm' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100']"
                         @click="activeTab = 'assign-sections'">
                         <Link class="w-4 h-4" />

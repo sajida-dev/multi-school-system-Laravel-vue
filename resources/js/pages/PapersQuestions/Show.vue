@@ -23,19 +23,6 @@
                         </div>
 
                     </div>
-                    <!-- <div class="school-details flex flex-row items-center justify-start gap-2">
-                        <div v-if="schoolLogo" class="school-logo mb-2">
-                            <img :src="schoolLogo" :alt="activeSchool.name"
-                                class="w-10 h-10 rounded-full object-contain" />
-                        </div>
-                        <div v-else class="school-logo mb-2">
-                            <span class="text-white dark:text-neutral-200">{{ getSchoolInitials(activeSchool?.name)
-                                || 'S' }}</span>
-                        </div>
-                        <div class="school-name dark:text-neutral-200">{{ activeSchool?.name || 'SCHOOL NAME' }},</div>
-                        <div class="school-address dark:text-neutral-200">{{ activeSchool?.address || 'Location' }}
-                        </div>
-                    </div> -->
                 </div>
 
                 <!-- Exam Details -->
@@ -122,7 +109,7 @@
                         This section consists of <strong>{{ getSectionCount('short_questions') }} Short Answer
                             Questions</strong>
                         with overall choice to attempt any <strong>{{ Math.min(getSectionCount('short_questions'), 20)
-                        }} questions</strong>.
+                            }} questions</strong>.
                     </p>
 
                     <div class="space-y-6">
@@ -181,7 +168,7 @@
                 <Button variant="outline" @click="goBack">
                     Back to Papers
                 </Button>
-                <Button @click="printPaper">
+                <Button v-can="'print-papers'" @click="printPaper">
                     Print Paper
                 </Button>
             </div> -->

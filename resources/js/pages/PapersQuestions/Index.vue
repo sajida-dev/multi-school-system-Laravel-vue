@@ -29,7 +29,7 @@
 
             <!-- Mobile Filter Icon with Tooltip and Label -->
             <div class="flex lg:hidden justify-between items-center mb-4 gap-3">
-                <Button variant="default" class="h-10" @click="goToCreate">
+                <Button v-can="'create-papers'" variant="default" class="h-10" @click="goToCreate">
                     <Plus class="w-4 h-4 mr-2" />
                     Add Paper
                 </Button>
@@ -80,7 +80,8 @@
                     </select>
                 </div>
                 <div class="flex flex-col">
-                    <Button variant="default" class="h-10" @click="goToCreate">Add Paper</Button>
+                    <Button v-can="'create-papers'" variant="default" class="h-10" @click="goToCreate">Add
+                        Paper</Button>
                 </div>
             </div>
         </div>
@@ -199,17 +200,17 @@
                 </span>
             </template>
             <template #item-actions="row">
-                <button
+                <button v-can="'view-papers'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                     @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
                     <Eye class="w-5 h-5" />
                 </button>
-                <!-- <button
+                <!-- <button v-can="'print-papers'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
                     @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
                     <Printer class="w-5 h-5" />
                 </button> -->
-                <button :class="[
+                <button v-can="'publish-papers'" :class="[
                     'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
                     row.published
                         ? 'text-orange-500 focus:ring-orange-400'
@@ -220,12 +221,12 @@
                     <EyeOff v-if="row.published" class="w-5 h-5" />
                     <Eye v-else class="w-5 h-5" />
                 </button>
-                <!-- <button
+                <!-- <button v-can="'update-papers'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
                     @click="editPaper(row.id)" aria-label="Edit Paper" title="Edit Paper">
                     <Edit class="w-5 h-5" />
                 </button> -->
-                <button
+                <button v-can="'delete-papers'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                     @click="askDeletePaper(row.id)" aria-label="Delete Paper" title="Delete Paper">
                     <Trash class="w-5 h-5" />

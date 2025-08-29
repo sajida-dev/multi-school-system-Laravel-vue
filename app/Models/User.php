@@ -98,6 +98,15 @@ class User extends Authenticatable implements MustVerifyEmail
         'initials',
     ];
 
+    public function permissionMap(): array
+    {
+        return $this->getAllPermissions()
+            ->pluck('name')
+            ->mapWithKeys(fn($p) => [$p => true])
+            ->toArray();
+    }
+
+
     protected $guard_name = 'web';
     public function getDefaultGuardName(): string
     {

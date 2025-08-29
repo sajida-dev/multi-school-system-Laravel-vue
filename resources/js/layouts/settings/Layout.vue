@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
+import { usePermissions } from '@/composables/usePermissions';
+
+const { can } = usePermissions();
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -33,17 +36,25 @@ if (userRoles.some((r: any) => r.name === 'superadmin')) {
         {
             title: 'Roles & Permissions',
             href: '/settings/roles-permissions',
+            permission: 'read-roles',
         },
         {
             title: 'User Management',
             href: '/settings/users',
+            permission: 'read-users',
         },
         {
             title: 'Add New User',
             href: '/settings/add-user',
+            permission: 'create-users',
         },
     );
 }
+
+const filteredSidebarNavItems = sidebarNavItems.filter((item) => {
+    if (!item.permission) return true; // Show items without a permission requirement
+    return can(item.permission);
+});
 </script>
 
 <template>
@@ -53,7 +64,7 @@ if (userRoles.some((r: any) => r.name === 'superadmin')) {
         <div class="flex flex-col space-y-8 md:space-y-0 lg:flex-row lg:space-y-0 lg:space-x-12">
             <aside class="w-full max-w-xl lg:w-48">
                 <nav class="flex flex-col space-y-1 space-x-0">
-                    <Button v-for="item in sidebarNavItems" :key="item.href" variant="ghost"
+                    <Button v-for="item in filteredSidebarNavItems" :key="item.href" variant="ghost"
                         :class="['w-full justify-start', { 'bg-muted': currentPath === item.href }]" as-child>
                         <Link :href="item.href">
                         {{ item.title }}

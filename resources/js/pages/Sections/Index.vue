@@ -4,17 +4,18 @@
     <div class="max-w-4xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Sections</h1>
-            <Button @click="openCreateModal">Add Section</Button>
+            <Button v-can="'create-sections'" variant="default" size="lg" class="mr-2" @click="openCreateModal">Add
+                Section</Button>
         </div>
         <BaseDataTable :headers="headers" :items="sections" :loading="loading"
             class="bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-700">
             <template #item-actions="row">
-                <button
+                <button v-can="'update-sections'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                     @click="openEditModal(row)" aria-label="Edit Section" title="Edit Section">
                     <Icon name="edit" class="w-5 h-5" />
                 </button>
-                <button
+                <button v-can="'delete-sections'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                     @click="handleDelete(row)" aria-label="Delete Section" title="Delete Section">
                     <Icon name="trash" class="w-5 h-5" />

@@ -30,7 +30,7 @@
 
             <!-- Mobile Filter Icon with Tooltip and Label -->
             <div class="flex lg:hidden justify-between items-center mb-4">
-                <Button variant="default" class="h-10" @click="goToCreate">
+                <Button v-can="'create-teachers'" variant="default" class="h-10" @click="goToCreate">
                     <Plus class="w-4 h-4 mr-2" />
                     Add Teacher
                 </Button>
@@ -86,7 +86,8 @@
                     </select>
                 </div>
                 <div class="flex flex-col">
-                    <Button variant="default" class="h-10" @click="goToCreate">Add Teacher</Button>
+                    <Button v-can="'create-teachers'" variant="default" class="h-10" @click="goToCreate">Add
+                        Teacher</Button>
                 </div>
             </div>
             <BaseDataTable :headers="headers" :items="teachers.data" :loading="loading" :server-options="serverOptions"
@@ -142,12 +143,12 @@
                     </span>
                 </template>
                 <template #item-actions="row">
-                    <button
+                    <button v-can="'update-teachers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editTeacher(row.id)" aria-label="Edit Teacher" title="Edit Teacher">
                         <Icon name="edit" class="w-5 h-5" />
                     </button>
-                    <button
+                    <button v-can="'delete-teachers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeleteTeacher(row.id)" aria-label="Delete Teacher" title="Delete Teacher">
                         <Icon name="trash" class="w-5 h-5" />
@@ -197,9 +198,10 @@
                                 </div>
                             </div>
                             <div class="flex gap-2 items-center">
-                                <Button v-if="isAdmin && row.teacher?.status !== 'approved'" variant="outline"
-                                    @click="approveTeacher(row.id)">Approve</Button>
-                                <Button variant="default" @click="resetPassword(row.id)">Reset Password</Button>
+                                <Button v-can="'approve-teachers'" v-if="isAdmin && row.teacher?.status !== 'approved'"
+                                    variant="outline" @click="approveTeacher(row.id)">Approve</Button>
+                                <Button v-can="'reset-passwords'" variant="default" @click="resetPassword(row.id)">Reset
+                                    Password</Button>
 
                             </div>
                         </div>
@@ -246,29 +248,33 @@
                                         class="font-medium">Status:</span> {{ row.teacher?.status || '-' }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">School
                                         ID:</span> {{ row.teacher?.school_id || '-' }}</div>
-                                <div class="font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2">Password</div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-gray-700 dark:text-gray-200">
-                                        <template v-if="showPassword[row.id]">
-                                            {{ decryptedPasswords[row.id] }}
-                                        </template>
-                                        <template v-else>
-                                            •••••••••
-                                        </template>
-                                    </span>
-                                    <button class="text-gray-500 hover:text-primary-600 p-2"
-                                        @click="toggleShowPassword(row)">
-                                        <Eye v-if="!showPassword[row.id] && !passwordLoading[row.id]" class="w-5 h-5" />
-                                        <EyeOff v-else-if="showPassword[row.id] && !passwordLoading[row.id]"
-                                            class="w-5 h-5" />
-                                        <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
-                                            </path>
-                                        </svg>
-                                    </button>
+                                <div v-can="'show-passwords'">
+                                    <div class="font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2">Password</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-700 dark:text-gray-200">
+                                            <template v-if="showPassword[row.id]">
+                                                {{ decryptedPasswords[row.id] }}
+                                            </template>
+                                            <template v-else>
+                                                •••••••••
+                                            </template>
+                                        </span>
+                                        <button class="text-gray-500 hover:text-primary-600 p-2"
+                                            @click="toggleShowPassword(row)">
+                                            <Eye v-if="!showPassword[row.id] && !passwordLoading[row.id]"
+                                                class="w-5 h-5" />
+                                            <EyeOff v-else-if="showPassword[row.id] && !passwordLoading[row.id]"
+                                                class="w-5 h-5" />
+                                            <svg v-else class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>

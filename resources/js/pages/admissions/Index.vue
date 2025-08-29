@@ -85,25 +85,26 @@
                         class="w-10 h-10 rounded-full object-cover border" />
                 </template>
                 <template #toolbar>
-                    <Button variant="default" size="lg" class="mr-2" @click="goToCreate">Add Student</Button>
+                    <Button v-can="'create-admissions'" variant="default" size="lg" class="mr-2" @click="goToCreate">Add
+                        Student</Button>
                 </template>
                 <template #item-actions="row">
-                    <button
+                    <button v-can="'update-admissions'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editStudent(row.id)" aria-label="Edit Student" title="Edit Student">
                         <Edit class="w-5 h-5" />
                     </button>
-                    <button
+                    <button v-can="'delete-admissions'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400 mr-1"
                         @click="askDeleteStudent(row.id)" aria-label="Delete Student" title="Delete Student">
                         <Trash class="w-5 h-5" />
                     </button>
-                    <button
+                    <button v-can="'print-vouchers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
                         @click="printVoucher(row.id)" aria-label="Print Voucher" title="Print Voucher">
                         <Printer class="w-5 h-5" />
                     </button>
-                    <button v-if="row.status === 'applicant'"
+                    <button v-if="row.status === 'applicant'" v-can="'reject-admissions'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 ml-1"
                         @click="rejectStudent(row.id)" aria-label="Reject Student" title="Reject Student">
                         <Ban class="w-5 h-5" />
@@ -148,10 +149,11 @@
                                 </div>
                             </div>
                             <div class="flex gap-2 mt-4 md:mt-0">
-                                <Button variant="default" class="text-sm">
+                                <Button v-can="'update-admissions'" variant="default" class="text-sm">
                                     <UserPlus class="w-4 h-4 mr-2" /> Edit
                                 </Button>
-                                <Button variant="default" class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                                <Button v-can="'update-admissions'" variant="default"
+                                    class="bg-green-700 hover:bg-green-800 text-white text-sm"
                                     @click="openVoucherModal(row.id)">
                                     <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
                                 </Button>

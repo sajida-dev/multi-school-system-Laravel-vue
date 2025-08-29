@@ -4,17 +4,18 @@
     <div class="max-w-4xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Classes</h1>
-            <Button @click="openCreateModal">Add Class</Button>
+            <Button v-can="'create-classes'" variant="default" size="lg" class="mr-2" @click="openCreateModal">Add
+                Class</Button>
         </div>
         <BaseDataTable :headers="headers" :items="classes" :loading="loading"
             class="bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-700">
             <template #item-actions="row">
-                <button
+                <button v-can="'update-classes'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                     @click="openEditModal(row)" aria-label="Edit Class" title="Edit Class">
                     <Icon name="edit" class="w-5 h-5" />
                 </button>
-                <button
+                <button v-can="'delete-classes'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                     @click="handleDelete(row)" aria-label="Delete Class" title="Delete Class">
                     <Icon name="trash" class="w-5 h-5" />

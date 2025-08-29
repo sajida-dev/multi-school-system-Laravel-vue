@@ -24,22 +24,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Permission::observe(PermissionObserver::class);
-        // Grant all permissions to super admin
-        Gate::before(function ($user, $ability) {
-            return $user->hasRole('superadmin') ? true : null;
-        });
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
+        // Permission::observe(PermissionObserver::class);
+        // // Grant all permissions to super admin
+        // Gate::before(function ($user, $ability) {
+        //     return $user->hasRole('superadmin') ? true : null;
+        // });
+        // /** @var \App\Models\User|null $user */
+        // $user = Auth::user();
 
-        // Share permissions globally with Inertia
-        Inertia::share([
-            'auth' => fn() => [
-                'user' => $user,
-                'permissions' => Auth::check()
-                    ? $user->getAllPermissions()->pluck('name')
-                    : [],
-            ],
-        ]);
+        // // Share permissions globally with Inertia
+        // Inertia::share([
+        //     'auth' => fn() => [
+        //         'user' => $user,
+        //         'can' => Auth::check()
+        //             ? $user->getAllPermissions()->pluck('name')->mapWithKeys(fn($p) => [$p => true])->toArray()
+        //             : [],
+        //     ],
+        // ]);
     }
 }

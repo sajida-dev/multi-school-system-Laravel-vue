@@ -6,7 +6,8 @@
             <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
                 <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-bold">User Management</h1>
-                    <Link href="/settings/add-user"
+
+                    <Link href="/settings/add-user" v-can="'create-users'"
                         class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

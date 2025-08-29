@@ -26,7 +26,7 @@
                         class="bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-2">
                         <div class="grid grid-cols-3 gap-2">
                             <!-- Subjects Tab -->
-                            <button :class="[
+                            <button v-can="'read-subjects'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'subjects'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -37,7 +37,7 @@
                             </button>
 
                             <!-- Classes Tab -->
-                            <button :class="[
+                            <button v-can="'assign-subjects-to-classes'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'assign-classes'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -48,7 +48,7 @@
                             </button>
 
                             <!-- Teachers Tab -->
-                            <button :class="[
+                            <button v-can="'assign-teachers-to-subjects'" :class="[
                                 'flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all duration-200 font-medium text-sm',
                                 activeTab === 'assign-teachers'
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 shadow-sm'
@@ -97,7 +97,8 @@
                             {{ subjects.length }} subject{{ subjects.length !== 1 ? 's' : '' }} available
                         </p>
                     </div>
-                    <Button @click="openCreateModal" class="w-full sm:w-auto px-6 py-3 text-base">
+                    <Button v-can="'create-subjects'" @click="openCreateModal"
+                        class="w-full sm:w-auto px-6 py-3 text-base">
                         <Plus class="w-4 h-4 mr-2" />
                         Add Subject
                     </Button>
@@ -202,11 +203,6 @@
                                 <option value="">Choose a class...</option>
                                 <option v-for="cls in classes" :key="cls.id" :value="cls.id">{{ cls.name }}</option>
                             </select>
-                            <!-- <Button @click="loadClassAssignments" :disabled="!selectedClass"
-                                class="w-full px-4 py-3 text-sm font-medium">
-                                <RefreshCw class="w-5 h-5 mr-3" />
-                                Load Assignments
-                            </Button> -->
                         </div>
                     </div>
 

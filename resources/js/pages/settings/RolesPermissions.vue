@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, router, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import SettingsLayout from '@/layouts/settings/Layout.vue'
 import Collapsible from '@/components/ui/collapsible/Collapsible.vue'
@@ -162,6 +162,7 @@ const togglePermission = async (role: Role, perm: Permission) => {
             updating.value[key] = false
             updated.value[key] = true
             setTimeout(() => { updated.value[key] = false }, 1200)
+            router.visit(route('roles.settings'))
         },
         onError: (errors: any) => {
             updating.value[key] = false

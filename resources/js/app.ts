@@ -12,6 +12,7 @@ import Vue3EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
 import mitt from 'mitt';
 import GlobalAlertDialog from './components/GlobalAlertDialog.vue';
+import vCan from './plugins/v-can';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Multi Schools System';
 
@@ -23,6 +24,7 @@ createInertiaApp({
         const emitter = mitt();
         const app = createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(vCan)
             .use(ZiggyVue)
             .use(pinia)
             .use(Vue3Toastify, {

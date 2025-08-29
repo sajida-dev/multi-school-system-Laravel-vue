@@ -10,7 +10,9 @@
                 table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all"
                 row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
                 <template #toolbar>
-                    <Button variant="default" size="lg" class="mr-2" @click="addSchool">Add School</Button>
+
+                    <Button v-can="'create-schools'" variant="default" size="lg" class="mr-2" @click="addSchool">Add
+                        School</Button>
                     <!-- <Button variant="secondary" size="lg" class="mr-2" @click="importSchools">Import</Button>
                     <Button variant="outline" size="lg" @click="exportSchools">Export</Button> -->
                 </template>
@@ -29,17 +31,17 @@
                     </div>
                 </template>
                 <template #item-actions="row">
-                    <button
+                    <button v-can="'read-schools'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-400 mr-1"
                         @click="viewSchool(row.id)" aria-label="View School" title="View School">
                         <Eye class="w-5 h-5" />
                     </button>
-                    <button
+                    <button v-can="'edit-schools'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editSchool(row.id)" aria-label="Edit School" title="Edit School">
                         <Icon name="edit" class="w-5 h-5" />
                     </button>
-                    <button
+                    <button v-can="'delete-schools'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeleteSchool(row.id)" aria-label="Delete School" title="Delete School">
                         <Icon name="trash" class="w-5 h-5" />

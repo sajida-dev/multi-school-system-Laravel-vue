@@ -106,12 +106,12 @@
                     {{ row.school || '-' }}
                 </template>
                 <template #item-actions="row">
-                    <button v-if="row && row.id !== undefined"
+                    <button v-if="row && row.id !== undefined" v-can="'update-students'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editStudent(row.id)" aria-label="Edit Student" title="Edit Student">
                         <Icon name="edit" class="w-5 h-5" />
                     </button>
-                    <button v-if="row && row.id !== undefined"
+                    <button v-if="row && row.id !== undefined" v-can="'delete-students'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeleteStudent(row.id)" aria-label="Delete Student" title="Delete Student">
                         <Icon name="trash" class="w-5 h-5" />
@@ -158,12 +158,13 @@
 
                             <!-- Action Buttons -->
                             <div class="flex gap-2">
-                                <button @click="editStudent(row.id)" aria-label="Edit Student" title="Edit Student"
+                                <button v-can="'update-students'" @click="editStudent(row.id)" aria-label="Edit Student"
+                                    title="Edit Student"
                                     class="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded">
                                     <Pencil class="w-4 h-4" /><span> Edit</span>
                                 </button>
-                                <button @click="askDeleteStudent(row.id)" aria-label="Delete Student"
-                                    title="Delete Student"
+                                <button v-can="'delete-students'" @click="askDeleteStudent(row.id)"
+                                    aria-label="Delete Student" title="Delete Student"
                                     class="flex flex-row items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded">
                                     <Trash2 class="w-4 h-4" /><span> Delete</span>
                                 </button>

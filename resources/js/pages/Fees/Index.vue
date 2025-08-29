@@ -30,7 +30,7 @@
 
             <!-- Mobile Filter Icon with Tooltip and Label -->
             <div class="flex lg:hidden justify-between items-center mb-4 gap-3">
-                <Button variant="default" class="h-10" @click="goToCreate">
+                <Button v-can="'create-fees'" variant="default" class="h-10" @click="goToCreate">
                     <Plus class="w-4 h-4 mr-2" />
                     Add Fee
                 </Button>
@@ -85,7 +85,7 @@
                         class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900" />
                 </div>
                 <div class="flex flex-col">
-                    <Button variant="default" class="h-10" @click="goToCreate">Add Fee</Button>
+                    <Button v-can="'create-fees'" variant="default" class="h-10" @click="goToCreate">Add Fee</Button>
                 </div>
             </div>
         </div>
@@ -119,7 +119,6 @@
                 </div>
 
                 <div class="flex flex-col gap-4">
-
                     <div class="flex flex-col">
                         <label for="type-mobile"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Type</label>
@@ -199,12 +198,12 @@
                 <span class="font-semibold">Rs. {{ row.amount.toLocaleString() }}</span>
             </template>
             <template #item-actions="row">
-                <button
+                <button v-can="'update-fees'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                     @click="editFee(row.id)" aria-label="Edit Fee" title="Edit Fee">
                     <Icon name="edit" class="w-5 h-5" />
                 </button>
-                <button
+                <button v-can="'delete-fees'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                     @click="askDeleteFee(row.id)" aria-label="Delete Fee" title="Delete Fee">
                     <Icon name="trash" class="w-5 h-5" />
@@ -255,26 +254,29 @@
                         <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
 
 
-                            <!-- <Button variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
+                            <Button v-can="'print-vouchers'" variant="default"
+                                class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
                                 @click="printVoucher(row.id)">
                                 <Printer class="w-4 h-4 mr-2" /> Print Voucher
-                            </Button> -->
-                            <Button v-if="row.status === 'paid'" variant="default"
+                            </Button>
+
+                            <Button v-can="'mark-as-paid'" v-if="row.status === 'unpaid'" variant="default"
                                 class="bg-green-700 hover:bg-green-800 text-white text-sm"
                                 @click="openVoucherModal(row.id)">
                                 <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
                             </Button>
-                            <span v-else>
+                            <span v-if="row.status === 'paid'">
                                 <span class="text-green-800 dark:text-green-700 font-semibold">Paid</span>
                             </span>
 
-                            <Button v-if="(row.type === 'monthly' && row.status === 'unpaid')"
+                            <Button v-can="'create-installments'"
+                                v-if="(row.type === 'monthly' && row.status === 'unpaid')"
                                 class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
                                 @click="navigateToInstallments(row.id)">
                                 <Receipt class="w-4 h-4 mr-2" />Create
                                 Installments
                             </Button>
-                            <Button v-else-if="(row.type === 'installments')"
+                            <Button v-else-if="(row.type === 'installments')" v-can="'view-installments'"
                                 class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
                                 @click="navigateToInstallments(row.id)">
                                 <Receipt class="w-4 h-4 mr-2" />

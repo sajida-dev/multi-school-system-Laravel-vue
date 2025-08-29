@@ -19,12 +19,45 @@ class RolesAndPermissionsSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 1. Create permissions (CRUD for each module + full control)
-        $modules = ['users', 'schools', 'classes', 'sections', 'admissions', 'fees', 'papers', 'results', 'certificates', 'reports'];
+        $modules = [
+            'users',
+            'schools',
+            'classes',
+            'subjects',
+            'sections',
+            'students',
+            'admissions',
+            'teachers',
+            'attendance',
+            'fees',
+            'papers',
+            'exams',
+            'results',
+            'certificates',
+            'reports',
+            'roles',
+            'permissions',
+        ];
         $actions = ['create', 'read', 'update', 'delete'];
-        $permissions = ['full control'];
+        $permissions = [
+            'assign-classes-to-schools',
+            'assign-sections-to-classes',
+            'assign-teachers-to-subjects',
+            'assign-subjects-to-classes',
+            'print-vouchers',
+            'mark-as-paid',
+            'reject-admissions',
+            'create-installments',
+            'view-installments',
+            'print-papers',
+            'publish-papers',
+            'approve-teachers',
+            'reset-passwords',
+            'show-passwords'
+        ];
         foreach ($modules as $module) {
             foreach ($actions as $action) {
-                $permissions[] = "$action $module";
+                $permissions[] = "$action-$module";
             }
         }
         foreach ($permissions as $perm) {
