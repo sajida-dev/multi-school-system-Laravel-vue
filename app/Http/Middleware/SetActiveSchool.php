@@ -39,6 +39,8 @@ class SetActiveSchool
                             // Set to first available school
                             $firstSchool = $schools->first();
                             session(['active_school_id' => $firstSchool->id]);
+                            $user->last_school_id = $firstSchool->id;
+                            $user->save();
                             Log::info('Set active school to first available', ['school_id' => $firstSchool->id]);
                         } else {
                             Log::warning('No schools available for superadmin');

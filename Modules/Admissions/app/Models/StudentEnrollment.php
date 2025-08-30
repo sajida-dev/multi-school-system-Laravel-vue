@@ -13,7 +13,16 @@ class StudentEnrollment extends Model
     /**
      * The attributes that are mass assignable.
      */
-    protected $fillable = [];
+    protected $fillable = [
+        'student_id',
+        'school_id',
+        'class_id',
+        'section_id',
+        'academic_year',
+        'admission_date',
+        'status',
+        'is_current',
+    ];
 
     // protected static function newFactory(): StudentEnrollmentFactory
     // {

@@ -28,7 +28,7 @@ class ClassesSectionsController extends Controller
      */
     public function create()
     {
-        return view('classessections::create');
+        // return view('classessections::create');
     }
 
     /**
@@ -41,7 +41,7 @@ class ClassesSectionsController extends Controller
      */
     public function show($id)
     {
-        return view('classessections::show');
+        // return view('classessections::show');
     }
 
     /**

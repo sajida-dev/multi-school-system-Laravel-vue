@@ -31,7 +31,6 @@ class SectionAssignmentController extends Controller
                 'class_school_id' => $classSchool->id,
                 'section_id' => $sectionId,
                 'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
         return back()->with('success', 'Sections assigned!');

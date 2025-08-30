@@ -38,11 +38,13 @@
                 </button>
             </div>
             <!-- Filter UI (hidden on mobile, shown in bottom sheet) -->
-            <div class=" flex-wrap gap-4 mb-4 items-end hidden lg:flex">
+            <!-- <div class=" flex-wrap gap-4 mb-4 items-end hidden lg:flex"> -->
+            <div class="grid-cols-2 sm:grid-cols-1 lg:grid-cols-5 gap-4 mb-6 items-end hidden lg:grid">
+
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
                     <select v-model="filtersForm.status"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option value="applicant">Applicant</option>
                         <option value="admitted">Admitted</option>
@@ -52,7 +54,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
                     <select v-model="filtersForm.class_id"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
                     </select>
@@ -60,7 +62,7 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Year</label>
                     <select v-model="filtersForm.year"
-                        class="w-32 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
                     </select>
@@ -69,11 +71,13 @@
                 <div v-if="auth.user.roles?.some(r => r.name === 'superadmin')">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">School</label>
                     <select v-model="filtersForm.school_id" :disabled="isSingleSchoolUser"
-                        class="w-40 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                        class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
                         <option value="">All</option>
                         <option v-for="s in userSchools" :key="s.id" :value="s.id">{{ s.name }}</option>
                     </select>
                 </div>
+                <Button v-can="'create-admissions'" variant="default" size="lg" class="mr-2" @click="goToCreate">Add
+                    Student</Button>
             </div>
             <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
                 :server-items-length="total" :expandable="true" :expand-row-keys="expandedRow ? [expandedRow] : []"
@@ -85,8 +89,7 @@
                         class="w-10 h-10 rounded-full object-cover border" />
                 </template>
                 <template #toolbar>
-                    <Button v-can="'create-admissions'" variant="default" size="lg" class="mr-2" @click="goToCreate">Add
-                        Student</Button>
+
                 </template>
                 <template #item-actions="row">
                     <button v-can="'update-admissions'"
