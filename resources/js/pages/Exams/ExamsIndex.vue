@@ -83,7 +83,7 @@
                         <div class="md:col-span-2">
                             <label for="instructions"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                                Instructions
+                                Instructions <span class="text-red-500">*</span>
                             </label>
                             <textarea id="instructions" v-model="form.instructions" rows="3"
                                 placeholder="Optional instructions" required

@@ -38,6 +38,7 @@ import FileInput from '@/components/form/FileInput.vue';
 const props = defineProps<{
     id: number,
     submitUrl?: string,
+
 }>();
 const emit = defineEmits(['uploaded', 'close']);
 

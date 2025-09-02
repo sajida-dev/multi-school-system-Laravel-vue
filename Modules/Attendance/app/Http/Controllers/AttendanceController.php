@@ -62,6 +62,7 @@ class AttendanceController extends Controller
                     });
                 })
                 ->where('school_id', $schoolId)
+                ->where('status', 'admitted')
                 ->with(['class', 'section'])
                 ->orderBy('registration_number')
                 ->get();

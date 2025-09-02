@@ -301,8 +301,8 @@ class AdmissionsController extends Controller
                 StudentEnrollment::create([
                     'student_id' => $student->id,
                     'school_id' => $school_id,
-                    'class_id' => $validated['class_id'],
-                    'section_id' => $validated['section_id'] ?? null,
+                    'class_id' => $student->class_id,
+                    'section_id' => $student->section_id ?? null,
                     'academic_year' => $academicYear,
                     'admission_date' => now(),
                     'status' => 'enrolled',
