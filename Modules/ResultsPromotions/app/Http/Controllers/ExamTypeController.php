@@ -13,7 +13,7 @@ class ExamTypeController extends Controller
     {
         $examTypes = ExamType::all();
 
-        return Inertia::render('ExamTypes/Index', [
+        return Inertia::render('Exams/ExamTypesIndex', [
             'examTypes' => $examTypes,
         ]);
     }

@@ -13,11 +13,13 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('exam_paper_id');
             $table->unsignedBigInteger('student_id');
-            $table->decimal('marks_obtained', 8, 2);
+            $table->decimal('obtained_marks', 8, 2);
+            $table->decimal('total_marks', 8, 2);
             $table->decimal('percentage', 5, 2)->nullable();
             $table->enum('status', ['pass', 'fail', 'absent'])->default('pass');
             $table->enum('promotion_status', ['promoted', 'failed', 'pending'])->default('pending');
             $table->text('remarks')->nullable();
+            $table->foreignId('marked_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
             $table->softDeletes();
 

@@ -7,8 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\app\Models\Section;
+use Modules\PapersQuestions\App\Models\Paper;
 use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\ResultsPromotions\app\Models\ExamType;
+use Modules\ResultsPromotions\Models\ExamPaper;
 use Modules\Schools\App\Models\School;
 
 class ExamController extends Controller
@@ -18,9 +21,27 @@ class ExamController extends Controller
      */
     public function index()
     {
-        $exams = Exam::with('examType', 'school')->get();
-        return Inertia::render('Exams/Index', compact('exams'));
+        $schoolId = session('active_school_id');
+        $exams = Exam::with('examType', 'class', 'section', 'school')->get();
+        // dd($exams);
+        $examTypes = ExamType::all();
+        $classes = ClassModel::forSchool($schoolId)
+            ->select('id', 'name')
+            ->get()
+            ->map(function ($class) {
+                return [
+                    'id' => $class->id,
+                    'name' => $class->name,
+                ];
+            })
+            ->values();
+        return Inertia::render('Exams/ExamsIndex', [
+            'examTypes' => $examTypes,
+            'exams' => $exams,
+            'classes' => $classes,
+        ]);
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -30,7 +51,7 @@ class ExamController extends Controller
         return Inertia::render('Exams/Create', [
             'examTypes' => ExamType::all(),
             'schools'   => School::all(),
-            'classes'   => ClassModel::all(),
+            'classes'   => ClassModel::classSchools()->all(),
         ]);
     }
 
@@ -42,15 +63,14 @@ class ExamController extends Controller
         $data = $request->validate([
             'title'         => 'required|string',
             'exam_type_id'  => 'required|exists:exam_types,id',
-            'school_id'     => 'required|exists:schools,id',
             'class_id'      => 'required|exists:classes,id',
             'section_id'    => 'nullable|exists:sections,id',
             'academic_year' => 'required|string',
             'start_date'    => 'required|date',
             'end_date'      => 'required|date',
-            'status'        => 'required|in:scheduled,in_progress,completed,cancelled',
             'instructions'  => 'nullable|string',
         ]);
+        $data['school_id'] = session('active_school_id');
 
         try {
             DB::transaction(function () use ($data) {
@@ -87,19 +107,18 @@ class ExamController extends Controller
      */
     public function update(Request $request, Exam $exam)
     {
+
         $data = $request->validate([
             'title'         => 'required|string',
             'exam_type_id'  => 'required|exists:exam_types,id',
-            'school_id'     => 'required|exists:schools,id',
             'class_id'      => 'required|exists:classes,id',
             'section_id'    => 'nullable|exists:sections,id',
             'academic_year' => 'required|string',
             'start_date'    => 'required|date',
             'end_date'      => 'required|date',
-            'status'        => 'required|in:scheduled,in_progress,completed,cancelled',
             'instructions'  => 'nullable|string',
         ]);
-
+        $data['school_id'] = session('active_school_id');
         try {
             DB::transaction(function () use ($exam, $data) {
                 $exam->update($data);

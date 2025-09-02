@@ -4,7 +4,10 @@ namespace Modules\ResultsPromotions\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\app\Models\Section;
 use Modules\ResultsPromotions\Models\ExamPaper;
+use Modules\Schools\App\Models\School;
 
 class Exam extends Model
 {
@@ -24,5 +27,17 @@ class Exam extends Model
     public function termResults()
     {
         return $this->hasMany(TermResult::class);
+    }
+    public function class()
+    {
+        return $this->belongsTo(ClassModel::class);
+    }
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 }

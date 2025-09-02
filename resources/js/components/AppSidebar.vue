@@ -95,18 +95,18 @@ const mainNavItems: NavItem[] = [
         icon: CalendarCheck,
         permission: 'read-attendance',
     },
-    // {
-    //     title: 'Manage Results',
-    //     href: '/results',
-    //     icon: BarChart3,
-    //  permission:'read-results'
-    // },
-    // {
-    //     title: 'Manage Exams',
-    //     href: '/exams',
-    //     icon: Receipt,
-    // permission: 'read-exams',
-    // }
+    {
+        title: 'Manage Results',
+        href: '/results',
+        icon: BarChart3,
+        permission: 'read-results'
+    },
+    {
+        title: 'Manage Exams',
+        href: '/exams',
+        icon: Receipt,
+        permission: 'read-exams',
+    }
     // {
     //     title: 'Manage Reports',
     //     href: '/reports',

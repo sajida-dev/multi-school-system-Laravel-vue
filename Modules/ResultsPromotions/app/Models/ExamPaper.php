@@ -19,15 +19,19 @@ class ExamPaper extends Model
      * The attributes that are mass assignable.
      */
 
-    // protected static function newFactory(): ExamPaperFactory
-    // {
-    //     // return ExamPaperFactory::new();
-    // }
 
     use SoftDeletes;
 
     protected $table = 'exam_paper';
-    protected $fillable = ['exam_id', 'paper_id', 'exam_date', 'start_time', 'end_time', 'total_marks', 'passing_marks'];
+    protected $fillable = [
+        'exam_id',
+        'paper_id',
+        'exam_date',
+        'start_time',
+        'end_time',
+        'total_marks',
+        'passing_marks'
+    ];
 
     public function exam()
     {
