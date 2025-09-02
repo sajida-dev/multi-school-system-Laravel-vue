@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Papers & Questions" />
-        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
+        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Papers & Questions</h1>
 
             <!-- Standalone Search Input -->
@@ -84,204 +84,207 @@
                         Paper</Button>
                 </div>
             </div>
-        </div>
 
-        <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
-            ref="myBottomSheet" class="dark:bg-neutral-900">
-            <div class="sheet-content dark:bg-neutral-900">
-                <h2 class="text-lg font-semibold mb-4">Paper Filters</h2>
+            <vue-bottom-sheet :overlay="true" :can-swipe="true" :overlay-click-close="true" :transition-duration="0.5"
+                ref="myBottomSheet" class="dark:bg-neutral-900">
+                <div class="sheet-content dark:bg-neutral-900">
+                    <h2 class="text-lg font-semibold mb-4">Paper Filters</h2>
 
-                <!-- Search Input in Bottom Sheet -->
-                <div class="mb-4">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
+                    <!-- Search Input in Bottom Sheet -->
+                    <div class="mb-4">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input v-model="filtersForm.search" type="text" placeholder="Search papers by title..."
+                                class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
+                                @input="onSearchInput" />
+                            <button v-if="filtersForm.search" @click="clearSearch"
+                                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
-                        <input v-model="filtersForm.search" type="text" placeholder="Search papers by title..."
-                            class="block w-full pl-10 pr-10 py-2.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200 text-sm"
-                            @input="onSearchInput" />
-                        <button v-if="filtersForm.search" @click="clearSearch"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
                     </div>
-                </div>
 
-                <div class="flex flex-col gap-4">
-                    <div class="flex flex-col">
-                        <label for="class_id-mobile"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
-                        <select id="class_id-mobile" v-model="filtersForm.class_id"
-                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
-                            <option value="">All</option>
-                            <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="section_id-mobile"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Section</label>
-                        <select id="section_id-mobile" v-model="filtersForm.section_id"
-                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
-                            <option value="">All</option>
-                            <option v-for="s in sections" :key="s.id" :value="s.id">{{ s.name }}</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="teacher_id-mobile"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Teacher</label>
-                        <select id="teacher_id-mobile" v-model="filtersForm.teacher_id"
-                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
-                            <option value="">All</option>
-                            <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
-                        </select>
-                    </div>
-                    <div class="flex flex-col">
-                        <label for="published-mobile"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
-                        <select id="published-mobile" v-model="filtersForm.published"
-                            class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
-                            <option value="">All</option>
-                            <option value="1">Published</option>
-                            <option value="0">Draft</option>
-                        </select>
+                    <div class="flex flex-col gap-4">
+                        <div class="flex flex-col">
+                            <label for="class_id-mobile"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Class</label>
+                            <select id="class_id-mobile" v-model="filtersForm.class_id"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                                <option value="">All</option>
+                                <option v-for="c in classes" :key="c.id" :value="c.id">{{ c.name }}</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="section_id-mobile"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Section</label>
+                            <select id="section_id-mobile" v-model="filtersForm.section_id"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                                <option value="">All</option>
+                                <option v-for="s in sections" :key="s.id" :value="s.id">{{ s.name }}</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="teacher_id-mobile"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Teacher</label>
+                            <select id="teacher_id-mobile" v-model="filtersForm.teacher_id"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                                <option value="">All</option>
+                                <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label for="published-mobile"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Status</label>
+                            <select id="published-mobile" v-model="filtersForm.published"
+                                class="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-neutral-900">
+                                <option value="">All</option>
+                                <option value="1">Published</option>
+                                <option value="0">Draft</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </vue-bottom-sheet>
+            </vue-bottom-sheet>
 
-        <!-- Papers Listing Table -->
-        <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
-            :server-items-length="serverItemsLength"
-            @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
-            table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all min-w-full"
-            row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
-            <template #item-title="row">
-                <div class="font-medium text-gray-900 dark:text-gray-100">{{ row.title }}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ row.subject?.name || 'No Subject' }}
-                </div>
-            </template>
-            <template #item-class_section="row">
-                <div class="text-gray-900 dark:text-gray-100">
-                    <div class="font-medium">{{ row.class?.name || '-' }}</div>
+            <!-- Papers Listing Table -->
+            <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
+                :server-items-length="serverItemsLength"
+                @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
+                table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all min-w-full"
+                row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
+                <template #item-title="row">
+                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ row.title }}</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ row.section?.name || 'No Section' }}
+                        {{ row.subject?.name || 'No Subject' }}
                     </div>
-                </div>
-            </template>
-            <template #item-subject="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.subject?.name || '-' }}</span>
-            </template>
-            <template #item-teacher="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.teacher?.user?.name || '-' }}</span>
-            </template>
-            <template #item-duration="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
-            </template>
-            <template #item-total_marks="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.total_marks || 0 }} marks</span>
-            </template>
-            <template #item-questions_count="row">
-                <span class="text-gray-900 dark:text-gray-100">{{ row.questions_count || 0 }} questions</span>
-            </template>
-            <template #item-published="row">
-                <span :class="{
-                    'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
-                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': row.published,
-                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': !row.published,
-                }">
-                    {{ row.published ? 'Published' : 'Draft' }}
-                </span>
-            </template>
-            <template #item-actions="row">
-                <button v-can="'view-papers'"
-                    class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
-                    @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
-                    <Eye class="w-5 h-5" />
-                </button>
-                <!-- <button v-can="'print-papers'"
+                </template>
+                <template #item-class_section="row">
+                    <div class="text-gray-900 dark:text-gray-100">
+                        <div class="font-medium">{{ row.class?.name || '-' }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                            {{ row.section?.name || 'No Section' }}
+                        </div>
+                    </div>
+                </template>
+                <template #item-subject="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.subject?.name || '-' }}</span>
+                </template>
+                <template #item-teacher="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.teacher?.user?.name || '-' }}</span>
+                </template>
+                <template #item-duration="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
+                </template>
+                <template #item-total_marks="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.total_marks || 0 }} marks</span>
+                </template>
+                <template #item-questions_count="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.questions_count || 0 }} questions</span>
+                </template>
+                <template #item-published="row">
+                    <span :class="{
+                        'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': row.published,
+                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': !row.published,
+                    }">
+                        {{ row.published ? 'Published' : 'Draft' }}
+                    </span>
+                </template>
+                <template #item-actions="row">
+                    <button v-can="'view-papers'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                        @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
+                        <Eye class="w-5 h-5" />
+                    </button>
+                    <!-- <button v-can="'print-papers'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
                     @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
                     <Printer class="w-5 h-5" />
                 </button> -->
-                <button v-can="'publish-papers'" :class="[
-                    'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
-                    row.published
-                        ? 'text-orange-500 focus:ring-orange-400'
-                        : 'text-green-500 focus:ring-green-400'
-                ]" @click="togglePublishStatus(row.id, row.published)"
-                    :aria-label="row.published ? 'Unpublish Paper' : 'Publish Paper'"
-                    :title="row.published ? 'Unpublish Paper' : 'Publish Paper'">
-                    <EyeOff v-if="row.published" class="w-5 h-5" />
-                    <Eye v-else class="w-5 h-5" />
-                </button>
-                <!-- <button v-can="'update-papers'"
+                    <button v-can="'publish-papers'" :class="[
+                        'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
+                        row.published
+                            ? 'text-orange-500 focus:ring-orange-400'
+                            : 'text-green-500 focus:ring-green-400'
+                    ]" @click="togglePublishStatus(row.id, row.published)"
+                        :aria-label="row.published ? 'Unpublish Paper' : 'Publish Paper'"
+                        :title="row.published ? 'Unpublish Paper' : 'Publish Paper'">
+                        <EyeOff v-if="row.published" class="w-5 h-5" />
+                        <Eye v-else class="w-5 h-5" />
+                    </button>
+                    <!-- <button v-can="'update-papers'"
                     class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
                     @click="editPaper(row.id)" aria-label="Edit Paper" title="Edit Paper">
                     <Edit class="w-5 h-5" />
                 </button> -->
-                <button v-can="'delete-papers'"
-                    class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
-                    @click="askDeletePaper(row.id)" aria-label="Delete Paper" title="Delete Paper">
-                    <Trash class="w-5 h-5" />
-                </button>
-            </template>
-        </BaseDataTable>
+                    <button v-can="'delete-papers'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        @click="askDeletePaper(row.id)" aria-label="Delete Paper" title="Delete Paper">
+                        <Trash class="w-5 h-5" />
+                    </button>
+                </template>
+            </BaseDataTable>
 
-        <!-- Delete Confirmation Dialog -->
-        <AlertDialog v-model="showDeleteDialog" title="Delete Paper"
-            message="Are you sure you want to delete this paper? This action cannot be undone." :confirm-text="'Delete'"
-            :cancel-text="'Cancel'" @confirm="deletePaper">
-            <template #footer>
-                <div class="flex gap-2 justify-end">
-                    <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
-                    <Button variant="destructive" @click="deletePaper">Delete</Button>
-                </div>
-            </template>
-        </AlertDialog>
+            <!-- Delete Confirmation Dialog -->
+            <AlertDialog v-model="showDeleteDialog" title="Delete Paper"
+                message="Are you sure you want to delete this paper? This action cannot be undone."
+                :confirm-text="'Delete'" :cancel-text="'Cancel'" @confirm="deletePaper">
+                <template #footer>
+                    <div class="flex gap-2 justify-end">
+                        <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
+                        <Button variant="destructive" @click="deletePaper">Delete</Button>
+                    </div>
+                </template>
+            </AlertDialog>
 
-        <!-- Custom Confirmation Dialog -->
-        <Dialog v-model:open="showConfirmDialog">
-            <DialogContent class="sm:max-w-md max-w-[95vw] mx-4">
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <Info class="w-5 h-5 text-blue-600" />
-                        Confirm Action
-                    </DialogTitle>
-                </DialogHeader>
-                <div class="mb-6">
-                    <div
-                        class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                            <p class="font-medium text-blue-900 dark:text-blue-100 mb-2">
-                                {{ confirmMessage }}
-                            </p>
-                            <p class="text-sm text-blue-700 dark:text-blue-300">
-                                This action cannot be undone.
-                            </p>
+            <!-- Custom Confirmation Dialog -->
+            <Dialog v-model:open="showConfirmDialog">
+                <DialogContent class="sm:max-w-md max-w-[95vw] mx-4">
+                    <DialogHeader>
+                        <DialogTitle class="flex items-center gap-2">
+                            <Info class="w-5 h-5 text-blue-600" />
+                            Confirm Action
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div class="mb-6">
+                        <div
+                            class="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <Info class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <p class="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                                    {{ confirmMessage }}
+                                </p>
+                                <p class="text-sm text-blue-700 dark:text-blue-300">
+                                    This action cannot be undone.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <DialogFooter class="flex flex-col sm:flex-row gap-3">
-                    <Button variant="outline" @click="cancelAction" class="w-full sm:w-auto px-6 py-3 text-base">
-                        <X class="w-4 h-4 mr-2" />
-                        Cancel
-                    </Button>
-                    <Button variant="default" @click="confirmActionHandler"
-                        class="w-full sm:w-auto px-6 py-3 text-base">
-                        <CheckCircle class="w-4 h-4 mr-2" />
-                        Confirm
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                    <DialogFooter class="flex flex-col sm:flex-row gap-3">
+                        <Button variant="outline" @click="cancelAction" class="w-full sm:w-auto px-6 py-3 text-base">
+                            <X class="w-4 h-4 mr-2" />
+                            Cancel
+                        </Button>
+                        <Button variant="default" @click="confirmActionHandler"
+                            class="w-full sm:w-auto px-6 py-3 text-base">
+                            <CheckCircle class="w-4 h-4 mr-2" />
+                            Confirm
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+
+
     </AppLayout>
 </template>
 

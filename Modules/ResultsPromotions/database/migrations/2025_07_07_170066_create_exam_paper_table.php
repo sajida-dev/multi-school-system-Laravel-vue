@@ -23,8 +23,8 @@ return new class extends Migration
 
             $table->foreign('exam_id')->references('id')->on('exams')->onDelete('cascade');
             $table->foreign('paper_id')->references('id')->on('papers')->onDelete('cascade');
-            $table->unique(['exam_id', 'paper_id']); // one paper per exam
-            $table->index(['exam_id', 'exam_date']);
+            // $table->unique(['exam_id', 'paper_id']); // one paper per exam
+            // $table->index(['exam_id', 'exam_date']);
         });
     }
 

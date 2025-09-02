@@ -2,7 +2,7 @@
     <AppLayout :breadcrumbs="breadcrumbItems">
 
         <Head title="Fees" />
-        <div class="max-w-full mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 py-8">
+        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 lg:px-8 pt-8">
             <h1 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Fees</h1>
 
             <!-- Standalone Search Input -->
@@ -172,212 +172,216 @@
                 </div>
             </div>
         </vue-bottom-sheet>
-        <!-- Fee Listing Table -->
-        <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
-            :server-items-length="serverItemsLength" :expandable="true"
-            :expand-row-keys="expandedRow ? [expandedRow] : []"
-            @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
-            table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all min-w-full"
-            row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
-            <template #item-type="row">
-                <span
-                    class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full px-2 py-0.5 text-xs font-semibold">
-                    {{ row.type }}
-                </span>
-            </template>
-            <template #item-status="row">
-                <span :class="{
-                    'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
-                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': row.status === 'Paid',
-                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': row.status === 'Unpaid',
-                }">
-                    {{ row.status }}
-                </span>
-            </template>
-            <template #item-amount="row">
-                <span class="font-semibold">Rs. {{ row.amount.toLocaleString() }}</span>
-            </template>
-            <template #item-actions="row">
-                <button v-can="'update-fees'"
-                    class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
-                    @click="editFee(row.id)" aria-label="Edit Fee" title="Edit Fee">
-                    <Icon name="edit" class="w-5 h-5" />
-                </button>
-                <button v-can="'delete-fees'"
-                    class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
-                    @click="askDeleteFee(row.id)" aria-label="Delete Fee" title="Delete Fee">
-                    <Icon name="trash" class="w-5 h-5" />
-                </button>
-            </template>
-            <template #item-expand="row">
-                <button @click="toggleRowExpansion(row)"
-                    class="text-gray-500 hover:text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded p-1 transition">
-                    <svg v-if="expandedRow === row.id" class="w-4 h-4" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7">
-                        </path>
-                    </svg>
-                    <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                        </path>
-                    </svg>
-                </button>
-            </template>
-            <template #expand="row">
-                <div v-if="expandedRow === row.id"
-                    class="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow border border-gray-200 dark:border-neutral-700 transition-all duration-300">
 
-                    <!-- 👤 Student Header with Photo & Actions -->
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-4 mb-6">
-                        <div class="flex items-center gap-4">
-                            <img :src="row.fee.student.profile_photo_url" alt="Profile Photo"
-                                class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
-                            <div>
-                                <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.student_name }}
-                                </h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
-                                    <ClipboardList class="w-4 h-4" /> Registration #: {{
-                                        row.fee.student.registration_number
+        <div class="max-w-7xl mx-auto w-full px-2 sm:px-4 md:px-6 ">
+            <!-- Fee Listing Table -->
+            <BaseDataTable :headers="headers" :items="items" :loading="loading" :server-options="serverOptions"
+                :server-items-length="serverItemsLength" :expandable="true"
+                :expand-row-keys="expandedRow ? [expandedRow] : []"
+                @update:server-options="(opts: Record<string, any>) => Object.assign(serverOptions, opts)"
+                table-class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-md hover:shadow-lg transition-all min-w-full"
+                row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
+                <template #item-type="row">
+                    <span
+                        class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full px-2 py-0.5 text-xs font-semibold">
+                        {{ row.type }}
+                    </span>
+                </template>
+                <template #item-status="row">
+                    <span :class="{
+                        'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
+                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': row.status === 'Paid',
+                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': row.status === 'Unpaid',
+                    }">
+                        {{ row.status }}
+                    </span>
+                </template>
+                <template #item-amount="row">
+                    <span class="font-semibold">Rs. {{ row.amount.toLocaleString() }}</span>
+                </template>
+                <template #item-actions="row">
+                    <button v-can="'update-fees'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                        @click="editFee(row.id)" aria-label="Edit Fee" title="Edit Fee">
+                        <Icon name="edit" class="w-5 h-5" />
+                    </button>
+                    <button v-can="'delete-fees'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        @click="askDeleteFee(row.id)" aria-label="Delete Fee" title="Delete Fee">
+                        <Icon name="trash" class="w-5 h-5" />
+                    </button>
+                </template>
+                <template #item-expand="row">
+                    <button @click="toggleRowExpansion(row)"
+                        class="text-gray-500 hover:text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded p-1 transition">
+                        <svg v-if="expandedRow === row.id" class="w-4 h-4" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7">
+                            </path>
+                        </svg>
+                        <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </button>
+                </template>
+                <template #expand="row">
+                    <div v-if="expandedRow === row.id"
+                        class="p-6 bg-white dark:bg-neutral-800 rounded-xl shadow border border-gray-200 dark:border-neutral-700 transition-all duration-300">
+
+                        <!-- 👤 Student Header with Photo & Actions -->
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-6 border-b pb-4 mb-6">
+                            <div class="flex items-center gap-4">
+                                <img :src="row.fee.student.profile_photo_url" alt="Profile Photo"
+                                    class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
+                                <div>
+                                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.student_name
                                     }}
-                                </p>
-                                <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
-                                    <GraduationCap class="w-4 h-4" /> Class: {{ row.fee.student.class.name }} - Shift:
-                                    {{
-                                        row.fee.student.class_shift
+                                    </h2>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <ClipboardList class="w-4 h-4" /> Registration #: {{
+                                            row.fee.student.registration_number
+                                        }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <GraduationCap class="w-4 h-4" /> Class: {{ row.fee.student.class.name }} -
+                                        Shift:
+                                        {{
+                                            row.fee.student.class_shift
+                                        }}
+                                    </p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
+                                        <School class="w-4 h-4" /> School: {{ row.fee.student.school.name }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
+
+
+                                <Button v-can="'print-vouchers'" variant="default"
+                                    class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
+                                    @click="printVoucher(row.id)">
+                                    <Printer class="w-4 h-4 mr-2" /> Print Voucher
+                                </Button>
+
+                                <Button v-can="'mark-as-paid'" v-if="row.status === 'unpaid'" variant="default"
+                                    class="bg-green-700 hover:bg-green-800 text-white text-sm"
+                                    @click="openVoucherModal(row.id)">
+                                    <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
+                                </Button>
+                                <span v-if="row.status === 'paid'">
+                                    <span class="text-green-800 dark:text-green-700 font-semibold">Paid</span>
+                                </span>
+
+                                <Button v-can="'create-installments'"
+                                    v-if="(row.type === 'monthly' && row.status === 'unpaid')"
+                                    class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
+                                    @click="navigateToInstallments(row.id)">
+                                    <Receipt class="w-4 h-4 mr-2" />Create
+                                    Installments
+                                </Button>
+                                <Button v-else-if="(row.type === 'installments')" v-can="'view-installments'"
+                                    class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
+                                    @click="navigateToInstallments(row.id)">
+                                    <Receipt class="w-4 h-4 mr-2" />
+                                    View Installments
+                                </Button>
+                            </div>
+                        </div>
+
+                        <!--Personal Information-->
+                        <div class="mb-6">
+                            <h3 class="flex items-center text-lg font-semibold text-blue-700 dark:text-blue-300 mb-4">
+                                <UserPlus class="w-5 h-5 mr-2" /> Personal Information
+                            </h3>
+                            <div div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <FileText class="w-4 h-4" /> Nationality: {{ row.fee.student.nationality }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> B-Form #: {{ row.fee.student.b_form_number }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CalendarCheck class="w-4 h-4" /> Admission Date: {{ row.fee.student.admission_date
                                     }}
-                                </p>
-                                <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
-                                    <School class="w-4 h-4" /> School: {{ row.fee.student.school.name }}
-                                </p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <CalendarCheck class="w-4 h-4" /> Date of Birth: {{ row.fee.student.date_of_birth }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Gender: {{ row.fee.student.gender }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Award class="w-4 h-4" /> Status: {{ row.fee.student.status }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <School class="w-4 h-4" /> Previous School: {{ row.fee.student.previous_school ||
+                                        'N/A'
+                                    }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <BookOpenCheck class="w-4 h-4" /> Religion: {{ row.fee.student.religion }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <Users class="w-4 h-4" /> Inclusive: {{ row.fee.student.inclusive }}
+                                </div>
+                                <div v-if="row.other_inclusive_type" class="flex items-center gap-2">
+                                    <ClipboardList class="w-4 h-4" /> Other Inclusive Type: {{
+                                        row.fee.student.other_inclusive_type
+                                    }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Orphan: {{ row.fee.student.is_orphan ? 'Yes' : 'No' }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> Bricklin: {{ row.fee.student.is_bricklin ? 'Yes' : 'No'
+                                    }}
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <UserPlus class="w-4 h-4" /> QSC: {{ row.fee.student.is_qsc ? 'Yes' : 'No' }}
+                                </div>
+
                             </div>
                         </div>
-                        <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
-
-
-                            <Button v-can="'print-vouchers'" variant="default"
-                                class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
-                                @click="printVoucher(row.id)">
-                                <Printer class="w-4 h-4 mr-2" /> Print Voucher
-                            </Button>
-
-                            <Button v-can="'mark-as-paid'" v-if="row.status === 'unpaid'" variant="default"
-                                class="bg-green-700 hover:bg-green-800 text-white text-sm"
-                                @click="openVoucherModal(row.id)">
-                                <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
-                            </Button>
-                            <span v-if="row.status === 'paid'">
-                                <span class="text-green-800 dark:text-green-700 font-semibold">Paid</span>
-                            </span>
-
-                            <Button v-can="'create-installments'"
-                                v-if="(row.type === 'monthly' && row.status === 'unpaid')"
-                                class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
-                                @click="navigateToInstallments(row.id)">
-                                <Receipt class="w-4 h-4 mr-2" />Create
-                                Installments
-                            </Button>
-                            <Button v-else-if="(row.type === 'installments')" v-can="'view-installments'"
-                                class="bg-yellow-700 hover:bg-yellow-800 text-white text-sm"
-                                @click="navigateToInstallments(row.id)">
-                                <Receipt class="w-4 h-4 mr-2" />
-                                View Installments
-                            </Button>
-                        </div>
-                    </div>
-
-                    <!--Personal Information-->
-                    <div class="mb-6">
-                        <h3 class="flex items-center text-lg font-semibold text-blue-700 dark:text-blue-300 mb-4">
-                            <UserPlus class="w-5 h-5 mr-2" /> Personal Information
-                        </h3>
-                        <div div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                            <div class="flex items-center gap-2">
-                                <FileText class="w-4 h-4" /> Nationality: {{ row.fee.student.nationality }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <ClipboardList class="w-4 h-4" /> B-Form #: {{ row.fee.student.b_form_number }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <CalendarCheck class="w-4 h-4" /> Admission Date: {{ row.fee.student.admission_date
-                                }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <CalendarCheck class="w-4 h-4" /> Date of Birth: {{ row.fee.student.date_of_birth }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <UserPlus class="w-4 h-4" /> Gender: {{ row.fee.student.gender }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <Award class="w-4 h-4" /> Status: {{ row.fee.student.status }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <School class="w-4 h-4" /> Previous School: {{ row.fee.student.previous_school ||
-                                    'N/A'
-                                }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <BookOpenCheck class="w-4 h-4" /> Religion: {{ row.fee.student.religion }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <Users class="w-4 h-4" /> Inclusive: {{ row.fee.student.inclusive }}
-                            </div>
-                            <div v-if="row.other_inclusive_type" class="flex items-center gap-2">
-                                <ClipboardList class="w-4 h-4" /> Other Inclusive Type: {{
-                                    row.fee.student.other_inclusive_type
-                                }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <UserPlus class="w-4 h-4" /> Orphan: {{ row.fee.student.is_orphan ? 'Yes' : 'No' }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <UserPlus class="w-4 h-4" /> Bricklin: {{ row.fee.student.is_bricklin ? 'Yes' : 'No'
-                                }}
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <UserPlus class="w-4 h-4" /> QSC: {{ row.fee.student.is_qsc ? 'Yes' : 'No' }}
-                            </div>
-
-                        </div>
-                    </div>
-                    <!-- Divider -->
-                    <hr class="my-4 border-gray-300 dark:border-gray-600" />
-                    <!-- Voucher Section -->
-                    <div class=" pt-4 mt-4">
-                        <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
-                            <Receipt class="w-5 h-5" /> Voucher Status
-                        </h3>
-                        <div v-if="row.status !== 'admitted'">
-                            <div v-if="!row.fee || row.fee.status !== 'paid'">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Voucher not uploaded.</p>
+                        <!-- Divider -->
+                        <hr class="my-4 border-gray-300 dark:border-gray-600" />
+                        <!-- Voucher Section -->
+                        <div class=" pt-4 mt-4">
+                            <h3 class="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-semibold mb-2">
+                                <Receipt class="w-5 h-5" /> Voucher Status
+                            </h3>
+                            <div v-if="row.status !== 'admitted'">
+                                <div v-if="!row.fee || row.fee.status !== 'paid'">
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">Voucher not uploaded.</p>
+                                </div>
+                                <div v-else>
+                                    <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
+                                    <div class="mt-2">
+                                        <label class="font-semibold">Paid Voucher Image:</label>
+                                        <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
+                                            class="w-40 h-auto border rounded mt-1" />
+                                    </div>
+                                </div>
                             </div>
                             <div v-else>
                                 <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
-                                <div class="mt-2">
+                                <div v-if="row.fee && row.fee.paid_voucher_image" class="mt-2">
                                     <label class="font-semibold">Paid Voucher Image:</label>
                                     <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
                                         class="w-40 h-auto border rounded mt-1" />
                                 </div>
                             </div>
                         </div>
-                        <div v-else>
-                            <span class="text-green-800 dark:text-green-700 font-semibold">Admitted</span>
-                            <div v-if="row.fee && row.fee.paid_voucher_image" class="mt-2">
-                                <label class="font-semibold">Paid Voucher Image:</label>
-                                <img :src="`/storage/${row.fee.paid_voucher_image}`" alt="Paid Voucher"
-                                    class="w-40 h-auto border rounded mt-1" />
-                            </div>
-                        </div>
+
+
+                        <!-- Modal -->
+                        <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :id="row.id"
+                            :submitUrl="'fees.markAsPaid'" @close="closeVoucherModal" @uploaded="onVoucherUploaded" />
                     </div>
+                </template>
 
-
-                    <!-- Modal -->
-                    <UploadVoucherModal v-if="showVoucherModal && selectedStudentId === row.id" :id="row.id"
-                        :submitUrl="'fees.markAsPaid'" @close="closeVoucherModal" @uploaded="onVoucherUploaded" />
-                </div>
-            </template>
-
-        </BaseDataTable>
-
+            </BaseDataTable>
+        </div>
         <!-- Delete Confirmation Dialog -->
         <AlertDialog v-model="showDeleteDialog" title="Delete Fee"
             message="Are you sure you want to delete this fee? This action cannot be undone." :confirm-text="'Delete'"

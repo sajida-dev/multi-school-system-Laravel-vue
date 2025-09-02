@@ -21,6 +21,7 @@
                 </template>
                 <template #item-marks="row">{{ row.passing_marks }} / {{ row.total_marks }}</template>
                 <template #item-actions="row">
+                    {{ console.log('row : ', row) }}
                     <button v-can="'update-exam-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="openEditModal(row)" title="Edit" aria-label="Edit Exam Paper">
@@ -115,6 +116,8 @@ import TextInput from '@/components/form/TextInput.vue';
 interface SelectOption { id: number; title: string; }
 interface ExamPaper {
     id: number;
+    exam_id: number;
+    paper_id: number;
     exam_date: string;
     start_time?: string;
     end_time?: string;
@@ -173,19 +176,18 @@ function openCreateModal() {
     modalOpen.value = true;
 }
 
-function openEditModal(row: { value: ExamPaper }) {
+function openEditModal(row: ExamPaper) {
     isEdit.value = true;
-    editingItem.value = row.value;
+    editingItem.value = row;
+
     form.reset();
-    Object.assign(form.data, {
-        exam_id: row.value.exam.id,
-        paper_id: row.value.paper.id,
-        exam_date: row.value.exam_date,
-        start_time: row.value.start_time ?? '',
-        end_time: row.value.end_time ?? '',
-        total_marks: row.value.total_marks,
-        passing_marks: row.value.passing_marks,
-    });
+    form.exam_id = row.exam_id ?? row.exam?.id ?? null;
+    form.paper_id = row.paper_id ?? row.paper?.id ?? null;
+    form.exam_date = row.exam_date;
+    form.start_time = row.start_time ?? '';
+    form.end_time = row.end_time ?? '';
+    form.total_marks = row.total_marks;
+    form.passing_marks = row.passing_marks;
 
     form.clearErrors();
     modalOpen.value = true;
