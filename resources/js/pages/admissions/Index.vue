@@ -109,7 +109,7 @@
                     </button>
                     <button v-if="row.status === 'applicant'" v-can="'reject-admissions'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 ml-1"
-                        @click="rejectStudent(row.id)" aria-label="Reject Student" title="Reject Student">
+                        @click="askRejectStudent(row.id)" aria-label="Reject Student" title="Reject Student">
                         <Ban class="w-5 h-5" />
                     </button>
                 </template>
@@ -152,10 +152,11 @@
                                 </div>
                             </div>
                             <div class="flex gap-2 mt-4 md:mt-0">
-                                <Button v-can="'update-admissions'" variant="default" class="text-sm">
+                                <Button v-can="'update-admissions'" @click="editStudent(row.id)" variant="default"
+                                    class="text-sm">
                                     <UserPlus class="w-4 h-4 mr-2" /> Edit
                                 </Button>
-                                <Button v-can="'update-admissions'" variant="default"
+                                <Button v-can="'mark-as-paid'" variant="default" v-if="row.status === 'applicant'"
                                     class="bg-green-700 hover:bg-green-800 text-white text-sm"
                                     @click="openVoucherModal(row.id)">
                                     <CreditCard class="w-4 h-4 mr-2" /> Upload Voucher
@@ -313,6 +314,17 @@
                 <div class="flex gap-2 justify-end">
                     <Button variant="outline" @click="showDeleteDialog = false">Cancel</Button>
                     <Button variant="destructive" @click="deleteStudent">Delete</Button>
+                </div>
+            </template>
+        </AlertDialog>
+
+        <AlertDialog v-model="showRejectDialog" title="Reject Student"
+            message="Are you sure you want to reject this student? This action cannot be undone."
+            :confirm-text="'Reject'" :cancel-text="'Cancel'" @confirm="rejectStudent">
+            <template #footer>
+                <div class="flex gap-2 justify-end">
+                    <Button variant="outline" @click="showRejectDialog = false">Cancel</Button>
+                    <Button variant="destructive" @click="rejectStudent">Delete</Button>
                 </div>
             </template>
         </AlertDialog>
@@ -541,7 +553,9 @@ function toggleRowExpansion(row: any) {
 }
 
 const showDeleteDialog = ref(false);
+const showRejectDialog = ref(false);
 const studentToDelete = ref<number | null>(null);
+const studentToReject = ref<number | null>(null);
 
 const goToCreate = () => {
     router.get(route('admissions.create'));
@@ -555,7 +569,10 @@ const askDeleteStudent = (id: number) => {
     studentToDelete.value = id;
     showDeleteDialog.value = true;
 };
-
+const askRejectStudent = (id: number) => {
+    studentToReject.value = id;
+    showRejectDialog.value = true;
+};
 const deleteStudent = () => {
     if (!studentToDelete.value) return;
     router.delete(route('admissions.destroy', studentToDelete.value), {
@@ -604,13 +621,15 @@ function approveStudent(studentId: number) {
     });
 }
 
-function rejectStudent(studentId: number) {
-    router.post(route('admissions.reject', studentId), {}, {
+function rejectStudent() {
+    if (!studentToReject.value) return;
+
+    router.post(route('admissions.reject', studentToReject.value), {}, {
         onSuccess: () => {
             toast.success('Student rejected successfully.');
             // Update local state to reflect rejection
             if (students.value && Array.isArray(students.value.data)) {
-                const idx = students.value.data.findIndex((s: any) => s.id === studentId);
+                const idx = students.value.data.findIndex((s: any) => s.id === studentToReject.value);
                 if (idx !== -1) {
                     students.value.data[idx].status = 'rejected';
                 }
@@ -661,7 +680,6 @@ function onVoucherUploaded() {
     console.log('Voucher uploaded callback triggered');
     fetchData();
     closeVoucherModal();
-    toast.success('Paid voucher uploaded and student approved.');
 }
 
 function onSearchInput() {

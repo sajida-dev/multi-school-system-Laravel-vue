@@ -13,12 +13,7 @@
             </div>
         </div>
 
-        <!-- School Selection -->
-        <div class="mb-4">
-            <SelectInput label="School" id="school_id" v-model="form.school_id"
-                :options="schools.map(s => ({ label: s.name, value: s.id }))" :required="true" :error="errors.school_id"
-                :disabled="schools.length === 1" placeholder="Select school" />
-        </div>
+
         <!-- Student Information Section -->
         <div class="mb-6 p-4 bg-white dark:bg-neutral-800 rounded-lg shadow">
             <h2 class="text-xl font-bold mb-2 text-blue-700 dark:text-blue-300 flex items-center">

@@ -109,7 +109,7 @@
                         This section consists of <strong>{{ getSectionCount('short_questions') }} Short Answer
                             Questions</strong>
                         with overall choice to attempt any <strong>{{ Math.min(getSectionCount('short_questions'), 20)
-                            }} questions</strong>.
+                        }} questions</strong>.
                     </p>
 
                     <div class="space-y-6">
@@ -164,14 +164,14 @@
             </div>
 
             <!-- Action Buttons -->
-            <!-- <div class="flex justify-center space-x-4 mt-15 no-print">
+            <div class="flex justify-center space-x-4 mt-15 no-print">
                 <Button variant="outline" @click="goBack">
                     Back to Papers
                 </Button>
                 <Button v-can="'print-papers'" @click="printPaper">
                     Print Paper
                 </Button>
-            </div> -->
+            </div>
         </div>
     </AppLayout>
 </template>

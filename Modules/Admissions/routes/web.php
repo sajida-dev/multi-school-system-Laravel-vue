@@ -11,4 +11,5 @@ Route::middleware(['web', 'set.active.school', 'auth'])->prefix('admissions')->n
     Route::post('/{id}', [AdmissionsController::class, 'update'])->name('update');
     Route::delete('/{id}', [AdmissionsController::class, 'destroy'])->name('destroy');
     Route::post('/{id}/approve', [AdmissionsController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [AdmissionsController::class, 'reject'])->name('reject');
 });

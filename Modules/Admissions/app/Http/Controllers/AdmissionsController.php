@@ -92,7 +92,7 @@ class AdmissionsController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 $validated = $request->validated();
-
+                $schoolId = session('active_school_id');
                 // Handle file upload
                 if ($request->hasFile('profile_photo_path')) {
                     $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
@@ -100,7 +100,7 @@ class AdmissionsController extends Controller
                 } else {
                     $validated['profile_photo_path'] = null;
                 }
-
+                $validated['school_id'] = $schoolId;
                 $student = Student::create($validated);
 
 
@@ -333,7 +333,32 @@ class AdmissionsController extends Controller
                 'error' => $e->getMessage(),
                 'student_id' => $id
             ]);
-            return redirect()->back()->withErrors(['error' => 'Failed to approve student. Please try again.']);
+            $msg = 'Failed to approve student' . $e->getMessage();
+            return redirect()->back()->withErrors(['error' => $msg]);
+        }
+    }
+
+    public function reject(Request $request, $id)
+    {
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $student = Student::findOrFail($id);
+                $student->status = 'rejected';
+                $student->save();
+
+                Log::info('Student rejected', [
+                    'student_id' => $student->id,
+                ]);
+
+                return redirect()->route('admissions.index')->with('success', 'Student rejected successfully.');
+            }, 5); // 5 retries for deadlock handling
+        } catch (\Exception $e) {
+            Log::error('Failed to reject student', [
+                'error' => $e->getMessage(),
+                'student_id' => $id
+            ]);
+            $msg = 'Failed to reject student' . $e->getMessage();
+            return redirect()->back()->withErrors(['error' => $msg]);
         }
     }
 }

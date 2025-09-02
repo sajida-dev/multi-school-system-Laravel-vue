@@ -46,7 +46,6 @@ class UpdateStudentRequest extends FormRequest
             'income level above rs. 50,000',
         ];
         return [
-            'school_id' => 'required|exists:schools,id',
             'class_id' => 'required|exists:classes,id',
             'nationality' => 'required|string',
             'registration_number' => [
@@ -100,7 +99,6 @@ class UpdateStudentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'school_id.required' => 'School selection is required.',
             'school_id.exists' => 'Selected school does not exist.',
             'class_id.required' => 'Class selection is required.',
             'class_id.exists' => 'Selected class does not exist.',
@@ -172,7 +170,6 @@ class UpdateStudentRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'school_id' => 'school',
             'class_id' => 'class',
             'registration_number' => 'registration number',
             'b_form_number' => 'B-Form number',

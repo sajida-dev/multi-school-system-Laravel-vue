@@ -66,7 +66,7 @@ class ExamPaperController extends Controller
             $validated['start_time'] = Carbon::createFromFormat('H:i', $validated['start_time'])->format('H:i');
             $validated['end_time'] = Carbon::createFromFormat('H:i', $validated['end_time'])->format('H:i');
 
-            ExamPaper::createOrUpdate($validated);
+            ExamPaper::create($validated);
 
             DB::commit();
 
