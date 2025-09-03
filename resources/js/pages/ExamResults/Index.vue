@@ -15,7 +15,7 @@
                                 performance</p>
                         </div>
                         <div>
-                            <Button @click="router.visit(route('results.create'))" class="px-4 py-2 text-sm">
+                            <Button @click="router.visit(route('exam-results.create'))" class="px-4 py-2 text-sm">
                                 <Plus class="w-4 h-4 mr-2" />
                                 Add Results
                             </Button>
@@ -136,13 +136,13 @@
                                                 <div
                                                     class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                                                     <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                                        {{ getInitials(result.student.user?.name || 'Student') }}
+                                                        {{ getInitials(result.student?.name || 'Student') }}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div class="ml-4">
                                                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ result.student.user?.name || 'Unknown' }}
+                                                    {{ result.student?.name || 'Unknown' }}
                                                 </div>
                                                 <div class="text-sm text-gray-500 dark:text-gray-400">
                                                     {{ result.student.section?.name || 'No Section' }}
@@ -151,7 +151,7 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                                        {{ result.student.roll_number || '-' }}
+                                        {{ result.student.registration_number || '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                                         {{ result.total_marks }}/{{ result.total_possible_marks }}
@@ -284,10 +284,8 @@ import axios from 'axios';
 
 interface Student {
     id: number;
-    roll_number?: string;
-    user?: {
-        name: string;
-    };
+    registration_number: string;
+    name: string;
     class?: {
         name: string;
     };
@@ -336,6 +334,7 @@ const selectedClassName = computed(() => {
     return cls ? cls.name : '';
 });
 
+console.log('props', props)
 async function fetchSections(classId: string | number) {
     if (sectionCache.has(classId)) {
         sections.value = sectionCache.get(classId);
@@ -381,7 +380,7 @@ function loadResults() {
         return;
     }
 
-    router.visit(route('results.index'), {
+    router.visit(route('exam-results.index'), {
         data: {
             class_id: selectedClass.value,
             section_id: selectedSection.value,

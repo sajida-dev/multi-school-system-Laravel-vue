@@ -19,25 +19,29 @@ class ExamPaperController extends Controller
      */
     public function index()
     {
+        $examPaper = ExamPaper::with('exam', 'paper')->get()->map(function ($ep) {
+            $ep->start_time = Carbon::parse($ep->start_time)->format('H:i');
+            $ep->end_time = Carbon::parse($ep->end_time)->format('H:i');
+            return [
+                'id' => $ep->id,
+                'exam_date' => $ep->exam_date,
+                'start_time' => $ep->start_time,
+                'end_time' => $ep->end_time,
+                'total_marks' => $ep->total_marks,
+                'passing_marks' => $ep->passing_marks,
+                'exam' => [
+                    'id' => $ep->exam->id,
+                    'title' => $ep->exam->title,
+                ],
+                'paper' => [
+                    'id' => $ep->paper->id,
+                    'title' => $ep->paper->title,
+                ],
+            ];
+        });
+
         return Inertia::render('Exams/ExamPapersIndex', [
-            'examPapers' => ExamPaper::with('exam', 'paper')->get()->map(function ($ep) {
-                return [
-                    'id' => $ep->id,
-                    'exam_date' => $ep->exam_date,
-                    'start_time' => $ep->start_time,
-                    'end_time' => $ep->end_time,
-                    'total_marks' => $ep->total_marks,
-                    'passing_marks' => $ep->passing_marks,
-                    'exam' => [
-                        'id' => $ep->exam->id,
-                        'title' => $ep->exam->title,
-                    ],
-                    'paper' => [
-                        'id' => $ep->paper->id,
-                        'title' => $ep->paper->title,
-                    ],
-                ];
-            }),
+            'examPapers' => $examPaper,
             'exams' => Exam::select('id', 'title')->get(),
             'papers' => Paper::select('id', 'title')->get(),
         ]);
@@ -104,8 +108,8 @@ class ExamPaperController extends Controller
 
         try {
             // Convert times to 24-hour format
-            $validated['start_time'] = Carbon::createFromFormat('h:i A', $validated['start_time'])->format('H:i');
-            $validated['end_time'] = Carbon::createFromFormat('h:i A', $validated['end_time'])->format('H:i');
+            $validated['start_time'] = Carbon::createFromFormat('H:i', $validated['start_time'])->format('H:i');
+            $validated['end_time'] = Carbon::createFromFormat('H:i', $validated['end_time'])->format('H:i');
 
             $examPaper->update($validated);
 

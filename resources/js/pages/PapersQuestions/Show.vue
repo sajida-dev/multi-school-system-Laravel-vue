@@ -39,7 +39,20 @@
                 <div class="instructions">
                     <h3 class="text-lg font-semibold text-neutral-900 mb-3 dark:text-neutral-100">General
                         Instructions:</h3>
-                    <ol class="list-decimal list-inside space-y-1 text-neutral-700 dark:text-neutral-200">
+                    <ol class="list-decimal list-inside space-y-1 text-neutral-700 dark:text-neutral-200"
+                        v-if="paper.instructions">
+                        <li>The Question Paper contains three sections.</li>
+                        <li>Section A has {{ getSectionCount('objective') }} questions. Attempt all {{
+                            Math.min(getSectionCount('objective'), 20) }} questions.</li>
+                        <li>Section B has {{ getSectionCount('short_questions') }} questions. Attempt all {{
+                            Math.min(getSectionCount('short_questions'), 20) }} questions.</li>
+                        <li>Section C has {{ getSectionCount('long_questions') }} questions. Attempt all {{
+                            Math.min(getSectionCount('long_questions'), 5) }} questions.</li>
+                        <li>All questions carry equal marks.</li>
+                        <li>There is no negative marking.</li>
+                        <li v-html="paper.instructions"></li>
+                    </ol>
+                    <ol class="list-decimal list-inside space-y-1 text-neutral-700 dark:text-neutral-200" v-else>
                         <li>The Question Paper contains three sections.</li>
                         <li>Section A has {{ getSectionCount('objective') }} questions. Attempt all {{
                             Math.min(getSectionCount('objective'), 20) }} questions.</li>
@@ -223,6 +236,7 @@ interface Paper {
     total_marks?: number;
     time_duration?: number;
     questions: Question[];
+    instructions?: string;
 }
 
 interface Props {

@@ -4,6 +4,7 @@ namespace Modules\ResultsPromotions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Modules\ClassesSections\App\Models\ClassModel;
@@ -13,6 +14,7 @@ use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\ResultsPromotions\app\Models\ExamType;
 use Modules\ResultsPromotions\Models\ExamPaper;
 use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\Teacher;
 
 class ExamController extends Controller
 {
@@ -21,26 +23,55 @@ class ExamController extends Controller
      */
     public function index()
     {
+        $user = Auth::user();
+
+        $role = $user->roles[0]->name;
         $schoolId = session('active_school_id');
+
         $exams = Exam::with('examType', 'class', 'section', 'school')->get();
-        // dd($exams);
         $examTypes = ExamType::all();
-        $classes = ClassModel::forSchool($schoolId)
-            ->select('id', 'name')
-            ->get()
-            ->map(function ($class) {
-                return [
-                    'id' => $class->id,
-                    'name' => $class->name,
-                ];
-            })
-            ->values();
+
+        if ($role === 'superadmin') {
+            // Superadmin: get all classes for the selected school
+            $classes = ClassModel::forSchool($schoolId)
+                ->select('id', 'name')
+                ->get()
+                ->map(function ($class) {
+                    return [
+                        'id' => $class->id,
+                        'name' => $class->name,
+                    ];
+                })
+                ->values();
+        } else if ($role === 'teacher') {
+            // Teacher: get the class assigned to them via the teachers table
+            $teacher = Teacher::where('user_id', $user->id)
+                ->where('school_id', $schoolId)
+                ->first();
+
+            $classes = [];
+
+            if ($teacher && $teacher->class_id) {
+                $class = ClassModel::find($teacher->class_id);
+                if ($class) {
+                    $classes[] = [
+                        'id' => $class->id,
+                        'name' => $class->name,
+                    ];
+                }
+            }
+        } else {
+            // Other roles - optional, return empty or handle accordingly
+            $classes = collect();
+        }
+
         return Inertia::render('Exams/ExamsIndex', [
             'examTypes' => $examTypes,
             'exams' => $exams,
             'classes' => $classes,
         ]);
     }
+
 
 
     /**

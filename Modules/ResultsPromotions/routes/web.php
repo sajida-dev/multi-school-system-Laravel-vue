@@ -10,7 +10,7 @@ use Modules\ResultsPromotions\Http\Controllers\ResultsPromotionsController;
 use Modules\ResultsPromotions\Http\Controllers\TermResultController;
 
 Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () {
-    Route::resource('results', ResultsPromotionsController::class)->names('results');
+    // Route::resource('results', ResultsPromotionsController::class)->names('results');
     Route::resources([
         'exam-types'       => ExamTypeController::class,
         'exams'            => ExamController::class,

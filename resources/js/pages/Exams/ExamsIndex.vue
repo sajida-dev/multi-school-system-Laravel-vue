@@ -122,7 +122,7 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps } from 'vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
@@ -166,6 +166,7 @@ const examTypes = ref<SelectOption[]>([...props.examTypes]);
 const classes = ref<SelectOption[]>([...props.classes]);
 const sections = ref<SelectOption[]>([]);
 const sectionCache = new Map();
+
 
 watch(() => props.exams, (val) => (exams.value = [...val]));
 watch(() => props.examTypes, (val) => (examTypes.value = [...val]));

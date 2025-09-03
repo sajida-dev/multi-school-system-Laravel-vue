@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\Section;
 use Modules\ClassesSections\App\Models\Subject;
 use Modules\ClassesSections\App\Models\ClassSchool;
+use Modules\ClassesSections\app\Models\ClassSubject;
 use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\ClassSubjectTeacher;
 use Modules\Teachers\Models\Teacher;
 
 class ClassModel extends Model
@@ -45,16 +47,28 @@ class ClassModel extends Model
 
     public function subjects()
     {
-        return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id')
+        return $this->belongsToMany(ClassSubject::class, 'class_subject', 'class_id', 'subject_id')
             ->withPivot('school_id')
             ->withTimestamps();
     }
 
     public function teachers()
     {
-        return $this->belongsToMany(Teacher::class, 'class_subject_teacher', 'class_id', 'teacher_id')
+        return $this->belongsToMany(ClassSubjectTeacher::class, 'class_subject_teacher', 'class_id', 'teacher_id')
             ->withPivot(['subject_id', 'school_id'])
             ->withTimestamps();
+    }
+
+    public function classTeacher()
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    public function scopeForClassIncharge($query, $userId)
+    {
+        return $query->whereHas('teachers', function ($q) use ($userId) {
+            $q->where('teachers.user_id', $userId);
+        });
     }
 
     // Scope for school-specific classes

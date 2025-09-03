@@ -10,6 +10,7 @@ use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\Storage;
 use Modules\Admissions\Models\StudentEnrollment;
 use Modules\ClassesSections\app\Models\Section;
+use Modules\ResultsPromotions\app\Models\ExamResult;
 
 class Student extends Model
 {
@@ -97,6 +98,11 @@ class Student extends Model
         return $this->belongsTo(Section::class, 'section_id');
     }
 
+    public function scopeAdmitted($query)
+    {
+        return $query->where('status', 'admitted');
+    }
+
 
     public function fees()
     {
@@ -125,5 +131,10 @@ class Student extends Model
     public function currentEnrollment()
     {
         return $this->hasOne(StudentEnrollment::class)->where('is_current', true);
+    }
+
+    public function results()
+    {
+        return $this->hasMany(ExamResult::class);
     }
 }

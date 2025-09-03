@@ -12,7 +12,16 @@ class ExamResult extends Model
     protected $guarded = [];
     use SoftDeletes;
 
-    protected $fillable = ['exam_paper_id', 'student_id', 'marks_obtained', 'percentage', 'status', 'promotion_status', 'remarks'];
+    protected $fillable = [
+        'exam_paper_id',
+        'student_id',
+        'obtained_marks',
+        'total_marks',
+        'percentage',
+        'status',
+        'promotion_status',
+        'remarks'
+    ];
 
     public function examPaper()
     {
