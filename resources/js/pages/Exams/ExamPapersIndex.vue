@@ -15,6 +15,7 @@
                 class="bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-700">
                 <template #item-exam_title="row">{{ row.exam.title }}</template>
                 <template #item-paper_name="row">{{ row.paper.title }}</template>
+                <template #item-subject_name="row">{{ row.subject.name }}</template>
                 <template #item-exam_date="row">{{ row.exam_date }}</template>
                 <template #item-time_range="row">
                     {{ row.start_time ?? '—' }} – {{ row.end_time ?? '—' }}
@@ -53,6 +54,11 @@
                         <SelectInput id="paper_id" v-model="form.paper_id" label="Paper" required
                             :options="papers.map(p => ({ label: p.title, value: p.id }))" placeholder="Select Paper"
                             :error="form.errors.paper_id" />
+
+                        <!-- Subject -->
+                        <SelectInput id="subject_id" v-model="form.subject_id" label="Subject" required
+                            :options="subjects.map(s => ({ label: s.name, value: s.id }))" placeholder="Select Subject"
+                            :error="form.errors.subject_id" />
 
                         <!-- Exam Date -->
                         <TextInput id="exam_date" v-model="form.exam_date" label="Exam Date" type="date" required
@@ -114,10 +120,15 @@ import SelectInput from '@/components/form/SelectInput.vue';
 import TextInput from '@/components/form/TextInput.vue';
 
 interface SelectOption { id: number; title: string; }
+interface Subject {
+    id: number;
+    name: string;
+}
 interface ExamPaper {
     id: number;
     exam_id: number;
     paper_id: number;
+    subject_id: number;
     exam_date: string;
     start_time?: string;
     end_time?: string;
@@ -125,12 +136,14 @@ interface ExamPaper {
     passing_marks: number;
     exam: { id: number; title: string };
     paper: { id: number; title: string };
+    subject: { id: number; name: string };
 }
 
 const props = defineProps<{
     examPapers: ExamPaper[];
     exams: SelectOption[];
     papers: SelectOption[];
+    subjects: Subject[];
 }>();
 
 const examPapers = ref([...props.examPapers]);
@@ -151,6 +164,7 @@ const itemToDelete = ref<ExamPaper | null>(null);
 const form = useForm({
     exam_id: undefined as number | undefined,
     paper_id: undefined as number | undefined,
+    subject_id: undefined as number | undefined,
     exam_date: '',
     start_time: '',
     end_time: '',
@@ -162,6 +176,7 @@ const headers = [
     { text: 'ID', value: 'id' },
     { text: 'Exam', value: 'exam_title', slotName: 'item-exam_title' },
     { text: 'Paper', value: 'paper_name', slotName: 'item-paper_name' },
+    { text: 'Subject', value: 'subject_name', slotName: 'item-subject_name' },
     { text: 'Date', value: 'exam_date' },
     { text: 'Time', value: 'time_range', slotName: 'item-time_range' },
     { text: 'Marks (Passing/Total)', value: 'marks', slotName: 'item-marks' },
@@ -183,6 +198,7 @@ function openEditModal(row: ExamPaper) {
     form.reset();
     form.exam_id = row.exam_id ?? row.exam?.id ?? null;
     form.paper_id = row.paper_id ?? row.paper?.id ?? null;
+    form.subject_id = row.subject_id ?? row.subject?.id ?? null;
     form.exam_date = row.exam_date;
     form.start_time = row.start_time ?? '';
     form.end_time = row.end_time ?? '';

@@ -11,6 +11,7 @@ use Modules\ResultsPromotions\App\Models\Exam;
 use Modules\ResultsPromotions\Models\ExamPaper;
 use Carbon\Carbon;
 use Exception;
+use Modules\ClassesSections\App\Models\Subject;
 
 class ExamPaperController extends Controller
 {
@@ -19,7 +20,7 @@ class ExamPaperController extends Controller
      */
     public function index()
     {
-        $examPaper = ExamPaper::with('exam', 'paper')->get()->map(function ($ep) {
+        $examPaper = ExamPaper::with('exam', 'paper', 'subject')->get()->map(function ($ep) {
             $ep->start_time = Carbon::parse($ep->start_time)->format('H:i');
             $ep->end_time = Carbon::parse($ep->end_time)->format('H:i');
             return [
@@ -37,6 +38,10 @@ class ExamPaperController extends Controller
                     'id' => $ep->paper->id,
                     'title' => $ep->paper->title,
                 ],
+                'subject' => [
+                    'id' => $ep->subject->id,
+                    'name' => $ep->subject->name,
+                ]
             ];
         });
 
@@ -44,6 +49,7 @@ class ExamPaperController extends Controller
             'examPapers' => $examPaper,
             'exams' => Exam::select('id', 'title')->get(),
             'papers' => Paper::select('id', 'title')->get(),
+            'subjects' => Subject::select('id', 'name')->get(),
         ]);
     }
 
@@ -55,6 +61,7 @@ class ExamPaperController extends Controller
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'paper_id' => 'required|exists:papers,id',
+            'subject_id' => 'required|exists:subjects,id',
             'exam_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after_or_equal:start_time',
@@ -97,6 +104,7 @@ class ExamPaperController extends Controller
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'paper_id' => 'required|exists:papers,id',
+            'subject_id' => 'required|exists:subjects,id',
             'exam_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after_or_equal:start_time',

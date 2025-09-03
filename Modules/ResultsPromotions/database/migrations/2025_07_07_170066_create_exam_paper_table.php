@@ -13,6 +13,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('exam_id');
             $table->unsignedBigInteger('paper_id');
+            $table->unsignedBigInteger('subject_id');
             $table->date('exam_date'); // specific date for this subject
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
