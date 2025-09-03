@@ -185,7 +185,7 @@ class ExamResultController extends Controller
             ? ExamPaper::whereHas('exam', function ($query) use ($classId) {
                 $query->where('class_id', $classId);
             })
-            ->with(['exam', 'paper']) // To access exam.name and paper.name later
+            ->with(['exam', 'paper', 'subject']) // To access exam.name and paper.name later
             ->get()
             : [];
 

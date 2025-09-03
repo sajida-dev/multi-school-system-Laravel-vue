@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { watch, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -16,6 +16,7 @@ interface ExamPaper {
     id: number;
     exam: { id: number; title: string };
     paper: { id: number; title: string };
+    subject: { id: number; name: string };
 }
 
 interface ExamResult {
@@ -45,7 +46,6 @@ interface Props {
     selectedExamPaperId?: number;
 }
 const props = defineProps<Props>();
-
 const form = useForm<ExamResultForm>({
     school_id: props.selectedSchoolId ? String(props.selectedSchoolId) : '',
     class_id: props.selectedClassId ? String(props.selectedClassId) : '',
@@ -108,7 +108,16 @@ function submitForm() {
         },
     });
 }
-
+watch(() => props.students, (newStudents) => {
+    form.results = newStudents.map(student => ({
+        student_id: student.id,
+        obtained_marks: '',
+        total_marks: '100',
+        status: 'pass',
+        promotion_status: 'pending',
+        remarks: '',
+    }));
+}, { immediate: true });
 function getResultFieldError(index: number, field: keyof ExamResult): string | undefined {
     const key = `results.${index}.${field}` as keyof typeof form.errors;
     return form.errors[key] as string | undefined;
@@ -125,7 +134,7 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                 </div>
 
                 <form @submit.prevent="submitForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <!-- School -->
                         <SelectInput id="school_id" v-model="form.school_id" label="School"
                             :options="props.schools.map(s => ({ label: s.name, value: String(s.id) }))"
@@ -139,7 +148,8 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
 
                         <!-- Exam Paper -->
                         <SelectInput id="exam_paper_id" v-model="form.exam_paper_id" label="Exam Paper"
-                            :options="props.examPapers.map(e => ({ label: `${e.exam.title} - ${e.paper.title}`, value: String(e.id) }))"
+                            class="col-span-2"
+                            :options="props.examPapers.map(e => ({ label: `${e.subject.name} - ${e.exam.title} - ${e.paper.title}`, value: String(e.id) }))"
                             placeholder="Select Exam Paper" :disabled="!form.class_id" :error="errors.exam_paper_id"
                             @change="onExamPaperChange" />
                     </div>

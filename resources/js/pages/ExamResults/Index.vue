@@ -334,7 +334,6 @@ const selectedClassName = computed(() => {
     return cls ? cls.name : '';
 });
 
-console.log('props', props)
 async function fetchSections(classId: string | number) {
     if (sectionCache.has(classId)) {
         sections.value = sectionCache.get(classId);
