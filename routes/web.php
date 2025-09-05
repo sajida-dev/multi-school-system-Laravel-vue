@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\UserRoleController;
 use App\Http\Controllers\Admin\SetActiveSchoolController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Modules\Schools\Http\Controllers\SchoolsController;
@@ -13,13 +14,24 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
+Route::middleware(['auth', 'set.active.school', 'team.permission'])->get('/me', function () {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
 
+    return response()->json([
+        'user' => $user,
+        'roles' => $user->getRoleNames(),
+        'permissions' => $user->getAllPermissions(),
+        'team_id' => getPermissionsTeamId(),
+        'active_school_id' => session('active_school_id'),
+    ]);
+});
 
 Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified', 'set.active.school'])
+    ->middleware(['auth', 'verified', 'set.active.school', 'team.permission'])
     ->name('dashboard');
 
-Route::middleware(['auth', 'set.active.school'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'set.active.school', 'team.permission'])->group(function () {
 
     // Simple explicit routes instead of resource routes to avoid model binding conflicts
     Route::get('roles', [RoleController::class, 'index']);

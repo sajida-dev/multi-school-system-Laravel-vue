@@ -5,6 +5,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetActiveSchool;
 use App\Http\Middleware\ValidateRouteParameters;
 use App\Http\Middleware\HandleDatabaseErrors;
+use App\Http\Middleware\TeamsPermission;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'set.active.school' => SetActiveSchool::class,
             'validate.route.params' => ValidateRouteParameters::class,
             'handle.db.errors' => HandleDatabaseErrors::class,
+            'team.permission' => TeamsPermission::class,
         ]);
 
         $middleware->web(append: [

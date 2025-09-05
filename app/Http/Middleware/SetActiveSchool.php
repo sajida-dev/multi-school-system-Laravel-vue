@@ -12,80 +12,86 @@ class SetActiveSchool
     public function handle($request, Closure $next)
     {
         try {
-
             if (Auth::check()) {
                 /** @var \App\Models\User $user */
                 $user = Auth::user();
-                $activeSchoolId = session('active_school_id');
 
-                Log::info('SetActiveSchool middleware', [
-                    'user_id' => $user->id,
-                    'user_roles' => $user->roles->pluck('name'),
-                    'active_school_id' => $activeSchoolId,
-                    'last_school_id' => $user->last_school_id
-                ]);
+                // Step 1: Check if school_id is provided in the request
+                if ($request->has('school_id')) {
+                    $schoolId = $request->query('school_id');
 
-                // If no active school is set in session, try to set one
-                if (!$activeSchoolId) {
+                    if (School::where('id', $schoolId)->exists()) {
+                        session(['active_school_id' => $schoolId]);
+
+                        // Optional: save as last visited school
+                        $user->last_school_id = $schoolId;
+                        $user->save();
+
+                        Log::info('Set active school from request', [
+                            'user_id' => $user->id,
+                            'school_id' => $schoolId
+                        ]);
+                    } else {
+                        Log::warning('Invalid school_id in request', [
+                            'user_id' => $user->id,
+                            'school_id' => $schoolId
+                        ]);
+                    }
+                }
+
+                // Step 2: If session not set yet, use fallback
+                if (!session()->has('active_school_id')) {
+                    // For superadmin → assign first available school
                     if ($user->hasRole('superadmin')) {
                         $schools = School::all();
-                        Log::info('Superadmin schools found', ['count' => $schools->count()]);
 
-                        // Use last_school_id if present and valid
                         if ($user->last_school_id && $schools->contains('id', $user->last_school_id)) {
                             session(['active_school_id' => $user->last_school_id]);
-                            Log::info('Set active school from last_school_id', ['school_id' => $user->last_school_id]);
-                        } elseif ($schools->count() > 0) {
-                            // Set to first available school
+                        } elseif ($schools->isNotEmpty()) {
                             $firstSchool = $schools->first();
                             session(['active_school_id' => $firstSchool->id]);
+
+                            // Save it as last_school_id
                             $user->last_school_id = $firstSchool->id;
                             $user->save();
-                            Log::info('Set active school to first available', ['school_id' => $firstSchool->id]);
                         } else {
                             Log::warning('No schools available for superadmin');
                         }
-                    } elseif ($user->hasRole('admin')) {
-                        $schools = $user->schools;
-                        Log::info('Admin schools found', ['count' => $schools->count()]);
+                    }
+                    // For admin/teacher → assign from linked schools
+                    else {
+                        $schools = $user->schools ?? collect();
 
-                        // Use last_school_id if present and valid
                         if ($user->last_school_id && $schools->contains('id', $user->last_school_id)) {
                             session(['active_school_id' => $user->last_school_id]);
-                            Log::info('Set active school from last_school_id', ['school_id' => $user->last_school_id]);
-                        } elseif ($schools->count() > 0) {
-                            // Set to first available school
+                        } elseif ($schools->isNotEmpty()) {
                             $firstSchool = $schools->first();
                             session(['active_school_id' => $firstSchool->id]);
-                            Log::info('Set active school to first available', ['school_id' => $firstSchool->id]);
-                        } else {
-                            Log::warning('No schools available for admin', ['user_id' => $user->id]);
-                        }
-                    } else {
-                        Log::info('User has no role requiring school selection', [
-                            'user_id' => $user->id,
-                            'roles' => $user->roles->pluck('name')
-                        ]);
-                    }
-                    if ($request->has('school_id')) {
-                        $schoolIdFromRequest = $request->query('school_id');
-                        $schoolExists = School::where('id', $schoolIdFromRequest)->exists();
 
-                        if ($schoolExists) {
-                            session(['active_school_id' => $schoolIdFromRequest]);
-                            Log::info('Set active school from request parameter', ['school_id' => $schoolIdFromRequest]);
+                            // Save it as last_school_id
+                            $user->last_school_id = $firstSchool->id;
+                            $user->save();
                         } else {
-                            Log::warning('Invalid school_id from request', ['school_id' => $schoolIdFromRequest]);
+                            Log::warning('No linked schools found for user', [
+                                'user_id' => $user->id
+                            ]);
                         }
                     }
                 }
+
+                // Debug Log (optional)
+                Log::info('Active school determined', [
+                    'user_id' => $user->id,
+                    'active_school_id' => session('active_school_id'),
+                    'last_school_id' => $user->last_school_id,
+                ]);
             } else {
-                Log::info('User not authenticated in SetActiveSchool middleware');
+                Log::info('SetActiveSchool skipped: user not authenticated');
             }
         } catch (\Exception $e) {
-            Log::error('SetActiveSchool middleware error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+            Log::error('SetActiveSchool error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
         }
 

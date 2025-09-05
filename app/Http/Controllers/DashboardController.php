@@ -24,7 +24,7 @@ class DashboardController extends Controller
         try {
             /** @var User $user */
             $user = Auth::user();
-
+            // dd($user->roles);
             if (!$user) {
                 Log::error('Dashboard accessed without authenticated user');
                 return redirect()->route('login');

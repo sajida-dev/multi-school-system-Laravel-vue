@@ -39,11 +39,17 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        if ($user) {
+            // Ensure team context is set before fetching roles/permissions
+            setPermissionsTeamId(session('active_school_id'));
+        }
         return array_merge(parent::share($request), [
             'name' => config('app.name'),
 
             'auth' => [
                 'user' => $user ? $user->load('roles') : null,
+                'roles' => $user ? $user->getRoleNames() : [],
+                'permissions' => $user ? $user->getAllPermissions()->pluck('name') : [],
                 'can' => $user ? $user->permissionMap() : [],
 
             ],

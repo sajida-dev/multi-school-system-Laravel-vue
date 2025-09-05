@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Illuminate\Auth\MustVerifyEmail as AuthMustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -17,6 +18,8 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * @method bool hasRole(string|array $roles, string|null $guard = null)
+ * @method bool hasPermissionTo(string $permission, string|null $guard = null)
+ * @method \Spatie\Permission\Models\Role[] getRoleNames()
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -88,6 +91,8 @@ class User extends Authenticatable implements MustVerifyEmail
             ->join('');
     }
 
+
+
     /**
      * The accessors to append to the model's array form.
      *
@@ -122,12 +127,20 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Teacher::class, 'user_id');
     }
-
-    // Add the schools relationship if not present
     public function schools()
     {
-        return $this->belongsToMany(School::class);
+        return $this->belongsToMany(
+            \Modules\Schools\app\Models\School::class,
+            'model_has_roles',
+            'model_id',    // FK to user
+            'school_id',     // FK to school/team
+        )->where('model_type', self::class)->distinct();
     }
+    // Add the schools relationship if not present
+    // public function schools()
+    // {
+    //     return $this->belongsToMany(School::class);
+    // }
     // Optionally, add an accessor/mutator for last_school_id if you add it to the DB
     public function getLastSchoolIdAttribute()
     {
@@ -136,5 +149,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function setLastSchoolIdAttribute($value)
     {
         $this->attributes['last_school_id'] = $value;
+    }
+    /**
+     * Get the current team/school ID for Spatie permission package
+     *
+     * This tells Spatie which team (school) context to use when checking roles/permissions.
+     */
+    public function getPermissionsTeamId(): ?int
+    {
+        // You can return the active school from session or user property
+        return session('active_school_id') ?? $this->last_school_id ?? null;
     }
 }

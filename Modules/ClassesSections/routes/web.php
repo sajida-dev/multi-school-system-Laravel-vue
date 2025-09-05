@@ -11,7 +11,7 @@ use Modules\ClassesSections\app\Http\Controllers\ClassAssignmentController;
 use Modules\ClassesSections\app\Http\Controllers\SectionAssignmentController;
 use Modules\ClassesSections\App\Http\Controllers\SubjectsController;
 
-Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () {
+Route::middleware(['auth', 'set.active.school', 'verified', 'team.permission'])->group(function () {
     Route::resource('classessections', ClassesSectionsController::class)->names('classessections');
     Route::resource('classes', ClassController::class)->names('classes');
     Route::resource('sections', SectionController::class)->names('sections');

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Attendance\Http\Controllers\AttendanceController;
 
-Route::middleware(['auth', 'set.active.school', 'verified'])->group(function () {
+Route::middleware(['auth', 'set.active.school', 'verified', 'team.permission'])->group(function () {
     // Main attendance routes
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::post('attendance', [AttendanceController::class, 'store'])->name('attendance.store');
