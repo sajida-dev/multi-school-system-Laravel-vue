@@ -14,19 +14,6 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::middleware(['auth', 'set.active.school', 'team.permission'])->get('/me', function () {
-    /** @var \App\Models\User $user */
-    $user = Auth::user();
-
-    return response()->json([
-        'user' => $user,
-        'roles' => $user->getRoleNames(),
-        'permissions' => $user->getAllPermissions(),
-        'team_id' => getPermissionsTeamId(),
-        'active_school_id' => session('active_school_id'),
-    ]);
-});
-
 Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified', 'set.active.school', 'team.permission'])
     ->name('dashboard');
