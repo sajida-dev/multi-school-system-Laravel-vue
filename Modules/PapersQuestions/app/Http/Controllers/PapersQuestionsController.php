@@ -259,6 +259,7 @@ class PapersQuestionsController extends Controller
             $paper = Paper::create([
                 'title' => $request->title,
                 'class_id' => $request->class_id,
+                'school_id' => $schoolId,
                 'section_id' => $request->section_id,
                 'teacher_id' => $request->teacher_id,
                 'subject_id' => $subjectId,

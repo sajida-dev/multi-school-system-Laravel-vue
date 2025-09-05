@@ -39,26 +39,13 @@ class SubjectsController extends Controller
     {
         $subjects = Subject::query()->orderBy('name')->get();
 
-        // Get active school ID from session, fallback to first school if not set
         $activeSchoolId = session('active_school_id');
 
-        // If no active school in session, get the first school
-        if (!$activeSchoolId) {
-            $firstSchool = \Modules\Schools\App\Models\School::first();
-            if ($firstSchool) {
-                $activeSchoolId = $firstSchool->id;
-                // Set it in session for future requests
-                session(['active_school_id' => $activeSchoolId]);
-            }
-        }
 
-        // Get classes for the active school using Eloquent
         $classes = ClassModel::forSchool($activeSchoolId)->orderBy('name')->get();
 
-        // Set school context for role operations
         $this->setSchoolContextForRoles($activeSchoolId);
 
-        // Get teachers for the active school using Eloquent
         $teachers = User::whereHas('teacher', function ($query) use ($activeSchoolId) {
             $query->forSchool($activeSchoolId);
         })->whereHas('roles', function ($query) {
@@ -314,7 +301,7 @@ class SubjectsController extends Controller
     public function assignToClass(Request $request, $classId)
     {
         $request->validate([
-            'subject_ids' => 'required|array',
+            'subject_ids' => 'nullable|array',
             'subject_ids.*' => 'exists:subjects,id'
         ]);
 

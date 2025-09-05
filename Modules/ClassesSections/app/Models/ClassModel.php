@@ -47,16 +47,14 @@ class ClassModel extends Model
 
     public function subjects()
     {
-        return $this->belongsToMany(ClassSubject::class, 'class_subject', 'class_id', 'subject_id')
+        return $this->belongsToMany(Subject::class, 'class_subject', 'class_id', 'subject_id')
             ->withPivot('school_id')
             ->withTimestamps();
     }
 
-    public function teachers()
+    public function classSubjectTeachers()
     {
-        return $this->belongsToMany(ClassSubjectTeacher::class, 'class_subject_teacher', 'class_id', 'teacher_id')
-            ->withPivot(['subject_id', 'school_id'])
-            ->withTimestamps();
+        return $this->hasMany(ClassSubjectTeacher::class, 'class_id');
     }
 
     public function classTeacher()

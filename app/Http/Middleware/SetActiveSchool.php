@@ -75,6 +75,7 @@ class SetActiveSchool
                             Log::warning('No linked schools found for user', [
                                 'user_id' => $user->id
                             ]);
+                            return redirect()->back()->withErrors(['error' => 'No linked schools found for user']);
                         }
                     }
                 }
@@ -94,7 +95,6 @@ class SetActiveSchool
                 'trace' => $e->getTraceAsString(),
             ]);
         }
-
         return $next($request);
     }
 }

@@ -21,6 +21,7 @@ class Paper extends Model
         'class_id',
         'section_id',
         'teacher_id',
+        'school_id',
         'subject_id',
         'title',
         'published',

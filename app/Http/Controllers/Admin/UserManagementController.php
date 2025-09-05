@@ -100,7 +100,6 @@ class UserManagementController extends Controller
             // Add roles_by_school to user
             $user->roles_by_school = $rolesBySchool;
 
-            // Add password field (for display purposes only)
             $user->password = '••••••••••••'; // Default hidden password
             $user->show_password = false;
 
@@ -149,7 +148,6 @@ class UserManagementController extends Controller
      */
     public function addUserPage()
     {
-        // Get all available roles for filter dropdown (exclude superadmin) with school names
         $roles = Role::where('name', '!=', 'superadmin')
             ->select('id', 'name', 'school_id')
             ->get()

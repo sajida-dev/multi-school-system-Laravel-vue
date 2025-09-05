@@ -147,16 +147,26 @@ const hasRecentData = computed(() => {
         <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 border">
           <h3 class="text-lg font-semibold text-neutral-800 dark:text-white mb-4">Quick Actions</h3>
           <div class="space-y-3">
-            <div v-if="props.userRoles.includes('superadmin')" class="grid grid-cols-1 lg:grid-cols-3 gap-3 space-y-2">
+            <div v-if="props.userRoles.includes('superadmin')" class="grid grid-cols-1 lg:grid-cols-5 gap-3 space-y-2">
               <button @click="router.visit(route('schools.index'))"
                 class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-blue-50 dark:bg-blue-500 hover:bg-blue-400 transition-colors">
                 <School class="w-10 h-10 mr-2 p-2 text-blue-600 rounded-full bg-blue-300" />
                 Manage Schools
               </button>
+              <button @click="router.visit(route('admissions.create'))"
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-red-50 dark:bg-red-500 hover:bg-red-400 transition-colors">
+                <UserPlus class="w-10 h-10 mr-2 p-2 rounded-full bg-red-300 text-red-600" />
+                New Admission
+              </button>
               <button @click="router.visit(route('settings.users'))"
                 class="flex flex-row gap-3 items-center w-full text-left p-2 rounded-lg bg-green-50 dark:bg-green-500 hover:bg-green-400 transition-colors">
                 <Users class="w-10 h-10 mr-2 p-2  rounded-full bg-green-300 text-green-600" />
                 System Users
+              </button>
+              <button @click="router.visit(route('teachers.create'))"
+                class="flex flex-row gap-3 items-center w-full text-left p-3 rounded-lg bg-orange-50 dark:bg-orange-500 hover:bg-orange-400 transition-colors">
+                <Users class="w-10 h-10 mr-2 p-2 rounded-full bg-orange-300 text-orange-600" />
+                Manage Teachers
               </button>
               <button @click="router.visit(route('profile.edit'))"
                 class="flex flex-row gap-3 items-center w-full text-left px-2 py-1 rounded-lg bg-purple-50 dark:bg-purple-500 hover:bg-purple-400 transition-colors">

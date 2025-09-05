@@ -38,86 +38,85 @@ const mainNavItems: NavItem[] = [
         title: 'Manage Schools',
         href: '/schools',
         icon: Building2,
-        permission: 'read-schools',
+        permission: 'manage-schools',
 
     },
     {
         title: 'Manage Classes & Sections',
         href: '/manage/classes-sections',
         icon: School, // or Layers, or another relevant icon
-        permission: 'read-classes',
+        permission: 'manage-classes',
 
     },
     {
         title: 'Manage Subjects',
         href: '/subjects',
         icon: BookOpenCheck,
-        permission: 'read-subjects',
-
-    },
-    {
-        title: 'Manage Students',
-        href: '/students',
-        icon: GraduationCap,
-        permission: 'read-students',
+        permission: 'manage-subjects',
 
     },
     {
         title: 'Manage Teachers',
         href: '/teachers',
         icon: Users,
-        permission: 'read-teachers',
+        permission: 'manage-teachers',
 
     },
+    {
+        title: 'Manage Students',
+        href: '/students',
+        icon: GraduationCap,
+        permission: 'manage-students',
 
+    },
     {
         title: 'Admissions',
         href: '/admissions',
         icon: UserPlus,
-        permission: 'read-admissions',
+        permission: 'manage-admissions',
 
     },
     {
         title: 'Manage Fees',
         href: '/fees',
         icon: CreditCard,
-        permission: 'read-fees',
+        permission: 'manage-fees',
     },
     {
         title: 'Manage Papers',
         href: '/papersquestions',
         icon: FileText,
-        permission: 'read-papers',
+        permission: 'manage-papers',
     },
     {
         title: 'Attendance Management',
         href: '/attendance',
         icon: CalendarCheck,
-        permission: 'read-attendance',
+        permission: 'manage-attendance',
     },
     {
         title: 'Manage Exams',
         href: '/exams',
         icon: Receipt,
-        permission: 'read-exams',
+        permission: 'manage-exams',
     },
     {
         title: 'Manage Results',
         href: '/exam-results',
         icon: BarChart3,
-        permission: 'read-exam-results'
+        permission: 'manage-exam-results'
     },
     // {
     //     title: 'Manage Reports',
     //     href: '/reports',
     //     icon: BarChart3,
-    // permission: 'read-reports',
+    // permission: 'manage-reports',
     // },
     // {
     //     title: 'Manage Certificates',
     //     href: '/certificates',
     //     icon: Award,
-    // permission: 'read-certificates',
+    // permission: 'manage-certificates',
     // },
 ];
 

@@ -42,7 +42,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'roles',
             'permissions',
         ];
-        $actions = ['create', 'read', 'update', 'delete'];
+        $actions = ['manage', 'create', 'read', 'update', 'delete'];
         $permissions = [
             'assign-classes-to-schools',
             'assign-sections-to-classes',

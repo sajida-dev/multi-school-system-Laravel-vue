@@ -16,6 +16,7 @@ use Modules\Fees\App\Models\Fee;
 use Modules\PapersQuestions\App\Models\Paper;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Teachers\Models\ClassSubjectTeacher;
 
 class DashboardController extends Controller
 {
@@ -329,12 +330,18 @@ class DashboardController extends Controller
             $dashboardData['errors'][] = 'Teacher profile not found for this school.';
             return $dashboardData;
         }
+        $teacherClass = $teacher->class;
 
         // Get real counts for this teacher
-        $myStudents = Student::where('school_id', $schoolId)->where('class_teacher_id', $teacher->id)->count();
-        $myClasses = ClassModel::where('school_id', $schoolId)->where('teacher_id', $teacher->id)->count();
-        $papersCreated = Paper::where('school_id', $schoolId)->where('created_by', $user->id)->count();
-        $admissionsHandled = Student::where('school_id', $schoolId)->where('admitted_by', $user->id)->count();
+        $myStudents = Student::where('class_id', $teacher->class_id)->where('school_id', $schoolId)->count();
+
+        $myClasses = ClassModel::whereHas('classSubjectTeachers', function ($query) use ($user, $schoolId) {
+            $query->where('teacher_id', $user->id)
+                ->where('school_id', $schoolId);
+        })->count();
+
+        $papersCreated = Paper::where('school_id', $schoolId)->where('teacher_id', $user->id)->count();
+        $subjects = ClassSubjectTeacher::where('school_id', $schoolId)->where('teacher_id', $user->id)->count();
 
         // Calculate monthly changes
         $currentMonth = now()->month;
@@ -370,12 +377,12 @@ class DashboardController extends Controller
                 'change' => $paperChange > 0 ? "+{$paperChange}% this month" : "{$paperChange}% this month"
             ],
             [
-                'label' => 'Admissions Handled',
-                'value' => $admissionsHandled,
+                'label' => 'Subjects Teaching',
+                'value' => $subjects,
                 'icon' => 'user-plus',
                 'color' => 'orange',
-                'link' => 'admissions.index',
-                'change' => $admissionsHandled > 0 ? 'Students admitted' : 'No admissions yet'
+                'link' => 'subjects.index',
+                'change' => $subjects > 0 ? 'Subjects Teaching' : 'No subjects yet'
             ]
         ];
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Teachers\Models\Teacher;
 use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\ClassSubjectTeacher;
 
 class Subject extends Model
 {
@@ -26,11 +27,9 @@ class Subject extends Model
             ->withTimestamps();
     }
 
-    public function teachers()
+    public function classSubjectTeachers()
     {
-        return $this->belongsToMany(Teacher::class, 'class_subject_teacher', 'subject_id', 'teacher_id')
-            ->withPivot(['class_id', 'school_id'])
-            ->withTimestamps();
+        return $this->hasMany(ClassSubjectTeacher::class, 'class_id');
     }
 
     public function schools()
