@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Admissions\Http\Controllers\AdmissionsController;
 
-Route::middleware(['web', 'set.active.school', 'auth', 'verified', 'team.permission'])->group(function () {
+Route::middleware(['web',  'auth', 'verified', 'set.active.school', 'team.permission'])->prefix('admissions')->name('admissions.')->group(function () {
     Route::get('/', [AdmissionsController::class, 'index'])->name('index');
     Route::get('/create', [AdmissionsController::class, 'create'])->name('create');
     Route::post('/', [AdmissionsController::class, 'store'])->name('store');

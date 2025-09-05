@@ -31,7 +31,7 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
     ->middleware(['auth', 'verified', 'set.active.school', 'team.permission'])
     ->name('dashboard');
 
-Route::middleware(['auth', 'set.active.school', 'team.permission'])->group(function () {
+Route::middleware(['auth', 'set.active.school', 'team.permission'])->prefix('admin')->name('admin.')->group(function () {
 
     // Simple explicit routes instead of resource routes to avoid model binding conflicts
     Route::get('roles', [RoleController::class, 'index']);
