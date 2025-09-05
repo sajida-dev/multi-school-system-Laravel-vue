@@ -17,13 +17,17 @@ const submit = () => {
         },
     });
 };
+const currentYear = new Date().getFullYear();
+
 </script>
 
 <template>
+
     <Head title="Confirm password" />
-    
+
     <div class="min-h-screen bg-purple-800 flex items-center justify-center">
-        <div class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden m-2 md:m-0">
+        <div
+            class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden m-2 md:m-0">
             <!-- Left Panel -->
             <div class="w-full md:w-1/2 bg-purple-900 flex flex-col justify-between p-6 md:p-8 relative">
                 <div>
@@ -39,37 +43,31 @@ const submit = () => {
                         </div>
                     </div>
                 </div>
-                <div class="flex flex-col md:flex-row justify-between text-xs text-purple-200 mt-4 md:mt-6 space-y-2 md:space-y-0">
+                <div
+                    class="flex flex-col md:flex-row justify-between text-xs text-purple-200 mt-4 md:mt-6 space-y-2 md:space-y-0">
                     <span>Multi School System — Education Management</span>
-                    <span>©2024 All Rights Reserved</span>
+                    <span>©{{ currentYear }} All Rights Reserved</span>
                 </div>
             </div>
 
             <!-- Right Panel -->
             <div class="w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-12">
                 <div class="w-full max-w-xs sm:max-w-md">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2 text-center md:text-left">Confirm Password</h2>
-                    <p class="text-gray-500 mb-4 md:mb-6 text-center md:text-left">This is a secure area of the application. Please confirm your password before continuing.</p>
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2 text-center md:text-left">Confirm
+                        Password</h2>
+                    <p class="text-gray-500 mb-4 md:mb-6 text-center md:text-left">This is a secure area of the
+                        application. Please confirm your password before continuing.</p>
 
                     <form @submit.prevent="submit" class="space-y-4">
                         <div>
                             <label class="block text-gray-700 mb-1" for="password">Password</label>
                             <div class="relative">
-                                <input 
-                                    id="password" 
-                                    name="password" 
-                                    v-model="form.password"
-                                    :type="showPassword ? 'text' : 'password'" 
-                                    placeholder="Enter your password" 
-                                    class="w-full px-3 py-2 md:px-4 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" 
-                                    required
-                                    autofocus
-                                >
-                                <button 
-                                    type="button" 
-                                    @click="showPassword = !showPassword"
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                >
+                                <input id="password" name="password" v-model="form.password"
+                                    :type="showPassword ? 'text' : 'password'" placeholder="Enter your password"
+                                    class="w-full px-3 py-2 md:px-4 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+                                    required autofocus>
+                                <button type="button" @click="showPassword = !showPassword"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                                     <Eye v-if="!showPassword" class="w-5 h-5" />
                                     <EyeOff v-else class="w-5 h-5" />
                                 </button>
@@ -77,12 +75,10 @@ const submit = () => {
                             <InputError :message="form.errors.password" />
                         </div>
 
-                        <button 
-                            type="submit" 
-                            :disabled="form.processing"
-                            class="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <span v-if="form.processing" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                        <button type="submit" :disabled="form.processing"
+                            class="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span v-if="form.processing"
+                                class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
                             <span v-else>Confirm Password</span>
                             <ArrowRight v-if="!form.processing" class="w-4 h-4" />
                         </button>

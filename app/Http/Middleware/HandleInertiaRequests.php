@@ -39,7 +39,9 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        if ($user) {
+        if ($user && $user->hasRole('superadmin')) {
+            setPermissionsTeamId(null);
+        } else {
             // Ensure team context is set before fetching roles/permissions
             setPermissionsTeamId(session('active_school_id'));
         }

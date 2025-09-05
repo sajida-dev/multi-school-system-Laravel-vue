@@ -21,6 +21,8 @@ const submit = () => {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+const currentYear = new Date().getFullYear();
+
 </script>
 
 <template>
@@ -41,7 +43,7 @@ const submit = () => {
                 <div
                     class="flex flex-col md:flex-row justify-between text-xs text-purple-200 mt-4 md:mt-6 space-y-2 md:space-y-0">
                     <span>Multi School System — Education Management</span>
-                    <span>©2024 All Rights Reserved</span>
+                    <span>©{{ currentYear }} All Rights Reserved</span>
                 </div>
             </div>
 
