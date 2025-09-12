@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
 use Modules\ResultsPromotions\Models\ExamPaper;
 
+
 class ExamResult extends Model
 {
     protected $guarded = [];
@@ -30,5 +31,9 @@ class ExamResult extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+    public function images()
+    {
+        return $this->hasMany(ExamResultImage::class);
     }
 }

@@ -3,6 +3,7 @@
 namespace Modules\ResultsPromotions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +29,13 @@ class ExamController extends Controller
         $role = $user->roles[0]->name;
         $schoolId = session('active_school_id');
 
-        $exams = Exam::with('examType', 'class', 'section', 'school')->get();
+        $exams = Exam::with('examType', 'class', 'section', 'school')
+            ->withCount('examPapers')
+            ->get()
+            ->map(function ($exam) {
+                $exam->can_be_deleted = $exam->exam_papers_count === 0;
+                return $exam;
+            });
         $examTypes = ExamType::all();
 
         if ($role === 'superadmin') {
@@ -92,22 +99,33 @@ class ExamController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'         => 'required|string',
             'exam_type_id'  => 'required|exists:exam_types,id',
-            'class_id'      => 'required|exists:classes,id',
-            'section_id'    => 'nullable|exists:sections,id',
+            'class_ids' => 'required|array|min:1',
+            'class_ids.*' => 'exists:classes,id',
             'academic_year' => 'required|string',
             'start_date'    => 'required|date',
             'end_date'      => 'required|date',
             'instructions'  => 'nullable|string',
         ]);
         $data['school_id'] = session('active_school_id');
+        $examType = ExamType::find($data['exam_type_id']);
 
         try {
-            DB::transaction(function () use ($data) {
-                Exam::create($data);
+            DB::transaction(function () use ($data, $examType) {
+                foreach ($data['class_ids'] as $classId) {
+                    $class = ClassModel::find($classId);
+                    $sections = $class->sections()->get();
+                    foreach ($sections as $section) {
+                        $examData = [...$data];
+                        $examData['section_id'] = $section->id;
+                        $examData['class_id'] = $classId;
+                        $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$examData['academic_year']})";
+
+                        Exam::create($examData);
+                    }
+                }
             });
-            return redirect()->route('exams.index')->with('success', 'Exam created.');
+            return redirect()->route('exams.index')->with('success', 'Exam created for all selected classes.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Failed: ' . $e->getMessage());
         }
@@ -140,7 +158,6 @@ class ExamController extends Controller
     {
 
         $data = $request->validate([
-            'title'         => 'required|string',
             'exam_type_id'  => 'required|exists:exam_types,id',
             'class_id'      => 'required|exists:classes,id',
             'section_id'    => 'nullable|exists:sections,id',

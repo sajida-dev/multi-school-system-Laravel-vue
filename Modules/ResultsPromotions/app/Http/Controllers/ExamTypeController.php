@@ -4,6 +4,7 @@ namespace Modules\ResultsPromotions\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Modules\ResultsPromotions\app\Models\ExamType;
 
@@ -11,8 +12,12 @@ class ExamTypeController extends Controller
 {
     public function index()
     {
-        $examTypes = ExamType::all();
-
+        $examTypes = ExamType::withCount('exams')
+            ->get()
+            ->map(function ($examType) {
+                $examType->can_be_deleted = $examType->exams_count === 0;
+                return $examType;
+            });
         return Inertia::render('Exams/ExamTypesIndex', [
             'examTypes' => $examTypes,
         ]);
@@ -22,7 +27,12 @@ class ExamTypeController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:255|unique:exam_types,code',
+            'code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('exam_types', 'code')->whereNull('deleted_at'),
+            ],
             'is_final_term' => 'boolean',
         ]);
 
@@ -33,9 +43,15 @@ class ExamTypeController extends Controller
 
     public function update(Request $request, ExamType $examType)
     {
+
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|max:255|unique:exam_types,code,' . $examType->id,
+            'code' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('exam_types', 'code')->whereNull('deleted_at')->ignore($examType->id),
+            ],
             'is_final_term' => 'boolean',
         ]);
 

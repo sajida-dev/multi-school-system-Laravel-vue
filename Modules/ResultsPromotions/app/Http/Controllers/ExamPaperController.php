@@ -20,9 +20,11 @@ class ExamPaperController extends Controller
      */
     public function index()
     {
-        $examPaper = ExamPaper::with('exam', 'paper', 'subject')->get()->map(function ($ep) {
+
+        $examPaper = ExamPaper::with('exam', 'paper', 'subject')->withCount('results')->get()->map(function ($ep) {
             $ep->start_time = Carbon::parse($ep->start_time)->format('H:i');
             $ep->end_time = Carbon::parse($ep->end_time)->format('H:i');
+            $ep->can_be_deleted = $ep->exam->exam_papers_count === 0;
             return [
                 'id' => $ep->id,
                 'exam_date' => $ep->exam_date,

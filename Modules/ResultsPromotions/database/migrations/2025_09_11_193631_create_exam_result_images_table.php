@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('exam_types', function (Blueprint $table) {
+        Schema::create('exam_result_images', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., "1st Term", "Final Term"
-            $table->string('code'); // e.g., "1st_term"
-            $table->boolean('is_final_term')->default(false); // Used in yearly summary
+            $table->foreignId('exam_result_id')->constrained()->onDelete('cascade');
+            $table->string('path');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('exam_types');
+        Schema::dropIfExists('exam_result_images');
     }
 };

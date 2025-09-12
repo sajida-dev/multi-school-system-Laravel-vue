@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger("school_id");
             $table->string('title'); // e.g., "Mid Term Examination 2024"
-            $table->foreignId('exam_type_id')->constrained('exam_types');
+            $table->foreignId('exam_type_id')->constrained('exam_types')->onDelete('restrict')->onUpdate('cascade');
             $table->unsignedBigInteger('class_id');
             $table->unsignedBigInteger('section_id')->nullable();
             $table->string('academic_year'); // e.g., "2024-2025"

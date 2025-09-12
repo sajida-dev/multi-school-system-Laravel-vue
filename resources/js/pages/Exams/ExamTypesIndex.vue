@@ -24,9 +24,9 @@
                         @click="openEditModal(row)" aria-label="Edit Exam Type" title="Edit">
                         <Icon name="edit" class="w-5 h-5" />
                     </button>
-                    <button v-can="'delete-exam-types'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
-                        @click="handleDelete(row)" aria-label="Delete Exam Type" title="Delete">
+                    <button v-can="'delete-exam-types'" :disabled="row.exams_count > 0"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-red-300 cursor-not-allowed"
+                        :title="row.exams_count > 0 ? `${row.exams_count} exams exist for this type.` : 'Delete exam type'">
                         <Icon name="trash" class="w-5 h-5" />
                     </button>
                 </template>

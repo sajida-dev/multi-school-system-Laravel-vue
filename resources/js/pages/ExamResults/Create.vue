@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { watch, computed } from 'vue';
+import { watch, ref, computed } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
 import TextInput from '@/components/form/TextInput.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
+import { Plus } from 'lucide-vue-next';
 interface Student {
     id: number;
     name: string;
@@ -26,6 +27,7 @@ interface ExamResult {
     status: 'pass' | 'fail' | 'absent';
     promotion_status: 'promoted' | 'failed' | 'pending';
     remarks: string;
+    images?: File[];
 }
 
 interface ExamResultForm {
@@ -44,8 +46,11 @@ interface Props {
     selectedSchoolId?: number;
     selectedClassId?: number;
     selectedExamPaperId?: number;
+    noExamExists: boolean;
+    noExamPapers: boolean;
 }
 const props = defineProps<Props>();
+const studentImagePreviews = ref<Record<number, string[]>>({});
 const form = useForm<ExamResultForm>({
     school_id: props.selectedSchoolId ? String(props.selectedSchoolId) : '',
     class_id: props.selectedClassId ? String(props.selectedClassId) : '',
@@ -58,10 +63,35 @@ const form = useForm<ExamResultForm>({
         promotion_status: 'pending',
         remarks: '',
     })),
+
 });
 
 
 const errors = computed(() => form.errors as Record<string, string | undefined>);
+
+function onStudentImagesChange(event: Event, index: number) {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+
+    if (files && files.length > 0) {
+        const fileList = Array.from(files);
+        form.results[index].images = fileList;
+
+        studentImagePreviews.value[index] = fileList.map(file =>
+            URL.createObjectURL(file)
+        );
+    } else {
+        form.results[index].images = [];
+        studentImagePreviews.value[index] = [];
+    }
+}
+
+function removeStudentImage(studentIndex: number, imageIndex: number) {
+    if (!form.results[studentIndex]?.images) return;
+
+    form.results[studentIndex].images?.splice(imageIndex, 1);
+    studentImagePreviews.value[studentIndex]?.splice(imageIndex, 1);
+}
 
 function onSchoolChange() {
     form.class_id = '';
@@ -98,8 +128,29 @@ function submitForm() {
     });
 
     if (!valid) return;
+    const formData = new FormData();
 
-    form.post(route('exam-results.store'), {
+    formData.append('school_id', form.school_id);
+    formData.append('class_id', form.class_id);
+    formData.append('exam_paper_id', form.exam_paper_id);
+
+    form.results.forEach((result, i) => {
+        formData.append(`results[${i}][student_id]`, String(result.student_id));
+        formData.append(`results[${i}][obtained_marks]`, result.obtained_marks);
+        formData.append(`results[${i}][total_marks]`, result.total_marks);
+        formData.append(`results[${i}][status]`, result.status);
+        formData.append(`results[${i}][promotion_status]`, result.promotion_status);
+        formData.append(`results[${i}][remarks]`, result.remarks);
+
+        if (result.images?.length) {
+            result.images.forEach((file, j) => {
+                formData.append(`results[${i}][images][${j}]`, file);
+            });
+        }
+    });
+
+    router.post(route('exam-results.store'), formData, {
+        forceFormData: true,
         onSuccess: () => toast.success('Results saved successfully!'),
         onError: (errors) => {
             Object.values(errors).flat().forEach(message => {
@@ -107,6 +158,15 @@ function submitForm() {
             });
         },
     });
+
+    // form.post(route('exam-results.store'), {
+    //     onSuccess: () => toast.success('Results saved successfully!'),
+    //     onError: (errors) => {
+    //         Object.values(errors).flat().forEach(message => {
+    //             if (typeof message === 'string') toast.error(message);
+    //         });
+    //     },
+    // });
 }
 watch(() => props.students, (newStudents) => {
     form.results = newStudents.map(student => ({
@@ -116,8 +176,10 @@ watch(() => props.students, (newStudents) => {
         status: 'pass',
         promotion_status: 'pending',
         remarks: '',
+        images: [],
     }));
 }, { immediate: true });
+
 function getResultFieldError(index: number, field: keyof ExamResult): string | undefined {
     const key = `results.${index}.${field}` as keyof typeof form.errors;
     return form.errors[key] as string | undefined;
@@ -126,12 +188,37 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
 
 <template>
     <AppLayout>
-        <div class="max-w-7xl mx-auto w-full px-4 py-8">
+        <div class="max-w-7xl mx-auto w-full px-4 py-10">
             <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Enter Subject Exam Results</h1>
                     <Button variant="outline" @click="$inertia.visit(route('exam-results.index'))">Back</Button>
                 </div>
+                <div v-if="noExamExists"
+                    class="text-center flex flex-col items-center gap-4 my-6 p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                    <span> ⚠️ No exam has been created for this class yet. Please schedule an exam before entering
+                        results.</span>
+                    <Button v-can="'create-exams'" variant="default" size="sm" class="px-4 py-2 text-sm"
+                        @click="router.visit(route('exams.index'))">
+                        <Plus class="w-4 h-4 mr-2" />
+                        Add Exams
+                    </Button>
+                </div>
+
+                <div v-else-if="noExamPapers"
+                    class="text-center flex flex-col items-center gap-4 my-6 p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                    <span> ⚠️ The selected exam does not have any subjects added yet. Please add exam papers before
+                        entering results.</span>
+                    <Button v-can="'create-exam-papers'" variant="default" size="sm" class="px-4 py-2 text-sm"
+                        @click="router.visit(route('exam-papers.index'))">
+                        <Plus class="w-4 h-4 mr-2" />
+                        Add Exam Paper
+                    </Button>
+                </div>
+
+
+
+
 
                 <form @submit.prevent="submitForm" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -149,7 +236,7 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                         <!-- Exam Paper -->
                         <SelectInput id="exam_paper_id" v-model="form.exam_paper_id" label="Exam Paper"
                             class="col-span-2"
-                            :options="props.examPapers.map(e => ({ label: `${e.subject.name} - ${e.exam.title} - ${e.paper.title}`, value: String(e.id) }))"
+                            :options="props.examPapers.map(e => ({ label: `${e.subject.name} - ${e.exam.title} `, value: String(e.id) }))"
                             placeholder="Select Exam Paper" :disabled="!form.class_id" :error="errors.exam_paper_id"
                             @change="onExamPaperChange" />
                     </div>
@@ -166,6 +253,7 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                     <th class="p-2 text-sm">Status</th>
                                     <th class="p-2 text-sm">Promotion</th>
                                     <th class="p-2 text-sm">Remarks</th>
+                                    <th class="p-2 text-sm">Paper Image(s)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -213,7 +301,18 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                         <TextInput v-model="result.remarks" type="text" class="w-full"
                                             :error="getResultFieldError(index, 'remarks')" placeholder="Remarks" />
                                     </td>
+                                    <!-- Paper Image Upload -->
+                                    <td class="p-2 text-sm">
+                                        <input type="file" multiple accept="image/*"
+                                            @change="(e) => onStudentImagesChange(e, index)"
+                                            class="block w-full text-sm file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-neutral-800 dark:file:text-neutral-200 dark:hover:file:bg-neutral-700" />
+                                        <div v-if="form.results[index].images?.length"
+                                            class="text-xs text-gray-500 mt-1">
+                                            {{ form.results[index].images.length }} image(s) selected
+                                        </div>
+                                    </td>
                                 </tr>
+
                             </tbody>
 
                         </table>

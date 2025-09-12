@@ -7,16 +7,25 @@ defineProps<{
     items: NavItem[];
 }>();
 
+const currentPath = window.location.pathname.replace(/\/+$/, '');
 
-const page = usePage();
+const isActive = (item: NavItem): boolean => {
+    const pathsToMatch = item.matchRoutes ?? [item.href];
+    return pathsToMatch.some((route) => {
+        const normalizedRoute = route.replace(/\/+$/, '');
+        return (
+            currentPath === normalizedRoute ||
+            currentPath.startsWith(normalizedRoute + '/')
+        );
+    });
+};
 </script>
 <template>
     <SidebarGroup class="px-2 py-0 text-white">
         <SidebarGroupLabel>Main Navigation</SidebarGroupLabel>
         <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
-                <SidebarMenuButton as-child :is-active="page.url.split('?')[0].startsWith(item.href)"
-                    :tooltip="item.title">
+                <SidebarMenuButton as-child :is-active="isActive(item)" :tooltip="item.title">
                     <Link :href="item.href">
                     <component :is="item.icon" class="size-4" />
                     <span>{{ item.title }}</span>

@@ -162,7 +162,10 @@ const togglePermission = async (role: Role, perm: Permission) => {
             updating.value[key] = false
             updated.value[key] = true
             setTimeout(() => { updated.value[key] = false }, 1200)
-            router.visit(route('roles.settings'))
+            router.visit(route('roles.settings'), {
+                preserveState: true,
+                preserveScroll: true,
+            })
         },
         onError: (errors: any) => {
             updating.value[key] = false

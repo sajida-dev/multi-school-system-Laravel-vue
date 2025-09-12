@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Modules\Admissions\App\Models\Student;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\app\Models\Section;
+use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\ResultsPromotions\app\Models\ExamResult;
 use Modules\ResultsPromotions\app\Models\ExamType;
 use Modules\ResultsPromotions\Models\ExamPaper;
@@ -19,74 +20,6 @@ class ExamResultController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // public function index(Request $request)
-    // {
-    //     $schoolId = session('active_school_id');
-
-    //     // Get classes for the current school
-    //     $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
-    //         $q->where('schools.id', $schoolId);
-    //     })->orderBy('name')->get(['id', 'name']);
-
-    //     // Get sections for the current school
-    //     $sections = Section::whereIn('id', function ($query) use ($schoolId) {
-    //         $query->select('class_school_sections.section_id')
-    //             ->from('class_school_sections')
-    //             ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
-    //             ->where('class_schools.school_id', $schoolId);
-    //     })->orderBy('name')->get(['id', 'name']);
-
-    //     // Get selected filters
-    //     $selectedClass = $request->input('class_id');
-    //     $selectedSection = $request->input('section_id');
-    //     $selectedTerm = $request->input('term', '1st_term');
-
-    //     $results = collect();
-
-    //     if ($selectedClass) {
-    //         // Get students with their results
-    //         $students = Student::whereHas('class', function ($q) use ($selectedClass) {
-    //             $q->where('classes.id', $selectedClass);
-    //         })
-    //             ->when($selectedSection, function ($q) use ($selectedSection) {
-    //                 $q->whereHas('section', function ($sq) use ($selectedSection) {
-    //                     $sq->where('sections.id', $selectedSection);
-    //                 });
-    //             })
-    //             ->where('school_id', $schoolId)
-    //             ->with(['class', 'section', 'results' => function ($q) use ($selectedTerm) {
-    //                 $q->where('term', $selectedTerm);
-    //             }])
-    //             ->orderBy('registration_number')
-    //             ->get();
-
-    //         foreach ($students as $student) {
-    //             $results->push([
-    //                 'student' => $student,
-    //                 'results' => $student->results,
-    //                 'total_marks' => $student->results->sum('obtained_marks'),
-    //                 'total_possible_marks' => $student->results->sum('total_marks'),
-    //                 'percentage' => $student->results->count() > 0 ?
-    //                     round(($student->results->sum('obtained_marks') / $student->results->sum('total_marks')) * 100, 2) : 0,
-    //             ]);
-    //         }
-    //     }
-
-    //     return Inertia::render('ExamResults/Index', [
-    //         'classes' => $classes,
-    //         'sections' => $sections,
-    //         'results' => $results,
-    //         'selectedClass' => $selectedClass,
-    //         'selectedSection' => $selectedSection,
-    //         'selectedTerm' => $selectedTerm,
-    //         'terms' => [
-    //             '1st_term' => '1st Term',
-    //             '2nd_term' => '2nd Term',
-    //             '3rd_term' => '3rd Term',
-    //             'final' => 'Final Term'
-    //         ],
-    //     ]);
-    // }
 
     public function index(Request $request)
     {
@@ -189,6 +122,26 @@ class ExamResultController extends Controller
             ->get()
             : [];
 
+        $exam = ($classId)
+            ? Exam::where('class_id', $classId)
+            ->where('school_id', $schoolId)
+            ->latest('start_date') // optional: fetch the most recent one
+            ->first()
+            : null;
+
+        $noExamExists = false;
+        $noExamPapers = false;
+
+        if ($classId) {
+            if (!$exam) {
+                // CASE 1: No exam exists
+                $noExamExists = true;
+            } elseif ($examPapers->isEmpty()) {
+                // CASE 2: Exam exists but has no papers
+                $noExamPapers = true;
+            }
+        }
+
         return Inertia::render('ExamResults/Create', [
             'schools' => $schools,
             'classes' => $classes,
@@ -197,6 +150,8 @@ class ExamResultController extends Controller
             'selectedSchoolId' => $schoolId,
             'selectedClassId' => $classId,
             'selectedExamPaperId' => $examPaperId,
+            'noExamExists' => $noExamExists,
+            'noExamPapers' => $noExamPapers,
         ]);
     }
 
@@ -218,8 +173,16 @@ class ExamResultController extends Controller
             'results.*.remarks' => 'nullable|string|max:500',
         ]);
 
-        foreach ($request->results as $result) {
-            ExamResult::updateOrCreate(
+        foreach ($request->results as $i => $result) {
+            $images = [];
+
+            if ($request->hasFile("results.$i.images")) {
+                foreach ($request->file("results.$i.images") as $imageFile) {
+                    $images[] = $imageFile->store('exam-results', 'public');
+                }
+            }
+
+            $examResult = ExamResult::updateOrCreate(
                 [
                     'exam_paper_id' => $request->exam_paper_id,
                     'student_id' => $result['student_id'],
@@ -236,6 +199,14 @@ class ExamResultController extends Controller
                     'marked_by' => Auth::id(),
                 ]
             );
+
+            if (!empty($images)) {
+                foreach ($images as $path) {
+                    $examResult->images()->create([
+                        'path' => $path,
+                    ]);
+                }
+            }
         }
 
         return redirect()->route('exam-results.index')->with('success', 'Exam results saved successfully.');

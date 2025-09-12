@@ -22,17 +22,21 @@
                 </template>
                 <template #item-marks="row">{{ row.passing_marks }} / {{ row.total_marks }}</template>
                 <template #item-actions="row">
-                    {{ console.log('row : ', row) }}
                     <button v-can="'update-exam-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="openEditModal(row)" title="Edit" aria-label="Edit Exam Paper">
                         <Icon name="edit" class="w-5 h-5" />
                     </button>
-                    <button v-can="'delete-exam-papers'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
-                        @click="handleDelete(row)" title="Delete" aria-label="Delete Exam Paper">
+                    <button v-can="'delete-exam-papers'" :disabled="!row.can_be_deleted"
+                        class="inline-flex items-center justify-center rounded-full p-2" :class="row.can_be_deleted
+                            ? 'text-red-500 focus:ring-2 focus:ring-red-400'
+                            : 'text-red-300 cursor-not-allowed'" :title="row.can_be_deleted
+                                ? 'Delete Exam Paper'
+                                : `${row.exam_results_count} result(s) linked. Cannot delete.`"
+                        @click="row.can_be_deleted && handleDelete(row)" aria-label="Delete Exam Paper">
                         <Icon name="trash" class="w-5 h-5" />
                     </button>
+
                 </template>
             </BaseDataTable>
         </div>
@@ -44,16 +48,17 @@
                     <DialogTitle>{{ isEdit ? 'Edit Exam Paper' : 'Add Exam Paper' }}</DialogTitle>
                 </DialogHeader>
                 <form @submit.prevent="handleSubmit" class="space-y-6">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Exam -->
-                        <SelectInput id="exam_id" v-model="form.exam_id" label="Exam" required
-                            :options="exams.map(ex => ({ label: ex.title, value: ex.id }))" placeholder="Select Exam"
-                            :error="form.errors.exam_id" />
+                    <!-- Exam -->
+                    <SelectInput id="exam_id" v-model="form.exam_id" label="Exam" required
+                        :options="exams.map(ex => ({ label: ex.title, value: ex.id }))" placeholder="Select Exam"
+                        :error="form.errors.exam_id" />
 
-                        <!-- Paper -->
-                        <SelectInput id="paper_id" v-model="form.paper_id" label="Paper" required
-                            :options="papers.map(p => ({ label: p.title, value: p.id }))" placeholder="Select Paper"
-                            :error="form.errors.paper_id" />
+                    <!-- Paper -->
+                    <SelectInput id="paper_id" v-model="form.paper_id" label="Paper" required
+                        :options="papers.map(p => ({ label: p.title, value: p.id }))" placeholder="Select Paper"
+                        :error="form.errors.paper_id" />
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                         <!-- Subject -->
                         <SelectInput id="subject_id" v-model="form.subject_id" label="Subject" required
@@ -244,7 +249,7 @@ function handleDelete(row: { value: ExamPaper }) {
 
 function confirmDelete() {
     if (!itemToDelete.value) return;
-
+    console.log('itemToDelete.value', itemToDelete.value);
     form.processing = true;
 
     router.delete(`/exam-papers/${itemToDelete.value.id}`, {

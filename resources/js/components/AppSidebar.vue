@@ -9,7 +9,6 @@ import { usePermissions } from '@/composables/usePermissions';
 
 const { can } = usePermissions();
 import {
-    BookOpen,
     Building2,
     GraduationCap,
     Users,
@@ -17,12 +16,10 @@ import {
     UserPlus,
     CreditCard,
     FileText,
-    ClipboardList,
     BarChart3,
     Receipt,
     Award,
     LayoutGrid,
-    Settings,
     BookOpenCheck,
     CalendarCheck
 } from 'lucide-vue-next';
@@ -99,6 +96,11 @@ const mainNavItems: NavItem[] = [
         href: '/exams',
         icon: Receipt,
         permission: 'manage-exams',
+        matchRoutes: [
+            '/exams',
+            '/exam-types',
+            '/exam-papers'
+        ]
     },
     {
         title: 'Manage Results',
@@ -106,18 +108,18 @@ const mainNavItems: NavItem[] = [
         icon: BarChart3,
         permission: 'manage-exam-results'
     },
-    // {
-    //     title: 'Manage Reports',
-    //     href: '/reports',
-    //     icon: BarChart3,
-    // permission: 'manage-reports',
-    // },
-    // {
-    //     title: 'Manage Certificates',
-    //     href: '/certificates',
-    //     icon: Award,
-    // permission: 'manage-certificates',
-    // },
+    {
+        title: 'Manage Reports',
+        href: '/reports',
+        icon: BarChart3,
+        permission: 'manage-reports',
+    },
+    {
+        title: 'Manage Certificates',
+        href: '/certificates',
+        icon: Award,
+        permission: 'manage-certificates',
+    },
 ];
 
 const footerNavItems: NavItem[] = [];

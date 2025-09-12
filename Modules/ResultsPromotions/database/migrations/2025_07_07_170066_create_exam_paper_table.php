@@ -22,10 +22,11 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('exam_id')->references('id')->on('exams')->onDelete('cascade');
-            $table->foreign('paper_id')->references('id')->on('papers')->onDelete('cascade');
+            $table->foreign('exam_id')->references('id')->on('exams')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('paper_id')->references('id')->on('papers')->onDelete('restrict')->onUpdate('cascade');
+            $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('restrict')->onUpdate('cascade');
             // $table->unique(['exam_id', 'paper_id']); // one paper per exam
-            // $table->index(['exam_id', 'exam_date']);
+            $table->index(['exam_id', 'exam_date']);
         });
     }
 

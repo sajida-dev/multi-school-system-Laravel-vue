@@ -29,12 +29,14 @@
                     <button v-can="'update-exams'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="openEditModal(row)" aria-label="Edit Exam" title="Edit">
-                        <Icon name="edit" class="w-5 h-5" />
+                        <Edit class="w-5 h-5" />
                     </button>
-                    <button v-can="'delete-exams'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
-                        @click="handleDelete(row)" aria-label="Delete Exam" title="Delete">
-                        <Icon name="trash" class="w-5 h-5" />
+                    <button v-can="'delete-exams'" :disabled="!row.can_be_deleted"
+                        class="inline-flex items-center justify-center rounded-full p-2"
+                        :class="row.can_be_deleted ? 'text-red-500 focus:ring-red-400' : 'text-red-300 cursor-not-allowed'"
+                        :title="row.can_be_deleted ? 'Delete Exam' : `${row.exam_papers_count} papers submitted. Cannot delete.`"
+                        @click="row.can_be_deleted && handleDelete(row)" aria-label="Delete Exam">
+                        <Trash class="w-5 h-5" />
                     </button>
                 </template>
             </BaseDataTable>
@@ -48,28 +50,38 @@
                 </DialogHeader>
                 <form @submit.prevent="handleSubmit" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Title -->
-                        <TextInput id="title" v-model="form.title" label="Title" placeholder="Exam Title" required
-                            :error="form.errors.title" />
 
                         <!-- Exam Type -->
                         <SelectInput id="exam_type_id" v-model="form.exam_type_id" label="Exam Type" required
                             :options="examTypes.map((et) => ({ label: et.name, value: et.id }))"
                             placeholder="Select Type" :error="form.errors.exam_type_id" />
 
-                        <!-- Class -->
-                        <SelectInput id="class_id" v-model="form.class_id" label="Class"
-                            :options="classes.map((cls) => ({ label: cls.name, value: cls.id }))" required
-                            placeholder="Select Class" :error="form.errors.class_id" />
-
-                        <!-- Section -->
-                        <SelectInput id="section_id" v-model="form.section_id" label="Section"
-                            :options="[...sections.map((sec) => ({ label: sec.name, value: sec.id }))]" required
-                            placeholder="Select Section" :error="form.errors.section_id" />
 
                         <!-- Academic Year -->
                         <TextInput id="academic_year" v-model="form.academic_year" label="Academic Year" required
                             placeholder="2024-2025" :error="form.errors.academic_year" />
+
+
+                        <!-- Multi-Class Checkboxes -->
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
+                                Select Classes <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex flex-wrap gap-3">
+                                <label v-for="cls in classes" :key="cls.id"
+                                    class="cursor-pointer px-4 py-2 rounded-lg border transition-all duration-200 text-sm select-none"
+                                    :class="form.class_ids.includes(cls.id)
+                                        ? 'bg-blue-300 text-white border-blue-600'
+                                        : 'bg-transparent text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-neutral-800'">
+                                    <input type="checkbox" :value="cls.id" v-model="form.class_ids" class="hidden" />
+                                    {{ cls.name }}
+                                </label>
+                            </div>
+                            <p v-if="form.errors.class_ids" class="text-red-500 text-sm mt-1">
+                                {{ form.errors.class_ids }}
+                            </p>
+                        </div>
+
 
                         <!-- Start Date -->
                         <TextInput id="start_date" v-model="form.start_date" label="Start Date" type="date" required
@@ -127,12 +139,12 @@ import { toast } from 'vue3-toastify';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import Icon from '@/components/Icon.vue';
 import TextInput from '@/components/form/TextInput.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
 import ManageLayout from './ManageLayout.vue';
 import axios from 'axios';
 import { ExamType } from '@/types';
+import { Edit, Trash } from 'lucide-vue-next';
 
 interface SelectOption { id: number; name: string; }
 interface Class {
@@ -146,6 +158,8 @@ interface Section {
 interface Exam {
     id: number;
     title: string;
+    class_id: number;
+    section_id?: number;
     academic_year: string;
     start_date: string;
     end_date: string;
@@ -203,20 +217,15 @@ const itemToDelete = ref<Exam | null>(null);
 // useForm from Inertia for reactive form with errors and submission helpers
 const form = useForm({
     id: null as number | null,
-    title: '',
     exam_type_id: '' as string | number | '',
     class_id: '' as string | number | '',
-    section_id: '' as string | number | '',
+    class_ids: [] as number[],
     academic_year: '',
     start_date: '',
     end_date: '',
     instructions: '',
 });
 
-watch(() => form.class_id, (newClassId) => {
-    form.section_id = '';
-    fetchSections(newClassId);
-}, { immediate: true });
 
 const headers = [
     { text: 'ID', value: 'id' },
@@ -236,22 +245,20 @@ function openCreateModal() {
     modalOpen.value = true;
 }
 
-function openEditModal(row: { value: Exam }) {
+function openEditModal(row: Exam) {
     isEdit.value = true;
-    editingItem.value = row.value;
+    editingItem.value = row;
     form.reset(); // clear errors and reset to defaults
-    Object.assign(form.data, {
-        id: row.value.id,
-        title: row.value.title,
-        exam_type_id: row.value.exam_type.id ?? '',
-        class_id: row.value.class.id ?? '',
-        section_id: row.value.section?.id ?? '',
-        academic_year: row.value.academic_year,
-        start_date: row.value.start_date,
-        end_date: row.value.end_date,
-        instructions: row.value.instructions ?? '',
-    });
-    modalOpen.value = true;
+
+    form.id = row.id,
+        form.exam_type_id = row.exam_type.id ?? '',
+        form.class_id = row.class_id,
+        form.academic_year = row.academic_year,
+        form.start_date = row.start_date,
+        form.end_date = row.end_date,
+        form.instructions = row.instructions ?? '',
+
+        modalOpen.value = true;
 }
 
 function closeModal() {
@@ -263,10 +270,8 @@ function handleSubmit() {
 
     // Normalize empty string to null for backend
     const payload = {
-        title: form.title,
         exam_type_id: form.exam_type_id === '' ? null : form.exam_type_id,
-        class_id: form.class_id === '' ? null : form.class_id,
-        section_id: form.section_id === '' ? null : form.section_id,
+        class_ids: form.class_ids.length > 0 ? form.class_ids : null,
         academic_year: form.academic_year,
         start_date: form.start_date,
         end_date: form.end_date,
@@ -275,6 +280,7 @@ function handleSubmit() {
 
     if (isEdit.value && form.id !== null) {
         form.put(`/exams/${form.id}`, {
+
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Exam updated!');
@@ -306,8 +312,8 @@ function handleSubmit() {
     }
 }
 
-function handleDelete(row: { value: Exam }) {
-    itemToDelete.value = row.value;
+function handleDelete(row: Exam) {
+    itemToDelete.value = row;
     showDeleteDialog.value = true;
 }
 

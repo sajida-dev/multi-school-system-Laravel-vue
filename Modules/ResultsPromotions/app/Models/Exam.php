@@ -28,6 +28,11 @@ class Exam extends Model
         'created_by',
         'updated_by'
     ];
+    public function examPapers()
+    {
+        return $this->hasMany(ExamPaper::class);
+    }
+
 
     public function examType()
     {
