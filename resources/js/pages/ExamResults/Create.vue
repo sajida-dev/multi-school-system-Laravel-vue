@@ -308,11 +308,8 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                                 @change="(e) => onStudentImagesChange(e, index)" />
                                         </div>
                                     </td>
-
                                 </tr>
-
                             </tbody>
-
                         </table>
                     </div>
 
