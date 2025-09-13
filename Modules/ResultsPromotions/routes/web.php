@@ -10,7 +10,7 @@ use Modules\ResultsPromotions\Http\Controllers\ResultsPromotionsController;
 use Modules\ResultsPromotions\Http\Controllers\TermResultController;
 
 Route::middleware(['auth', 'set.active.school', 'verified', 'team.permission'])->group(function () {
-    // Route::resource('results', ResultsPromotionsController::class)->names('results');
+    Route::put('/exams/{exam}/extend-deadline', [ExamController::class, 'extendDeadline'])->name('exams.extend-deadline');
     Route::resources([
         'exam-types'       => ExamTypeController::class,
         'exams'            => ExamController::class,

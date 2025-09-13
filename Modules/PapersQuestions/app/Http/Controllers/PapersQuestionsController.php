@@ -13,6 +13,7 @@ use Modules\Teachers\Models\Teacher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Modules\ClassesSections\App\Models\Subject;
 use Modules\Schools\App\Models\School;
 
 class PapersQuestionsController extends Controller
@@ -223,7 +224,6 @@ class PapersQuestionsController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
             'class_id' => 'required|exists:classes,id',
             'section_id' => 'nullable|exists:sections,id',
             'teacher_id' => 'required|exists:teachers,id',
@@ -252,12 +252,26 @@ class PapersQuestionsController extends Controller
                 return back()->withErrors(['error' => 'You are not assigned to teach any subject for this class.'])->withInput();
             }
         }
+        $class = ClassModel::find($request->class_id);
+        $subject = Subject::find($subjectId);
 
+        $titleParts = [];
+
+        if ($subject) {
+            $titleParts[] = $subject->name;
+        }
+
+        $titleParts[] = 'Mids Exam Paper';
+        if ($class) {
+            $titleParts[] = 'Class ' . $class->name;
+        }
+
+        $generatedTitle = implode(' - ', $titleParts);
         try {
             DB::beginTransaction();
 
             $paper = Paper::create([
-                'title' => $request->title,
+                'title' => $generatedTitle,
                 'class_id' => $request->class_id,
                 'school_id' => $schoolId,
                 'section_id' => $request->section_id,

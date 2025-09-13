@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('academic_year'); // e.g., "2024-2025"
             $table->date('start_date');
             $table->date('end_date');
+            $table->dateTime('result_entry_deadline')->nullable();
             $table->enum('status', ['scheduled', 'in_progress', 'completed', 'cancelled'])->default('scheduled');
             $table->text('instructions')->nullable();
             $table->timestamps();

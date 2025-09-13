@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // subject result definition for single class
+        // subject result definition for single subject
         Schema::create('exam_results', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('exam_paper_id');

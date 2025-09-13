@@ -57,7 +57,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'publish-papers',
             'approve-teachers',
             'reset-passwords',
-            'show-passwords'
+            'show-passwords',
+            'extend-exams',
         ];
         foreach ($modules as $module) {
             foreach ($actions as $action) {

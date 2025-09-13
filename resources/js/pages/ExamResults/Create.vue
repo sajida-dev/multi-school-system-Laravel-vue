@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, ref, computed } from 'vue';
+import { watch, ref, computed, reactive } from 'vue';
 import { router, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -24,8 +24,6 @@ interface ExamResult {
     student_id: number;
     obtained_marks: string;
     total_marks: string;
-    status: 'pass' | 'fail' | 'absent';
-    promotion_status: 'promoted' | 'failed' | 'pending';
     remarks: string;
     images?: File[];
 }
@@ -59,38 +57,35 @@ const form = useForm<ExamResultForm>({
         student_id: student.id,
         obtained_marks: '',
         total_marks: '100',
-        status: 'pass',
-        promotion_status: 'pending',
         remarks: '',
     })),
 
 });
+const fileInputs = reactive<Record<number, HTMLInputElement | null>>({});
 
+function triggerFileInput(index: number) {
+    const input = fileInputs[index];
+    if (input) input.click();
+}
 
 const errors = computed(() => form.errors as Record<string, string | undefined>);
-
 function onStudentImagesChange(event: Event, index: number) {
     const target = event.target as HTMLInputElement;
     const files = target.files;
 
     if (files && files.length > 0) {
-        const fileList = Array.from(files);
-        form.results[index].images = fileList;
-
-        studentImagePreviews.value[index] = fileList.map(file =>
-            URL.createObjectURL(file)
-        );
+        const file = files[0]; // only allow 1 image
+        form.results[index].images = [file];
+        studentImagePreviews.value[index] = [URL.createObjectURL(file)];
     } else {
         form.results[index].images = [];
         studentImagePreviews.value[index] = [];
     }
 }
 
-function removeStudentImage(studentIndex: number, imageIndex: number) {
-    if (!form.results[studentIndex]?.images) return;
-
-    form.results[studentIndex].images?.splice(imageIndex, 1);
-    studentImagePreviews.value[studentIndex]?.splice(imageIndex, 1);
+function removeStudentImage(index: number) {
+    form.results[index].images = [];
+    studentImagePreviews.value[index] = [];
 }
 
 function onSchoolChange() {
@@ -138,8 +133,6 @@ function submitForm() {
         formData.append(`results[${i}][student_id]`, String(result.student_id));
         formData.append(`results[${i}][obtained_marks]`, result.obtained_marks);
         formData.append(`results[${i}][total_marks]`, result.total_marks);
-        formData.append(`results[${i}][status]`, result.status);
-        formData.append(`results[${i}][promotion_status]`, result.promotion_status);
         formData.append(`results[${i}][remarks]`, result.remarks);
 
         if (result.images?.length) {
@@ -173,8 +166,6 @@ watch(() => props.students, (newStudents) => {
         student_id: student.id,
         obtained_marks: '',
         total_marks: '100',
-        status: 'pass',
-        promotion_status: 'pending',
         remarks: '',
         images: [],
     }));
@@ -184,6 +175,9 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
     const key = `results.${index}.${field}` as keyof typeof form.errors;
     return form.errors[key] as string | undefined;
 }
+
+
+
 </script>
 
 <template>
@@ -248,10 +242,10 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                 <tr class="bg-gray-100 dark:bg-neutral-800 text-left">
                                     <th class="p-2 text-sm">#</th>
                                     <th class="p-2 text-sm">Student</th>
-                                    <th class="p-2 text-sm">Obtained Marks</th>
+                                    <th class="p-2 text-sm flex border border-amber-300">Obtained Marks <span
+                                            class="text-red-500">*</span>
+                                    </th>
                                     <th class="p-2 text-sm">Total Marks</th>
-                                    <th class="p-2 text-sm">Status</th>
-                                    <th class="p-2 text-sm">Promotion</th>
                                     <th class="p-2 text-sm">Remarks</th>
                                     <th class="p-2 text-sm">Paper Image(s)</th>
                                 </tr>
@@ -277,25 +271,6 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                             :error="getResultFieldError(index, 'total_marks')" placeholder="100" />
                                     </td>
 
-                                    <!-- Status -->
-                                    <td class="p-2">
-                                        <SelectInput v-model="result.status" :options="[
-                                            { label: 'Pass', value: 'pass' },
-                                            { label: 'Fail', value: 'fail' },
-                                            { label: 'Absent', value: 'absent' }
-                                        ]" placeholder="Select Status" :error="getResultFieldError(index, 'status')" />
-                                    </td>
-
-                                    <!-- Promotion Status -->
-                                    <td class="p-2">
-                                        <SelectInput v-model="result.promotion_status" :options="[
-                                            { label: 'Pending', value: 'pending' },
-                                            { label: 'Promoted', value: 'promoted' },
-                                            { label: 'Failed', value: 'failed' }
-                                        ]" placeholder="Promotion"
-                                            :error="getResultFieldError(index, 'promotion_status')" />
-                                    </td>
-
                                     <!-- Remarks -->
                                     <td class="p-2">
                                         <TextInput v-model="result.remarks" type="text" class="w-full"
@@ -303,14 +278,37 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                     </td>
                                     <!-- Paper Image Upload -->
                                     <td class="p-2 text-sm">
-                                        <input type="file" multiple accept="image/*"
-                                            @change="(e) => onStudentImagesChange(e, index)"
-                                            class="block w-full text-sm file:mr-4 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-neutral-800 dark:file:text-neutral-200 dark:hover:file:bg-neutral-700" />
-                                        <div v-if="form.results[index].images?.length"
-                                            class="text-xs text-gray-500 mt-1">
-                                            {{ form.results[index].images.length }} image(s) selected
+                                        <div class="relative border-2 border-dashed rounded-md min-h-[100px] w-28 flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all"
+                                            @click="triggerFileInput(index)">
+                                            <!-- Show image preview -->
+                                            <template v-if="studentImagePreviews[index]?.length">
+                                                <div class="w-24 h-24 overflow-hidden rounded border relative group">
+                                                    <img :src="studentImagePreviews[index][0]"
+                                                        class="w-full h-full object-cover" alt="Preview" />
+                                                    <!-- Remove button -->
+                                                    <button type="button"
+                                                        class="absolute top-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-bl"
+                                                        @click.stop="removeStudentImage(index)">
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </template>
+
+                                            <!-- Placeholder if no image -->
+                                            <template v-else>
+                                                <div class="text-gray-500 text-center text-xs px-2">
+                                                    <p><strong>Upload</strong></p>
+                                                    <p class="text-[10px] mt-1">Click to add image</p>
+                                                </div>
+                                            </template>
+
+                                            <!-- Hidden file input -->
+                                            <input type="file" accept="image/*" class="hidden"
+                                                :ref="el => (fileInputs[index] = el as HTMLInputElement | null)"
+                                                @change="(e) => onStudentImagesChange(e, index)" />
                                         </div>
                                     </td>
+
                                 </tr>
 
                             </tbody>

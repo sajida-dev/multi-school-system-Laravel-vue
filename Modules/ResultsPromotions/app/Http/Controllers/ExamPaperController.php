@@ -21,10 +21,11 @@ class ExamPaperController extends Controller
     public function index()
     {
 
-        $examPaper = ExamPaper::with('exam', 'paper', 'subject')->withCount('results')->get()->map(function ($ep) {
+        $examPaper = ExamPaper::with('exam', 'paper.subject')->withCount('results')->get()->map(function ($ep) {
             $ep->start_time = Carbon::parse($ep->start_time)->format('H:i');
             $ep->end_time = Carbon::parse($ep->end_time)->format('H:i');
-            $ep->can_be_deleted = $ep->exam->exam_papers_count === 0;
+            $ep->can_be_deleted = $ep->results_count === 0;
+
             return [
                 'id' => $ep->id,
                 'exam_date' => $ep->exam_date,
@@ -43,7 +44,9 @@ class ExamPaperController extends Controller
                 'subject' => [
                     'id' => $ep->subject->id,
                     'name' => $ep->subject->name,
-                ]
+                ],
+                'can_be_deleted' => $ep->results_count === 0,
+
             ];
         });
 
@@ -51,7 +54,6 @@ class ExamPaperController extends Controller
             'examPapers' => $examPaper,
             'exams' => Exam::select('id', 'title')->get(),
             'papers' => Paper::select('id', 'title')->get(),
-            'subjects' => Subject::select('id', 'name')->get(),
         ]);
     }
 
@@ -63,7 +65,6 @@ class ExamPaperController extends Controller
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'paper_id' => 'required|exists:papers,id',
-            'subject_id' => 'required|exists:subjects,id',
             'exam_date' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after_or_equal:start_time',
@@ -78,7 +79,7 @@ class ExamPaperController extends Controller
             // Convert times to 24-hour format for DB storage
             $validated['start_time'] = Carbon::createFromFormat('H:i', $validated['start_time'])->format('H:i');
             $validated['end_time'] = Carbon::createFromFormat('H:i', $validated['end_time'])->format('H:i');
-
+            $validated['subject_id'] = Paper::find($validated['paper_id'])->subject_id;
             ExamPaper::create($validated);
 
             DB::commit();

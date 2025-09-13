@@ -26,6 +26,14 @@
                     {{ row.start_date }} – {{ row.end_date }}
                 </template>
                 <template #item-actions="row">
+                    <!-- extend result entry deadline -->
+                    <!-- v-can="'extend-exams'" -->
+
+                    <button v-if="row.status === 'in_progress' || row.status === 'scheduled'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                        @click="openExtendModal(row)" aria-label="Extend Exam" title="Extend Result Entry Deadline">
+                        <RefreshCw class="w-5 h-5" />
+                    </button>
                     <button v-can="'update-exams'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="openEditModal(row)" aria-label="Edit Exam" title="Edit">
@@ -56,12 +64,10 @@
                             :options="examTypes.map((et) => ({ label: et.name, value: et.id }))"
                             placeholder="Select Type" :error="form.errors.exam_type_id" />
 
-
-                        <!-- Academic Year -->
-                        <TextInput id="academic_year" v-model="form.academic_year" label="Academic Year" required
-                            placeholder="2024-2025" :error="form.errors.academic_year" />
-
-
+                        <!-- Result Entry Deadline -->
+                        <TextInput id="result_entry_deadline" type="date" v-model="form.result_entry_deadline"
+                            label="Result Entry Deadline" required placeholder="Select Result Entry Deadline"
+                            :error="form.errors.result_entry_deadline" />
                         <!-- Multi-Class Checkboxes -->
                         <div class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
@@ -111,12 +117,13 @@
                         <Button type="submit" :disabled="loading">
                             {{ isEdit ? 'Update Exam' : 'Create Exam' }}
                         </Button>
+
                     </div>
                 </form>
 
             </DialogContent>
         </Dialog>
-
+        <ExtendDeadlineModal :show="showExtendModal" :exam="selectedExam" @close="showExtendModal = false" />
         <Dialog v-model:open="showDeleteDialog">
             <DialogContent>
                 <DialogHeader>
@@ -144,7 +151,8 @@ import SelectInput from '@/components/form/SelectInput.vue';
 import ManageLayout from './ManageLayout.vue';
 import axios from 'axios';
 import { ExamType } from '@/types';
-import { Edit, Trash } from 'lucide-vue-next';
+import { Edit, RefreshCw, Trash } from 'lucide-vue-next';
+import ExtendDeadlineModal from '@/components/ExtendDeadlineModal.vue';
 
 interface SelectOption { id: number; name: string; }
 interface Class {
@@ -160,7 +168,7 @@ interface Exam {
     title: string;
     class_id: number;
     section_id?: number;
-    academic_year: string;
+    result_entry_deadline: string;
     start_date: string;
     end_date: string;
     status: string;
@@ -181,6 +189,13 @@ const classes = ref<SelectOption[]>([...props.classes]);
 const sections = ref<SelectOption[]>([]);
 const sectionCache = new Map();
 
+const showExtendModal = ref(false)
+const selectedExam = ref<Record<string, any> | undefined>(undefined)
+
+const openExtendModal = (exam: any) => {
+    selectedExam.value = exam
+    showExtendModal.value = true
+}
 
 watch(() => props.exams, (val) => (exams.value = [...val]));
 watch(() => props.examTypes, (val) => (examTypes.value = [...val]));
@@ -220,7 +235,7 @@ const form = useForm({
     exam_type_id: '' as string | number | '',
     class_id: '' as string | number | '',
     class_ids: [] as number[],
-    academic_year: '',
+    result_entry_deadline: '',
     start_date: '',
     end_date: '',
     instructions: '',
@@ -253,7 +268,7 @@ function openEditModal(row: Exam) {
     form.id = row.id,
         form.exam_type_id = row.exam_type.id ?? '',
         form.class_id = row.class_id,
-        form.academic_year = row.academic_year,
+        form.result_entry_deadline = row.result_entry_deadline,
         form.start_date = row.start_date,
         form.end_date = row.end_date,
         form.instructions = row.instructions ?? '',
@@ -272,7 +287,7 @@ function handleSubmit() {
     const payload = {
         exam_type_id: form.exam_type_id === '' ? null : form.exam_type_id,
         class_ids: form.class_ids.length > 0 ? form.class_ids : null,
-        academic_year: form.academic_year,
+        academic_year: form.result_entry_deadline,
         start_date: form.start_date,
         end_date: form.end_date,
         instructions: form.instructions,

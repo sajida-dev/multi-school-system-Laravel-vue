@@ -169,7 +169,6 @@ class ExamResultController extends Controller
             'results.*.obtained_marks' => 'required|numeric|min:0',
             'results.*.total_marks' => 'required|numeric|min:1',
             'results.*.status' => 'required|in:pass,fail,absent',
-            'results.*.promotion_status' => 'required|in:promoted,failed,pending',
             'results.*.remarks' => 'nullable|string|max:500',
         ]);
 
@@ -181,7 +180,23 @@ class ExamResultController extends Controller
                     $images[] = $imageFile->store('exam-results', 'public');
                 }
             }
+            $examPaper = ExamPaper::find($request->exam_paper_id);
+            if ($examPaper->passing_marks < $result['obtained_marks']) {
+                $result['status'] = 'pass';
 
+                if ($result['obtained_marks'] > 90) {
+                    $result['remarks'] = $result['remarks'] ?? 'Excellent';
+                } else if ($result['obtained_marks'] > 80) {
+                    $result['remarks'] = $result['remarks'] ?? 'Very Good';
+                } else if ($result['obtained_marks'] > 70) {
+                    $result['remarks'] = $result['remarks'] ?? 'Good';
+                } else {
+                    $result['remarks'] = $result['remarks'] ?? 'Pass';
+                }
+            } else {
+                $result['status'] = 'fail';
+                $result['remarks'] = $result['remarks'] ?? 'Marks not passed.';
+            }
             $examResult = ExamResult::updateOrCreate(
                 [
                     'exam_paper_id' => $request->exam_paper_id,

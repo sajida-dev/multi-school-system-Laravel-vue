@@ -102,9 +102,9 @@ class ExamController extends Controller
             'exam_type_id'  => 'required|exists:exam_types,id',
             'class_ids' => 'required|array|min:1',
             'class_ids.*' => 'exists:classes,id',
-            'academic_year' => 'required|string',
             'start_date'    => 'required|date',
             'end_date'      => 'required|date',
+            'result_entry_deadline' => 'required|date|after:end_date',
             'instructions'  => 'nullable|string',
         ]);
         $data['school_id'] = session('active_school_id');
@@ -120,7 +120,7 @@ class ExamController extends Controller
                         $examData['section_id'] = $section->id;
                         $examData['class_id'] = $classId;
                         $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$examData['academic_year']})";
-
+                        $examData['academic_year'] = $examData['start_date']->format('Y-y');
                         Exam::create($examData);
                     }
                 }
@@ -171,7 +171,7 @@ class ExamController extends Controller
             DB::transaction(function () use ($exam, $data) {
                 $exam->update($data);
             });
-            return redirect()->route('exams.index')->with('success', 'Updated.');
+            return redirect()->route('exams.index')->with('success', 'Update exam successfully.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Failed: ' . $e->getMessage());
         }
@@ -190,5 +190,19 @@ class ExamController extends Controller
         } catch (\Throwable $e) {
             return back()->with('error', 'Failed to delete: ' . $e->getMessage());
         }
+    }
+
+    public function extendDeadline(Request $request, Exam $exam)
+    {
+        $request->validate([
+            'result_entry_deadline' => 'required|date|after_or_equal:today',
+        ]);
+        $deadline = Carbon::parse($request->result_entry_deadline)->timezone('UTC');
+        $exam->update([
+            'result_entry_deadline' => $deadline,
+            'updated_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('exams.index')->with('success', 'Deadline extended successfully.');
     }
 }
