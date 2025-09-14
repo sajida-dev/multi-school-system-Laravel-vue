@@ -20,6 +20,78 @@ class ExamResultController extends Controller
     /**
      * Display a listing of the resource.
      */
+<<<<<<< HEAD
+
+    // public function index(Request $request)
+    // {
+    //     $schoolId = session('active_school_id');
+
+    //     // Fetch dropdown data
+    //     $classes = ClassModel::whereHas('schools', fn($q) => $q->where('schools.id', $schoolId))
+    //         ->orderBy('name')
+    //         ->get(['id', 'name']);
+
+    //     $sections = Section::whereIn('id', function ($query) use ($schoolId) {
+    //         $query->select('class_school_sections.section_id')
+    //             ->from('class_school_sections')
+    //             ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+    //             ->where('class_schools.school_id', $schoolId);
+    //     })->orderBy('name')->get(['id', 'name']);
+
+    //     // Filters
+    //     $selectedClass = $request->input('class_id');
+    //     $selectedSection = $request->input('section_id');
+    //     $selectedTerm = $request->input('term', '1st_term');
+
+    //     $results = collect();
+
+    //     if ($selectedClass) {
+    //         $students = Student::whereHas('class', fn($q) => $q->where('classes.id', $selectedClass))
+    //             ->when($selectedSection, fn($q) => $q->whereHas('section', fn($sq) => $sq->where('sections.id', $selectedSection)))
+    //             ->where('school_id', $schoolId)
+    //             ->admitted()
+    //             ->with([
+    //                 'class',
+    //                 'section',
+    //                 'results.examPaper.exam.examType'
+    //             ])
+    //             ->orderBy('registration_number')
+    //             ->get();
+
+    //         foreach ($students as $student) {
+    //             // Filter results by term via examType name
+    //             $termResults = $student->results->filter(function ($result) use ($selectedTerm) {
+    //                 return optional($result->examPaper->exam->examType)->code === $selectedTerm;
+    //             });
+
+    //             // dd($termResults);
+
+    //             $results->push([
+    //                 'student' => $student,
+    //                 'results' => $termResults->values(),
+    //                 'total_marks' => $termResults->sum('obtained_marks'),
+    //                 'total_possible_marks' => $termResults->sum('total_marks'),
+    //                 'percentage' => $termResults->count() > 0
+    //                     ? round(($termResults->sum('obtained_marks') / $termResults->sum('total_marks')) * 100, 2)
+    //                     : 0,
+    //             ]);
+    //         }
+    //     }
+    //     $terms = ExamType::pluck('name', 'code');
+
+    //     return Inertia::render('ExamResults/Index', [
+    //         'classes' => $classes,
+    //         'sections' => $sections,
+    //         'results' => $results,
+    //         'selectedClass' => $selectedClass,
+    //         'selectedSection' => $selectedSection,
+    //         'selectedTerm' => $selectedTerm,
+    //         'terms' => $terms,
+    //     ]);
+    // }
+=======
+>>>>>>> 62b9a0b8c7ca25ae2fac4a38f2b1213812e1d10b
+
 
     public function index(Request $request)
     {
