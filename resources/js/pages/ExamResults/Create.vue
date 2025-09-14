@@ -242,20 +242,12 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                 <tr class="bg-gray-100 dark:bg-neutral-800 text-left">
                                     <th class="p-2 text-sm">#</th>
                                     <th class="p-2 text-sm">Student</th>
-<<<<<<< HEAD
                                     <th class="p-2 text-sm flex">Obtained Marks <span class="text-red-500">*</span>
                                     </th>
                                     <th class="p-2 text-sm">Total Marks</th>
                                     <th class="p-2 text-sm">Remarks</th>
                                     <th class="p-2 text-sm">Paper Image<span class="text-red-500">*</span></th>
-=======
-                                    <th class="p-2 text-sm flex border border-amber-300">Obtained Marks <span
-                                            class="text-red-500">*</span>
-                                    </th>
-                                    <th class="p-2 text-sm">Total Marks</th>
-                                    <th class="p-2 text-sm">Remarks</th>
-                                    <th class="p-2 text-sm">Paper Image(s)</th>
->>>>>>> 62b9a0b8c7ca25ae2fac4a38f2b1213812e1d10b
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -277,12 +269,9 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                     <!-- Total Marks -->
                                     <td class="p-2">
                                         <TextInput v-model="result.total_marks" type="number" min="0" class="w-24"
-<<<<<<< HEAD
                                             disabled :error="getResultFieldError(index, 'total_marks')"
                                             placeholder="100" />
-=======
-                                            :error="getResultFieldError(index, 'total_marks')" placeholder="100" />
->>>>>>> 62b9a0b8c7ca25ae2fac4a38f2b1213812e1d10b
+
                                     </td>
 
                                     <!-- Remarks -->

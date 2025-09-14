@@ -1,1 +1,0 @@
-import{d as t,i as o,o as l,A as r,u as n,aP as c,M as p}from"./app-oDzFbDpS.js";const i=t({__name:"DialogHeader",props:{class:{}},setup(e){const a=e;return(s,d)=>(l(),o("div",{"data-slot":"dialog-header",class:r(n(c)("flex flex-col gap-2 text-center sm:text-left",a.class))},[p(s.$slots,"default")],2))}});export{i as _};
