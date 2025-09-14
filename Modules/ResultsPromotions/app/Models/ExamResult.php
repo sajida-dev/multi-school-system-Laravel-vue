@@ -21,7 +21,8 @@ class ExamResult extends Model
         'percentage',
         'status',
         'promotion_status',
-        'remarks'
+        'remarks',
+        'marked_by',
     ];
 
     public function examPaper()

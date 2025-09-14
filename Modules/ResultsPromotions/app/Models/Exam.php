@@ -23,6 +23,7 @@ class Exam extends Model
         'academic_year',
         'start_date',
         'end_date',
+        'result_entry_deadline',
         'status',
         'instructions',
         'created_by',

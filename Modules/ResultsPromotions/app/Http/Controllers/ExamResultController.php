@@ -20,78 +20,6 @@ class ExamResultController extends Controller
     /**
      * Display a listing of the resource.
      */
-<<<<<<< HEAD
-
-    // public function index(Request $request)
-    // {
-    //     $schoolId = session('active_school_id');
-
-    //     // Fetch dropdown data
-    //     $classes = ClassModel::whereHas('schools', fn($q) => $q->where('schools.id', $schoolId))
-    //         ->orderBy('name')
-    //         ->get(['id', 'name']);
-
-    //     $sections = Section::whereIn('id', function ($query) use ($schoolId) {
-    //         $query->select('class_school_sections.section_id')
-    //             ->from('class_school_sections')
-    //             ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
-    //             ->where('class_schools.school_id', $schoolId);
-    //     })->orderBy('name')->get(['id', 'name']);
-
-    //     // Filters
-    //     $selectedClass = $request->input('class_id');
-    //     $selectedSection = $request->input('section_id');
-    //     $selectedTerm = $request->input('term', '1st_term');
-
-    //     $results = collect();
-
-    //     if ($selectedClass) {
-    //         $students = Student::whereHas('class', fn($q) => $q->where('classes.id', $selectedClass))
-    //             ->when($selectedSection, fn($q) => $q->whereHas('section', fn($sq) => $sq->where('sections.id', $selectedSection)))
-    //             ->where('school_id', $schoolId)
-    //             ->admitted()
-    //             ->with([
-    //                 'class',
-    //                 'section',
-    //                 'results.examPaper.exam.examType'
-    //             ])
-    //             ->orderBy('registration_number')
-    //             ->get();
-
-    //         foreach ($students as $student) {
-    //             // Filter results by term via examType name
-    //             $termResults = $student->results->filter(function ($result) use ($selectedTerm) {
-    //                 return optional($result->examPaper->exam->examType)->code === $selectedTerm;
-    //             });
-
-    //             // dd($termResults);
-
-    //             $results->push([
-    //                 'student' => $student,
-    //                 'results' => $termResults->values(),
-    //                 'total_marks' => $termResults->sum('obtained_marks'),
-    //                 'total_possible_marks' => $termResults->sum('total_marks'),
-    //                 'percentage' => $termResults->count() > 0
-    //                     ? round(($termResults->sum('obtained_marks') / $termResults->sum('total_marks')) * 100, 2)
-    //                     : 0,
-    //             ]);
-    //         }
-    //     }
-    //     $terms = ExamType::pluck('name', 'code');
-
-    //     return Inertia::render('ExamResults/Index', [
-    //         'classes' => $classes,
-    //         'sections' => $sections,
-    //         'results' => $results,
-    //         'selectedClass' => $selectedClass,
-    //         'selectedSection' => $selectedSection,
-    //         'selectedTerm' => $selectedTerm,
-    //         'terms' => $terms,
-    //     ]);
-    // }
-=======
->>>>>>> 62b9a0b8c7ca25ae2fac4a38f2b1213812e1d10b
-
 
     public function index(Request $request)
     {
@@ -109,55 +37,74 @@ class ExamResultController extends Controller
                 ->where('class_schools.school_id', $schoolId);
         })->orderBy('name')->get(['id', 'name']);
 
-        // Filters
+        // Filters from request
         $selectedClass = $request->input('class_id');
         $selectedSection = $request->input('section_id');
         $selectedTerm = $request->input('term', '1st_term');
 
+        // Prepare results
         $results = collect();
 
         if ($selectedClass) {
             $students = Student::whereHas('class', fn($q) => $q->where('classes.id', $selectedClass))
                 ->when($selectedSection, fn($q) => $q->whereHas('section', fn($sq) => $sq->where('sections.id', $selectedSection)))
                 ->where('school_id', $schoolId)
-                ->admitted()
+                ->admitted()  // assuming this scope filters admitted students
                 ->with([
                     'class',
                     'section',
-                    'results.examPaper.exam.examType'
+                    'results.examPaper.exam.examType',  // you have this
+                    'results.examPaper.subject'         // ensure subject is loaded so you can show subject
                 ])
                 ->orderBy('registration_number')
                 ->get();
 
             foreach ($students as $student) {
-                // Filter results by term via examType name
+                // Filter student's results by term
                 $termResults = $student->results->filter(function ($result) use ($selectedTerm) {
                     return optional($result->examPaper->exam->examType)->code === $selectedTerm;
                 });
 
-                // dd($termResults);
+                // Build result items for each result
+                $resultItems = $termResults->map(function ($result) {
+                    return [
+                        'subject_id'      => $result->examPaper->subject_id,
+                        'subject_name'    => optional($result->examPaper->subject)->name,
+                        'obtained_marks'  => $result->obtained_marks,
+                        'total_marks'     => $result->total_marks,
+                        'exam_paper_title' => optional($result->examPaper)->title,
+                        // you can add more fields if needed (date, etc.)
+                    ];
+                });
+
+                $obtainedTotal = $termResults->sum('obtained_marks');
+                $possibleTotal = $termResults->sum('total_marks');
+
+                $percentage = $possibleTotal > 0
+                    ? round(($obtainedTotal / $possibleTotal) * 100, 2)
+                    : 0;
 
                 $results->push([
-                    'student' => $student,
-                    'results' => $termResults->values(),
-                    'total_marks' => $termResults->sum('obtained_marks'),
-                    'total_possible_marks' => $termResults->sum('total_marks'),
-                    'percentage' => $termResults->count() > 0
-                        ? round(($termResults->sum('obtained_marks') / $termResults->sum('total_marks')) * 100, 2)
-                        : 0,
+                    'student'                => $student,
+                    'results'                => $resultItems,
+                    'total_obtained_marks'   => $obtainedTotal,
+                    'total_possible_marks'   => $possibleTotal,
+                    'percentage'             => $percentage,
+                    'term_has_results'       => $termResults->isNotEmpty(),  // whether any results exist for that term
                 ]);
             }
         }
+
         $terms = ExamType::pluck('name', 'code');
 
         return Inertia::render('ExamResults/Index', [
-            'classes' => $classes,
-            'sections' => $sections,
-            'results' => $results,
-            'selectedClass' => $selectedClass,
-            'selectedSection' => $selectedSection,
-            'selectedTerm' => $selectedTerm,
-            'terms' => $terms,
+            'classes'          => $classes,
+            'sections'         => $sections,
+            'results'          => $results,
+            'selectedClass'    => $selectedClass,
+            'selectedSection'  => $selectedSection,
+            'selectedTerm'     => $selectedTerm,
+            'terms'            => $terms,
         ]);
     }
 
@@ -232,6 +179,7 @@ class ExamResultController extends Controller
      */
     public function store(Request $request)
     {
+        dd(Auth::id());
         $request->validate([
             'school_id' => 'required|exists:schools,id',
             'class_id' => 'required|exists:classes,id',
@@ -239,8 +187,6 @@ class ExamResultController extends Controller
             'results' => 'required|array|min:1',
             'results.*.student_id' => 'required|exists:students,id',
             'results.*.obtained_marks' => 'required|numeric|min:0',
-            'results.*.total_marks' => 'required|numeric|min:1',
-            'results.*.status' => 'required|in:pass,fail,absent',
             'results.*.remarks' => 'nullable|string|max:500',
         ]);
 
@@ -252,10 +198,11 @@ class ExamResultController extends Controller
                     $images[] = $imageFile->store('exam-results', 'public');
                 }
             }
+
             $examPaper = ExamPaper::find($request->exam_paper_id);
             if ($examPaper->passing_marks < $result['obtained_marks']) {
                 $result['status'] = 'pass';
-
+                $result['promotion_status'] = 'promoted';
                 if ($result['obtained_marks'] > 90) {
                     $result['remarks'] = $result['remarks'] ?? 'Excellent';
                 } else if ($result['obtained_marks'] > 80) {
@@ -266,6 +213,7 @@ class ExamResultController extends Controller
                     $result['remarks'] = $result['remarks'] ?? 'Pass';
                 }
             } else {
+                $result['promotion_status'] = 'failed';
                 $result['status'] = 'fail';
                 $result['remarks'] = $result['remarks'] ?? 'Marks not passed.';
             }

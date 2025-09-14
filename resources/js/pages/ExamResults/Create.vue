@@ -242,12 +242,20 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                 <tr class="bg-gray-100 dark:bg-neutral-800 text-left">
                                     <th class="p-2 text-sm">#</th>
                                     <th class="p-2 text-sm">Student</th>
+<<<<<<< HEAD
+                                    <th class="p-2 text-sm flex">Obtained Marks <span class="text-red-500">*</span>
+                                    </th>
+                                    <th class="p-2 text-sm">Total Marks</th>
+                                    <th class="p-2 text-sm">Remarks</th>
+                                    <th class="p-2 text-sm">Paper Image<span class="text-red-500">*</span></th>
+=======
                                     <th class="p-2 text-sm flex border border-amber-300">Obtained Marks <span
                                             class="text-red-500">*</span>
                                     </th>
                                     <th class="p-2 text-sm">Total Marks</th>
                                     <th class="p-2 text-sm">Remarks</th>
                                     <th class="p-2 text-sm">Paper Image(s)</th>
+>>>>>>> 62b9a0b8c7ca25ae2fac4a38f2b1213812e1d10b
                                 </tr>
                             </thead>
                             <tbody>
@@ -261,14 +269,20 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
 
                                     <!-- Obtained Marks -->
                                     <td class="p-2">
-                                        <TextInput v-model="result.obtained_marks" type="number" min="0" class="w-24"
-                                            :error="getResultFieldError(index, 'obtained_marks')" placeholder="Marks" />
+                                        <TextInput v-model="result.obtained_marks" type="number" min="0" max="100"
+                                            class="w-24" :error="getResultFieldError(index, 'obtained_marks')"
+                                            placeholder="Marks" />
                                     </td>
 
                                     <!-- Total Marks -->
                                     <td class="p-2">
                                         <TextInput v-model="result.total_marks" type="number" min="0" class="w-24"
+<<<<<<< HEAD
+                                            disabled :error="getResultFieldError(index, 'total_marks')"
+                                            placeholder="100" />
+=======
                                             :error="getResultFieldError(index, 'total_marks')" placeholder="100" />
+>>>>>>> 62b9a0b8c7ca25ae2fac4a38f2b1213812e1d10b
                                     </td>
 
                                     <!-- Remarks -->
@@ -315,9 +329,9 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
 
                     <div v-else
                         class="text-center py-4 px-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
-                        <p class="text-yellow-700 dark:text-yellow-200 font-medium">⚠️ No Students Found</p>
-                        <p class="text-yellow-600 dark:text-yellow-300 text-sm">Please select a class with admitted
-                            students.</p>
+                        <p class="text-yellow-700 dark:text-yellow-200 font-medium">⚠️ No Students Found.</p>
+                        <p class="text-yellow-600 dark:text-yellow-300 text-sm">
+                            Please select a class with admitted students.</p>
                     </div>
 
                     <div class="flex justify-end space-x-3 mt-6">
