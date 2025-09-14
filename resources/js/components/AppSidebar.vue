@@ -109,17 +109,18 @@ const mainNavItems: NavItem[] = [
         permission: 'manage-exam-results'
     },
     {
-        title: 'Manage Reports',
-        href: '/reports',
-        icon: BarChart3,
-        permission: 'manage-reports',
-    },
-    {
         title: 'Manage Certificates',
         href: '/certificates',
         icon: Award,
         permission: 'manage-certificates',
     },
+    {
+        title: 'Manage Reports',
+        href: '/reports',
+        icon: BarChart3,
+        permission: 'manage-reports',
+    },
+
 ];
 
 const footerNavItems: NavItem[] = [];

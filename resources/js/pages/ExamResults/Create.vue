@@ -252,7 +252,7 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                             </thead>
                             <tbody>
                                 <tr v-for="(result, index) in form.results" :key="index"
-                                    class="border-b dark:border-neutral-700">
+                                    class="border-b dark:border-neutral-700 justify-evenly">
                                     <td class="p-2 text-sm">{{ index + 1 }}</td>
                                     <td class="p-2 text-sm">
                                         {{ props.students[index].name }} (Reg# {{
@@ -262,14 +262,14 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                     <!-- Obtained Marks -->
                                     <td class="p-2">
                                         <TextInput v-model="result.obtained_marks" type="number" min="0" max="100"
-                                            class="w-24" :error="getResultFieldError(index, 'obtained_marks')"
+                                            class="w-32" :error="getResultFieldError(index, 'obtained_marks')"
                                             placeholder="Marks" />
                                     </td>
 
                                     <!-- Total Marks -->
-                                    <td class="p-2">
-                                        <TextInput v-model="result.total_marks" type="number" min="0" class="w-24"
-                                            disabled :error="getResultFieldError(index, 'total_marks')"
+                                    <td class="">
+                                        <TextInput v-model="result.total_marks" type="number" min="0" max="100"
+                                            class="w-32" disabled :error="getResultFieldError(index, 'total_marks')"
                                             placeholder="100" />
 
                                     </td>
@@ -281,7 +281,7 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                                     </td>
                                     <!-- Paper Image Upload -->
                                     <td class="p-2 text-sm">
-                                        <div class="relative border-2 border-dashed rounded-md min-h-[100px] w-28 flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all"
+                                        <div class="relative border-2 border-dashed rounded-md min-h-[100px] w-38 flex items-center justify-center cursor-pointer hover:border-blue-400 transition-all"
                                             @click="triggerFileInput(index)">
                                             <!-- Show image preview -->
                                             <template v-if="studentImagePreviews[index]?.length">

@@ -3,14 +3,19 @@
 
         <Head title="Results Management" />
 
-        <div class="py-10 max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-6">
-                <Users class="h-6 w-6 text-gray-500 dark:text-gray-400" />
-                Exam Results
-            </h1>
+        <div class="py-10 max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
+            <div class="flex flex-row justify-between">
+                <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-6">
+                    <Users class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                    Exam Results
+                </h1>
+                <Button v-can="'create-exams'" variant="default" size="lg"
+                    @click="router.visit(route('exam-results.create'))">
+                    Add Result
+                </Button>
+            </div>
             <div
-                class="bg-white grid grid-cols-1  my-5 lg:grid-cols-4 gap-5 dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
-                <!-- <h2 class="text-lg font-semibold mb-4">Filters</h2> -->
+                class="bg-white grid grid-cols-1  my-5 lg:grid-cols-4 gap-5 dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-3">
                 <!-- Class -->
                 <div class="mb-4">
                     <Label for="class_id" class="block text-sm font-medium dark:text-gray-200">Class</Label>
@@ -55,7 +60,7 @@
                 </div>
 
             </div>
-            <div class=" flex flex-col lg:flex-row gap-6">
+            <div v-if="results.length > 0" class=" flex flex-col lg:flex-row gap-6">
 
                 <!-- Left panel: Filters & Student List -->
                 <div class="w-full lg:w-1/3 space-y-6">
@@ -87,40 +92,6 @@
                 </div>
 
                 <!-- Right panel: Selected student detail view -->
-                <!-- <div
-                    class="w-full lg:w-2/3 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
-                    <div v-if="selectedStudent">
-                        <h2 class="text-xl font-semibold dark:text-gray-100">{{ selectedStudent.student.name }}'s
-                            Detailed
-                            Result</h2>
-                        <p class="text-sm dark:text-gray-400 mb-4">Reg#: {{ selectedStudent.student.registration_number
-                        }}
-                        </p>
-
-                        <table class="w-full text-sm border-collapse">
-                            <thead class="bg-gray-50 dark:bg-neutral-800">
-                                <tr>
-                                    <th class="px-4 py-2 text-left">Subject</th>
-                                    <th class="px-4 py-2 text-left">Exam Paper</th>
-                                    <th class="px-4 py-2 text-left">Obtained Marks</th>
-                                    <th class="px-4 py-2 text-left">Total Marks</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                                <tr v-for="item in selectedStudent.results" :key="item.subject_id">
-                                    <td class="px-4 py-2">{{ item.subject_name }}</td>
-                                    <td class="px-4 py-2">{{ item.exam_paper_title }}</td>
-                                    <td class="px-4 py-2">{{ item.obtained_marks }}</td>
-                                    <td class="px-4 py-2">{{ item.total_marks }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                    </div>
-                    <div v-else class="text-center dark:text-gray-400">
-                        <p>Select a student from left to view detail result</p>
-                    </div>
-                </div> -->
 
                 <div v-if="selectedStudent"
                     class="bg-white dark:bg-neutral-900 w-full rounded-xl border border-gray-200 dark:border-neutral-700 p-6 ">
@@ -185,6 +156,18 @@
                 </div>
 
             </div>
+            <!-- Empty State when no class selected -->
+            <div v-else class="text-center py-12">
+                <div
+                    class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <LucideBarChart3 class="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-3">Apply filters or Add new result
+                </h3>
+                <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                    Choose a class from the dropdown above to view and manage subject assignments
+                </p>
+            </div>
 
         </div>
 
@@ -197,9 +180,9 @@ import { ref, watch, computed } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Label } from '@/components/ui/label';
-import { Building2, Users, Calendar } from 'lucide-vue-next';
+import { Users, LucideBarChart3 } from 'lucide-vue-next';
 import axios from 'axios';
-import { h } from 'vue';
+import Button from '@/components/ui/button/Button.vue';
 
 interface Student {
     id: number;
